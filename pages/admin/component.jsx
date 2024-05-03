@@ -1,99 +1,45 @@
 import React, { useEffect, useState } from 'react';
-import Glossary from './glossary';
-import Category from './category';
-import Question from './question';
-import GlossaryType from './glossary-type';
-import { Col, Nav, Row, Tab } from 'react-bootstrap';
-import { getAllCategories } from '../../api/category';
-import getByCategoryGlossaries from '../../api/glossary/get-all';
-import getGlossaryTypes from '../../api/glossary/get-types';
-import KnowledgeBaseAdmin from './knowledge-base';
+import { Tab } from 'react-bootstrap';
+import { faEnvelope, faUsersGear, faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons';
+import FeedbackAdmin from './feedback/component';
+import CustomQuizzesAdmin from './custom-quizzes/component';
+import UsersAdmin from './users/component';
+import { AdminDashboard } from '../../components/admin/dashboard';
+import { FEEDBACK_CHANGED, getOpenFeedbackCount } from '../../api/feedback';
 
-const Admin = () => {
-  const [categories, setCategories] = useState([]);
-  const [glossaries, setGlossaries] = useState([]);
-  const [glossaryTypes, setGlossaryTypes] = useState([]);
-  const [glossaryFilter, setGlossaryFilter] = useState(2);
-
+// The admin dashboard: what players send in (the quizzes they wrote, the messages they left) and
+// the accounts themselves. Admins only — the content dashboard at /content holds the quiz content,
+// which the content roles reach as well.
+const AdminDashboardPage = () => {
+  // How many messages are still open, beside the Feedback entry. The Feedback tab fires
+  // FEEDBACK_CHANGED when one is resolved or reopened, so the count follows without a reload.
+  const [openFeedback, setOpenFeedback] = useState(0);
   useEffect(() => {
-    const fetchCategories = async () => await getAllCategories();
-    fetchCategories()
-      .then(result => setCategories(result));
+    const recount = () => getOpenFeedbackCount().then(count => setOpenFeedback(count ?? 0));
+    recount();
+    window.addEventListener(FEEDBACK_CHANGED, recount);
+    return () => window.removeEventListener(FEEDBACK_CHANGED, recount);
   }, []);
 
-  useEffect(() => {
-    const fetchGlossaries = async () => await getByCategoryGlossaries(glossaryFilter);
-    fetchGlossaries()
-      .then(result => setGlossaries(result));
-  }, [glossaryFilter]);
-
-  useEffect(() => {
-    const fetchGlossaryTypes = async () => await getGlossaryTypes();
-    fetchGlossaryTypes()
-      .then((result) => setGlossaryTypes(result));
-  }, []);
+  const sections = [
+    { key: 'custom-quizzes', label: 'Custom quizzes', icon: faWandMagicSparkles },
+    { key: 'feedback', label: 'Feedback', icon: faEnvelope, badge: openFeedback },
+    { key: 'users', label: 'Users', icon: faUsersGear },
+  ];
 
   return (
-    <Tab.Container id="left-tabs-example" defaultActiveKey="category">
-      <Row>
-        <Col sm={2}>
-          <Nav variant="pills" className="flex-column">
-            <Nav.Item>
-              <Nav.Link eventKey="category">Categories</Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link eventKey="glosary">Glossaries</Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link eventKey="glossaryType">Glossary type</Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link eventKey="question">Questions</Nav.Link>
-            </Nav.Item>
-            <Nav.Item>
-              <Nav.Link eventKey="knowledge-base">Knowledge base</Nav.Link>
-            </Nav.Item>
-          </Nav>
-        </Col>
-        <Col sm={10}>
-          <Tab.Content>
-            <Tab.Pane eventKey="category">
-              {(<Category categories={categories}
-                          setCategories={setCategories}
-              />)}
-            </Tab.Pane>
-            <Tab.Pane eventKey="glosary">
-              {(<Glossary
-                categories={categories}
-                glossaries={glossaries}
-                setGlossaries={setGlossaries}
-                glossaryTypes={glossaryTypes}
-                setGlossaryFilter={setGlossaryFilter}
-              />)}
-            </Tab.Pane>
-            <Tab.Pane eventKey="glossaryType">
-              {(<GlossaryType
-                glossaryTypes={glossaryTypes}
-                setGlossaryTypes={setGlossaryTypes}
-              />)}
-            </Tab.Pane>
-            <Tab.Pane eventKey="question">
-              {(<Question
-                categories={categories}
-                glossaries={glossaries}
-                setGlossaryFilter={setGlossaryFilter}
-              />)}
-            </Tab.Pane>
-            <Tab.Pane eventKey="knowledge-base">
-              <KnowledgeBaseAdmin
-                categories={categories}
-              />
-            </Tab.Pane>
-          </Tab.Content>
-        </Col>
-      </Row>
-    </Tab.Container>
+    <AdminDashboard title="Admin dashboard" sections={sections}>
+      <Tab.Pane eventKey="custom-quizzes">
+        <CustomQuizzesAdmin/>
+      </Tab.Pane>
+      <Tab.Pane eventKey="feedback">
+        <FeedbackAdmin/>
+      </Tab.Pane>
+      <Tab.Pane eventKey="users">
+        <UsersAdmin/>
+      </Tab.Pane>
+    </AdminDashboard>
   );
 };
 
-export default Admin;
+export default AdminDashboardPage;

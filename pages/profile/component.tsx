@@ -1,23 +1,31 @@
-import React from 'react';
-import {Button, Col, Container, Image, Row} from 'react-bootstrap';
+import React, {useState} from 'react';
 import {Calendar} from 'primereact/calendar';
 import {MultiSelect} from 'primereact/multiselect';
 import {InputText} from 'primereact/inputtext';
 import {saveProfileInfo} from '../../api/profile';
 import {toast} from 'react-toastify';
-import {changePassword, verifyOldPassword} from '../../api/authentication';
-import {CHANGE_PASSWORD_URL} from '../../api/constant';
-import {useRouter} from 'next/router';
 import moment from 'moment';
 import {setWIthPreview} from '../../utils/fileUtils';
 import {useTranslation} from "react-i18next";
-import {FlexContainer} from "../../components/common/FlexContainer";
-import {useProfile, useProfileSecurity} from "./hooks";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import {faCamera, faEnvelope, faFloppyDisk, faKey} from "@fortawesome/free-solid-svg-icons";
+import {Popup} from "../../components/common/popup";
+import {ChangePasswordForm} from "../../components/profile/change-password";
+import {useProfile} from "../../hooks/profile";
+import {QuizHistory} from "../../components/profile/quiz-history";
+import {IqScore} from "../../components/profile/iq-score";
+import {PreferredTrophy} from "../../components/profile/preferred-trophy";
+import {Statistics} from "../../components/profile/statistics";
 
-type ValueChangeType = (arg: any) => void;
+// Label over control; `wide` spans both grid columns.
+const Field = ({id, label, wide = false, children}) => (
+    <div className='profile-field' data-wide={wide}>
+        <label htmlFor={id}>{label}</label>
+        {children}
+    </div>
+);
 
 function Profile() {
-    const router = useRouter();
     const { t} = useTranslation();
 
     const {
@@ -28,12 +36,8 @@ function Profile() {
         previewAvatar, setPreviewAvatar,
     } = useProfile();
 
-    const {
-        password, setPassword,
-        oldPassword, setOldPassword,
-        repeatPassword, setRepeatPassword,
-        passwordMatches, setPasswordMatches
-    } = useProfileSecurity();
+    const [changingPassword, setChangingPassword] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     const handleChange = (event, field: string) =>
         setUser(values => ({
@@ -47,235 +51,155 @@ function Profile() {
             [field]: event.target.value
         }));
 
-    const handleFunctionChange = (event, setValue: ValueChangeType) =>
-        setValue(event.target.value);
+    const saveProfile = async (event) => {
+        event.preventDefault();
+        setSaving(true);
+        try {
+            const birthday = moment(user.birthday).format('YYYY-MM-DD');
+            const infoSaved = await saveProfileInfo(
+                {...user, isEnabled: user.enabled, birthday},
+                avatar
+            );
 
-    const saveProfile = async () => {
-        const birthday = moment(user.birthday).format('YYYY-MM-DD');
-        const infoSaved = await saveProfileInfo(
-            {...user, isEnabled: user.enabled, birthday},
-            avatar
-        );
-
-        if (infoSaved) {
-            toast.success(t('saved'));
+            if (infoSaved) {
+                toast.success(t('saved'));
+                // Uploaded: the preview stays, the "unsaved photo" note goes.
+                setAvatar(null);
+            }
+        } finally {
+            setSaving(false);
         }
     };
 
-    const savePassword = async () => {
-        if (password !== repeatPassword) {
-            toast.error('Passwords do not match. Try again');
-            return;
-        }
-
-        if (!passwordMatches) {
-            toast.error('Old password does not match');
-            return;
-        }
-
-        const response = await changePassword(CHANGE_PASSWORD_URL, {
-            oldPassword,
-            password
-        });
-        if (response) {
-            toast.success('Password successfully changed');
-            await router.push('/login');
-        }
-    };
-
-    const checkOldPassword = async () => {
-        if (!oldPassword) {
-            setPasswordMatches(null);
-            return;
-        }
-
-        const response = await verifyOldPassword({password: oldPassword});
-        setPasswordMatches(response === true);
-    };
+    const fullName = [user.name, user.surname].filter(Boolean).join(' ');
+    const displayName = fullName || user.username;
+    // The profile starts empty and fills in after the fetch; until then, show no placeholder,
+    // or "No username" would flash for everyone.
+    const loaded = Boolean(user.email);
+    const noUsername = loaded && !user.username;
 
     return (
-        <FlexContainer>
-            <Container>
-                <h3>{t('user')}</h3>
-                <Row className="mt-4">
-                    <Col>
-                        <span className="p-float-label">
-                            <InputText
-                                readOnly
-                                value={user.email}
-                                onChange={(event) => handleTargetChange(event, 'email')}
-                                className="w-100"
-                            />
-                            <label htmlFor="input_value">{t('email')}</label>
-                        </span>
-                    </Col>
-                </Row>
+        <div className='profile-page'>
+            <aside className='profile-card'>
+                {/* The whole avatar is the file picker; the input itself is visually hidden. The
+                    chosen trophy sits on its corner, and is the way to change it. */}
+                <div className='profile-avatar-slot'>
+                    <label className='profile-avatar' data-tooltip={t('change_photo', 'Change photo')}>
+                    {previewAvatar
+                        ? <img src={previewAvatar} alt=''/>
+                        : <span className='profile-avatar-initial' aria-hidden>{displayName?.charAt(0) || (loaded ? '?' : '')}</span>}
+                    <span className='profile-avatar-overlay'>
+                        <FontAwesomeIcon icon={faCamera}/>
+                        {t('change_photo', 'Change photo')}
+                    </span>
+                    <input type='file'
+                           accept='image/*'
+                           className='visually-hidden'
+                           onChange={(event) => setWIthPreview(event, avatar, setAvatar, setPreviewAvatar)}/>
+                    </label>
+                    <PreferredTrophy/>
+                </div>
+                {avatar && <span className='profile-avatar-pending'>{t('photo_unsaved', 'New photo — save to keep it')}</span>}
 
-                <Row className="mt-4">
-                    <Col>
-                        <span className="p-float-label">
-                            <InputText
-                                value={user.username}
-                                onChange={(event) => handleTargetChange(event, 'username')}
-                                className="w-100"/>
-                            <label htmlFor="input_value">{t('username')}</label>
-                        </span>
-                    </Col>
-                </Row>
+                {/* The email is shown on its own line below, never as the name. */}
+                <h1 className='profile-name' data-placeholder={!displayName && loaded}>
+                    {displayName || (loaded ? t('no_username', 'No username') : '')}
+                </h1>
+                {fullName && user.username && <p className='profile-username'>@{user.username}</p>}
+                {fullName && noUsername && (
+                    <p className='profile-username' data-placeholder='true'>{t('no_username', 'No username')}</p>
+                )}
+                {noUsername && (
+                    <label htmlFor='profile-username' className='profile-username-hint'>
+                        {t('no_username_hint', 'Set a username in your profile')} →
+                    </label>
+                )}
+                <p className='profile-email'><FontAwesomeIcon icon={faEnvelope}/> {user.email}</p>
 
-                <Row className="mt-4">
-                    <Col>
-                        <span className="p-float-label">
-                            <InputText
-                                value={user.name}
-                                onChange={(event) => handleTargetChange(event, 'name')}
-                                className="w-100"/>
-                            <label htmlFor="input_value">{t('name')}</label>
-                        </span>
-                    </Col>
-                </Row>
+                <IqScore/>
 
-                <Row className="mt-4">
-                    <Col>
-                        <span className="p-float-label">
-                            <InputText
-                                value={user.surname}
-                                onChange={(event) => handleTargetChange(event, 'surname')}
-                                className="w-100"/>
-                            <label htmlFor="input_value">{t('surname')}</label>
-                        </span>
-                    </Col>
-                </Row>
+                <div className='profile-privacy'>
+                    <h2 className='profile-section-title'>{t('privacy')}</h2>
+                    <p className='profile-hint'>{t('change_password_intro', 'Change the password you use to log in.')}</p>
+                    <button type='button'
+                            className='profile-secondary-button'
+                            onClick={() => setChangingPassword(true)}
+                            aria-haspopup='dialog'>
+                        <FontAwesomeIcon icon={faKey}/>
+                        {t('change_password')}
+                    </button>
+                </div>
 
-                <Row className="mt-4">
-                    <Col>
-                        <span className="p-float-label">
-                            <InputText
-                                value={user.theme}
-                                onChange={(event) => handleTargetChange(event, 'theme')}
-                                className="w-100"/>
-                            <label htmlFor="input_value">Theme</label>
-                        </span>
-                    </Col>
-                </Row>
+                <Popup open={changingPassword}
+                       icon={faKey}
+                       title={t('change_password')}
+                       onClose={() => setChangingPassword(false)}>
+                    <ChangePasswordForm onCancel={() => setChangingPassword(false)}/>
+                </Popup>
+            </aside>
 
-                <Row className="mt-4">
-                    <Col>
-                        <span className="p-float-label">
-                            <MultiSelect
-                                filter
-                                value={user.occupations}
-                                onChange={(event) => handleChange(event, 'occupations')}
-                                options={userOccupations}
-                                optionLabel="name"
-                                virtualScrollerOptions={{itemSize: 40}}
-                                className="w-100"/>
-                            <label htmlFor="input_value">{t('occupation')}</label>
-                        </span>
-                    </Col>
-                </Row>
+            <form className='profile-form' onSubmit={saveProfile}>
+                <h2 className='profile-section-title'>{t('user')}</h2>
 
-                <Row className="mt-4">
-                    <Col sm={6}>
-                        <span className="p-float-label">
-                                <Calendar
-                                    showButtonBar
-                                    className="w-100"
-                                    value={user.birthday}
-                                    dateFormat="yy-mm-dd"
-                                    onChange={(event) => handleTargetChange(event, 'birthday')}
-                                />
-                            <label htmlFor="input_value">{t('birthday')}</label>
-                        </span>
-                    </Col>
+                <div className='profile-grid'>
+                    <Field id='profile-username' label={t('username')}>
+                        <InputText id='profile-username'
+                                   value={user.username ?? ''}
+                                   onChange={(event) => handleTargetChange(event, 'username')}/>
+                    </Field>
+                    <Field id='profile-name' label={t('name')}>
+                        <InputText id='profile-name'
+                                   value={user.name ?? ''}
+                                   onChange={(event) => handleTargetChange(event, 'name')}/>
+                    </Field>
+                    <Field id='profile-surname' label={t('surname')}>
+                        <InputText id='profile-surname'
+                                   value={user.surname ?? ''}
+                                   onChange={(event) => handleTargetChange(event, 'surname')}/>
+                    </Field>
+                    <Field id='profile-birthday' label={t('birthday')}>
+                        <Calendar inputId='profile-birthday'
+                                  showButtonBar
+                                  showIcon
+                                  value={user.birthday}
+                                  dateFormat="yy-mm-dd"
+                                  onChange={(event) => handleTargetChange(event, 'birthday')}/>
+                    </Field>
+                    <Field id='profile-occupation' label={t('occupation')}>
+                        <MultiSelect inputId='profile-occupation'
+                                     filter
+                                     display='chip'
+                                     value={user.occupations}
+                                     onChange={(event) => handleChange(event, 'occupations')}
+                                     options={userOccupations}
+                                     optionLabel="name"
+                                     virtualScrollerOptions={{itemSize: 40}}/>
+                    </Field>
+                    <Field id='profile-categories' label={t('favorite_categories')} wide>
+                        <MultiSelect inputId='profile-categories'
+                                     filter
+                                     display='chip'
+                                     value={user.favoriteCategories}
+                                     onChange={(event) => handleChange(event, 'favoriteCategories')}
+                                     options={categories}
+                                     optionLabel="name"
+                                     virtualScrollerOptions={{itemSize: 40}}/>
+                    </Field>
+                </div>
 
-                    <Col sm={6}>
-                        <span className="p-float-label">
-                            <MultiSelect
-                                filter
-                                value={user.favoriteCategories}
-                                onChange={(event) => handleChange(event, 'favoriteCategories')}
-                                options={categories}
-                                optionLabel="name"
-                                virtualScrollerOptions={{itemSize: 40}}
-                                className="w-100"/>
-                            <label htmlFor="input_value">{t('favorite_categories')}</label>
-                        </span>
-                    </Col>
-                </Row>
+                <div className='profile-actions'>
+                    <button type='submit' className='profile-save' disabled={saving}>
+                        {saving ? <span className='auth-spinner' aria-hidden/> : <FontAwesomeIcon icon={faFloppyDisk}/>}
+                        {t('save')}
+                    </button>
+                </div>
+            </form>
 
-                <Row className="mt-4">
-                    <Col>
-                        <input
-                            type="file"
-                            onChange={(event) => setWIthPreview(event, avatar, setAvatar, setPreviewAvatar)}
-                        />
-                        <Image
-                            fluid
-                            rounded
-                            width={200}
-                            src={previewAvatar}
-                        />
-                    </Col>
-                </Row>
-
-                <Row>
-                    <Col>
-                        <Button onClick={saveProfile}>{t('save')}</Button>
-                    </Col>
-                </Row>
-            </Container>
-            <Container>
-                <h3>{t('privacy')}</h3>
-                <Row className="mt-4">
-                    <Col>
-                        <span className="p-float-label">
-                            <InputText
-                                type="password"
-                                autoComplete='new-password'
-                                value={oldPassword}
-                                onChange={(event) => handleFunctionChange(event, setOldPassword)}
-                                onBlur={checkOldPassword}
-                                className={passwordMatches === null || passwordMatches ? 'w-100' : 'w-100 p-invalid'}
-                            />
-                            <label htmlFor="input_value">{t('old_password')}</label>
-                        </span>
-                    </Col>
-                </Row>
-
-                <Row className="mt-4">
-                    <Col>
-                        <span className="p-float-label">
-                            <InputText
-                                type="password"
-                                value={password}
-                                onChange={(event) => handleFunctionChange(event, setPassword)}
-                                className="w-100"/>
-                            <label htmlFor="input_value">{t('new_password')}</label>
-                        </span>
-                    </Col>
-                </Row>
-
-                <Row className="mt-4">
-                    <Col>
-                        <span className="p-float-label">
-                            <InputText
-                                type="password"
-                                value={repeatPassword}
-                                onChange={(event) => handleFunctionChange(event, setRepeatPassword)}
-                                className="w-100"/>
-                            <label htmlFor="input_value">{t('retype_new_password')}</label>
-                        </span>
-                    </Col>
-                </Row>
-
-                <Row className="mt-4">
-                    <Col>
-                        <Button onClick={savePassword}>{t('change_password')}</Button>
-                    </Col>
-                </Row>
-            </Container>
-        </FlexContainer>
+            {/* Below the form, spanning both columns: how the last day, week or month went,
+                then every run in full. */}
+            <Statistics/>
+            <QuizHistory/>
+        </div>
     );
 }
 

@@ -1,0 +1,269 @@
+// ---- Profile statistics: a day, a week or a month of playing ----------------------------------
+// One series throughout (this player), so one hue and no legend: the headings say what each
+// number is, and colour is left to mean "this is data" rather than "this is which".
+.stats-panel {
+  @include glass-slab(6);
+  grid-column: 1 / -1;
+  padding: 16px 18px 14px;
+}
+
+.stats-header {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  .profile-section-title {
+    margin-bottom: 0;
+  }
+}
+
+// Day / week / month, the one filter this panel has, on a row of its own above everything.
+.stats-periods {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.25);
+  border-radius: 999px;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+}
+
+.stats-period {
+  background: none;
+  border: none;
+  border-radius: 999px;
+  color: #9fb6c4;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 6px 12px;
+  transition: background-color 180ms ease, color 180ms ease;
+
+  &:hover,
+  &:focus-visible {
+    color: #eaf6fd;
+    outline: none;
+  }
+
+  &[aria-selected='true'] {
+    background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+    color: var(--ui-on-accent, #ffffff);
+    // Labels inside: _base paints every span, p and div white itself, so they need telling.
+    > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  }
+}
+
+.stat-tiles {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(138px, 1fr));
+  margin-bottom: 14px;
+}
+
+.stat-tile {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.18);
+  border-radius: 12px;
+  display: grid;
+  gap: 1px;
+  padding: 9px 11px;
+  position: relative;
+}
+
+.stat-tile-icon {
+  color: var(--ui-accent-light);
+  font-size: 0.85rem;
+  opacity: 0.85;
+
+  // Sized outright as well, so an icon is the size it is meant to be even before FontAwesome's
+  // own stylesheet lands.
+  svg {
+    height: 2.5rem;
+    width: 1.6rem;
+  }
+}
+
+.stat-tile-value {
+  color: #ffffff;
+  font-size: 1.28rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.stat-tile-label {
+  color: #cfe9f7;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.stat-tile-hint {
+  color: #7fa3b6;
+  font-size: 0.68rem;
+}
+
+// The change on the period before. Green is the good direction, which is not always up — for
+// seconds per question it is down, and the tile says which way it means.
+.stat-tile-trend {
+  align-items: center;
+  color: #9fb6c4;
+  display: inline-flex;
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  gap: 3px;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+
+  &[data-good='true'] {
+    color: #48e08d;
+  }
+
+  &[data-good='false'] {
+    color: #ff8f6b;
+  }
+}
+
+.stat-section-title {
+  color: #7fa3b6;
+  display: block;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+
+  // Sized outright: an unsized FontAwesome svg draws at its own size, which beside 0.68rem
+  // capitals is enormous.
+  svg {
+    height: 1rem;
+    margin-right: 3px;
+    vertical-align: -2px;
+    width: 1.2rem;
+  }
+}
+
+// ---- The activity strip: one bar per day ------------------------------------------------------
+.stat-activity {
+  margin-bottom: 14px;
+}
+
+.stat-days {
+  align-items: flex-end;
+  display: flex;
+  gap: 2px;
+  height: 64px;
+}
+
+// The whole column is the hover target, not just the bar, so a quiet day is as easy to read as
+// a busy one.
+.stat-day {
+  align-items: flex-end;
+  display: flex;
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+}
+
+.stat-day-bar {
+  background: linear-gradient(180deg, var(--ui-accent-light) 0%, var(--ui-accent-dark) 100%);
+  border-radius: 4px 4px 0 0;
+  display: block;
+  width: 100%;
+
+  // A day with nothing on it keeps a sliver, so the strip reads as a row of days rather than
+  // as a gap in the data.
+  &[data-empty='true'] {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.stat-days-ends {
+  color: #7fa3b6;
+  display: flex;
+  font-size: 0.66rem;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+// ---- Played most, strong points, weak points --------------------------------------------------
+.stat-columns {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.stat-top-category {
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+
+.stat-categories {
+  display: grid;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stat-category {
+  align-items: center;
+  display: grid;
+  gap: 2px 8px;
+  grid-template-columns: 1fr auto;
+}
+
+.stat-category-name {
+  color: #eaf6fd;
+  font-size: 0.8rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stat-category-value {
+  color: #eaf6fd;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.stat-category-bar {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  grid-column: 1 / -1;
+  height: 5px;
+  order: 3;
+  overflow: hidden;
+}
+
+.stat-category-fill {
+  background: linear-gradient(90deg, var(--ui-accent-light) 0%, var(--ui-accent-dark) 100%);
+  display: block;
+  height: 100%;
+
+  // The weaker list is the same measure, marked out so the two are not read as one ranking.
+  .stat-categories[data-weak='true'] & {
+    background: linear-gradient(90deg, #ffb45c 0%, #e0762b 100%);
+  }
+}
+
+.stat-category-count {
+  color: #7fa3b6;
+  font-size: 0.66rem;
+  grid-column: 1 / -1;
+  order: 4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .stats-period {
+      transition: none;
+    }
+  }
+}

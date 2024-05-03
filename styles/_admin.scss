@@ -1,0 +1,1144 @@
+// Admin: Bootstrap's dark theme (data-bs-theme="dark") does the heavy lifting; this layers
+// the app's cyan accents and glass panels on top.
+.admin-page {
+  --accent: var(--ui-accent);
+  --accent-soft: rgba(var(--ui-accent-rgb), 0.35);
+  --bs-primary: var(--ui-accent);
+  --bs-primary-rgb: 0, 168, 232;
+  --bs-border-color: rgba(var(--ui-accent-rgb), 0.28);
+  --bs-body-bg: rgba(4, 14, 22, 0.7);
+  --bs-secondary-bg: rgba(10, 32, 48, 0.9);
+  padding-top: 10px;
+
+  // Side menu: a glass rail like the chat's, pinned under the header while the tables scroll.
+  // Items are rounded rows with an icon; the active one gets a lit left edge, a wash and a
+  // glowing icon.
+  .admin-nav {
+    align-self: flex-start;
+    position: sticky;
+    top: 90px;
+  }
+
+  .admin-menu {
+    @include glass-slab(6);
+    padding: 20px 12px 12px;
+  }
+
+  .admin-menu-title {
+    color: #eaf6fd;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    margin: 0 10px 14px;
+    text-transform: uppercase;
+
+    &::after {
+      background: linear-gradient(90deg, var(--accent) 0%, rgba(var(--ui-accent-rgb), 0) 100%);
+      box-shadow: 0 0 10px rgba(var(--ui-accent-rgb), 0.6);
+      content: '';
+      display: block;
+      height: 1px;
+      margin-top: 10px;
+      width: 60px;
+    }
+  }
+
+  .admin-menu .nav-pills {
+    gap: 4px;
+  }
+
+  .admin-menu .nav-link {
+    align-items: center;
+    background: none;
+    border-radius: 12px;
+    color: #9fb6c4;
+    display: flex;
+    font-size: 0.78rem;
+    font-weight: 600;
+    gap: 12px;
+    letter-spacing: 0.08em;
+    padding: 9px 10px;
+    text-transform: uppercase;
+    transition: background-color 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
+
+    &:hover,
+    &:focus-visible {
+      background-color: rgba(var(--ui-accent-rgb), 0.1);
+      color: #eaf6fd;
+      outline: none;
+      transform: translateX(3px);
+
+      .admin-menu-icon {
+        color: var(--ui-accent);
+      }
+    }
+
+    &.active {
+      background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0.28) 0%, rgba(var(--ui-accent-rgb), 0.04) 100%);
+      box-shadow: inset 3px 0 0 var(--accent);
+      color: #ffffff;
+      text-shadow: 0 0 12px rgba(var(--ui-accent-rgb), 0.6);
+
+      .admin-menu-icon {
+        color: var(--accent);
+        filter: drop-shadow(0 0 6px rgba(var(--ui-accent-rgb), 0.6));
+      }
+    }
+  }
+
+  // Plain monochrome glyphs in a fixed-width column, so labels line up whatever the icon's
+  // shape; colour only on hover and on the active row.
+  .admin-menu-icon {
+    color: #6f8fa1;
+    display: grid;
+    flex: 0 0 22px;
+    height: 22px;
+    place-items: center;
+    transition: color 180ms ease, filter 180ms ease;
+
+    svg {
+      height: 16px;
+      width: 16px;
+    }
+  }
+
+  .admin-menu-label {
+    color: inherit;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  // How many messages are still open, at the end of the Feedback row.
+  .admin-menu-badge {
+    background: #ff5d6c;
+    border-radius: 999px;
+    color: #ffffff;
+    flex: none;
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 17px;
+    margin-left: auto;
+    min-width: 17px;
+    padding: 0 5px;
+    text-align: center;
+  }
+
+  // Phones: the rail sits above the content, not pinned beside it.
+  @media (max-width: 575px) {
+    .admin-nav {
+      margin-bottom: 20px;
+      position: static;
+    }
+  }
+
+  // Section cards (forms and tables): the same glass slab as the rest of the app, plus a top
+  // glow: a brighter wash spilling down from the top edge and an energy line along it.
+  .shadowed {
+    @include glass-slab(6);
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(var(--ui-accent-rgb), 0.3) 0%, rgba(var(--ui-accent-rgb), 0) 65%),
+      linear-gradient(180deg, rgba(10, 32, 48, 0.9) 0%, rgba(4, 14, 22, 0.9) 100%);
+    padding: 22px 20px 20px;
+    position: relative;
+
+    &::before {
+      background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0) 0%, var(--ui-accent) 50%, rgba(var(--ui-accent-rgb), 0) 100%);
+      box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.8);
+      content: '';
+      height: 2px;
+      left: 15%;
+      position: absolute;
+      right: 15%;
+      top: 0;
+    }
+  }
+
+  // A wrapper around other panels (glossary layout) stays flat, so only the real sections glow.
+  .shadowed:has(.shadowed) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: none;
+    border: none;
+    box-shadow: none;
+    margin-bottom: 0;
+    padding: 0;
+
+    &::before {
+      content: none;
+    }
+  }
+
+  h4 {
+    color: #eaf6fd;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    margin-bottom: 0;
+    text-transform: uppercase;
+  }
+
+  // Under each section heading: a glowing line, brightest in the middle.
+  hr {
+    background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0) 0%, var(--accent) 50%, rgba(var(--ui-accent-rgb), 0) 100%);
+    border: 0;
+    box-shadow: 0 0 10px rgba(var(--ui-accent-rgb), 0.5);
+    height: 1px;
+    margin: 14px auto 22px;
+    opacity: 1;
+    width: 70%;
+  }
+
+  // ---- Forms: the profile page's fields ------------------------------------------------
+
+  .form-label {
+    color: #7fa3b6;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .mb-3:focus-within > .form-label {
+    color: var(--accent);
+  }
+
+  .form-control,
+  .form-select {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+    border-radius: 12px;
+    color: #eaf6fd;
+    min-height: 44px;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+
+    &:hover {
+      border-color: rgba(var(--ui-accent-rgb), 0.6);
+    }
+
+    &:focus {
+      background-color: rgba(0, 0, 0, 0.4);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 0 16px rgba(var(--ui-accent-rgb), 0.3);
+    }
+
+    &::placeholder {
+      color: #5f7a89;
+    }
+  }
+
+  textarea.form-control {
+    min-height: 96px;
+  }
+
+  // Validation: the same red as the rejected-password field.
+  .was-validated .form-control:invalid,
+  .was-validated .form-select:invalid,
+  .form-control.is-invalid,
+  .form-select.is-invalid {
+    border-color: #ff5d6c;
+    box-shadow: 0 0 0 1px #ff5d6c, 0 0 14px rgba(255, 93, 108, 0.25);
+  }
+
+  .invalid-feedback {
+    color: #ff7a86;
+  }
+
+  .form-control::file-selector-button {
+    background-color: rgba(var(--ui-accent-rgb), 0.18);
+    border: 0;
+    color: #cfe9f7;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    margin-right: 12px;
+    text-transform: uppercase;
+  }
+
+  .form-control:hover:not(:disabled)::file-selector-button {
+    background-color: rgba(var(--ui-accent-rgb), 0.32);
+    color: #ffffff;
+  }
+
+  // Switches: dim track off, glowing cyan track on.
+  .form-switch .form-check-input {
+    background-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(var(--ui-accent-rgb), 0.4);
+    cursor: pointer;
+    height: 1.35em;
+    width: 2.5em;
+
+    &:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(var(--ui-accent-rgb), 0.25);
+    }
+
+    &:checked {
+      background-color: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(var(--ui-accent-rgb), 0.55);
+    }
+
+    // Read-only switches in the tables: still legible, just not interactive.
+    &:disabled {
+      cursor: default;
+      opacity: 0.75;
+    }
+  }
+
+  .btn-primary {
+    @include chat-button;
+    height: 46px;
+    padding: 0 30px;
+  }
+
+  // ---- Tables: rounded frame, tinted header, row lines only ------------------------------
+
+  .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: #cfe9f7;
+    --bs-table-striped-bg: rgba(var(--ui-accent-rgb), 0.04);
+    --bs-table-striped-color: #cfe9f7;
+    --bs-table-hover-bg: rgba(var(--ui-accent-rgb), 0.14);
+    --bs-table-border-color: rgba(var(--ui-accent-rgb), 0.15);
+    // Separate borders so the frame can have rounded corners.
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.25);
+    border-collapse: separate;
+    border-radius: 12px;
+    border-spacing: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+
+    // .table-bordered draws every cell edge; keep only the line under each row.
+    > :not(caption) > * > * {
+      border-width: 0 0 1px;
+      padding: 12px 14px;
+      vertical-align: middle;
+    }
+
+    > tbody > tr:last-child > * {
+      border-bottom-width: 0;
+    }
+
+    th {
+      background: rgba(var(--ui-accent-rgb), 0.1);
+      border-bottom: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+      color: var(--accent);
+      font-size: 0.7rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    // Cell artwork: thumbnails, not full-size images. Square, the shape content images are cut to.
+    td img {
+      border-radius: 8px;
+      box-shadow: 0 0 0 1px rgba(var(--ui-accent-rgb), 0.35), 0 4px 12px rgba(0, 0, 0, 0.4);
+      max-height: 72px;
+      max-width: 72px;
+      object-fit: cover;
+    }
+
+    // Clickable rows (glossary edit).
+    tr[role='button'] {
+      cursor: pointer;
+    }
+
+    tr[role='button']:hover > * {
+      --bs-table-bg-type: rgba(var(--ui-accent-rgb), 0.16);
+      color: #ffffff;
+    }
+  }
+
+  // ---- Row edit/delete buttons and their popups (components/admin/row-actions) -------------
+
+  .admin-row-actions {
+    white-space: nowrap;
+    width: 1%;
+  }
+
+  // Edit forms need more room than a yes/no confirm, and read left-aligned.
+  .popup:has(.admin-popup-form) {
+    max-width: 580px;
+  }
+
+  .admin-popup-form {
+    text-align: left;
+
+    .popup-actions {
+      margin-top: 16px;
+    }
+  }
+
+  // ---- Sortable table headers (components/admin/sort) -------------------------------------
+
+  // The header text is the button; it keeps the th's look (colour, size, letter-spacing).
+  .admin-sort {
+    align-items: center;
+    background: none;
+    border: 0;
+    color: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    font: inherit;
+    gap: 6px;
+    letter-spacing: inherit;
+    padding: 0;
+    text-transform: inherit;
+    white-space: nowrap;
+
+    &:focus-visible {
+      border-radius: 4px;
+      outline: 1px solid var(--accent);
+      outline-offset: 3px;
+    }
+  }
+
+  .admin-sort-icon {
+    height: 0.9em;
+    opacity: 0.35;
+    transition: opacity 160ms ease;
+    width: 0.9em;
+  }
+
+  .admin-sort:hover .admin-sort-icon {
+    opacity: 0.75;
+  }
+
+  // The column the table is ordered by: brighter label, solid arrow.
+  .admin-sort[data-active='true'] {
+    color: #ffffff;
+    text-shadow: 0 0 10px rgba(var(--ui-accent-rgb), 0.6);
+
+    .admin-sort-icon {
+      color: var(--accent);
+      opacity: 1;
+    }
+  }
+
+  // A centred column keeps its sort button centred too.
+  th.text-center .admin-sort {
+    justify-content: center;
+  }
+
+  // ---- Search above the admin tables (components/admin/search) ----------------------------
+
+  .admin-search {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .admin-search-box {
+    flex: 1;
+    margin: 0;
+    max-width: 380px;
+    min-width: 200px;
+    position: relative;
+
+    input {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+      border-radius: 999px;
+      color: #eaf6fd;
+      height: 40px;
+      outline: none;
+      padding: 0 38px 0 38px;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+      width: 100%;
+
+      &::placeholder {
+        color: #5f7a89;
+      }
+
+      // Ours is the clear button; hide the browser's.
+      &::-webkit-search-cancel-button {
+        display: none;
+      }
+
+      &:hover {
+        border-color: rgba(var(--ui-accent-rgb), 0.6);
+      }
+
+      &:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px var(--accent), 0 0 14px rgba(var(--ui-accent-rgb), 0.3);
+      }
+    }
+  }
+
+  .admin-search-icon {
+    color: #5f8599;
+    height: 0.9em;
+    left: 14px;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0.9em;
+  }
+
+  .admin-search-box:focus-within .admin-search-icon {
+    color: var(--accent);
+  }
+
+  .admin-search-clear {
+    background: none;
+    border: 0;
+    border-radius: 50%;
+    color: #7fa3b6;
+    display: grid;
+    height: 28px;
+    place-items: center;
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+
+    svg {
+      height: 0.8em;
+      width: 0.8em;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(var(--ui-accent-rgb), 0.16);
+      color: #ffffff;
+      outline: none;
+    }
+  }
+
+  .admin-search-count {
+    background: rgba(var(--ui-accent-rgb), 0.12);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.35);
+    border-radius: 999px;
+    color: var(--ui-accent-mist);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    padding: 3px 10px;
+  }
+
+  .table .admin-empty-row > td {
+    color: #7fa3b6;
+    padding: 26px 14px;
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      .admin-search-box input {
+        transition: none;
+      }
+    }
+  }
+
+  // ---- Pagination under the admin tables (components/admin/pagination) ---------------------
+
+  .admin-pagination {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+    margin-top: 14px;
+  }
+
+  .admin-pagination-range {
+    color: #7fa3b6;
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .admin-pagination-pages {
+    align-items: center;
+    display: flex;
+    gap: 4px;
+  }
+
+  .admin-page-button {
+    align-items: center;
+    background: rgba(var(--ui-accent-rgb), 0.06);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.25);
+    border-radius: 10px;
+    color: #9fb6c4;
+    display: inline-flex;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    height: 34px;
+    justify-content: center;
+    min-width: 34px;
+    padding: 0 8px;
+    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+
+    svg {
+      height: 0.8em;
+      width: 0.8em;
+    }
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+      background: rgba(var(--ui-accent-rgb), 0.16);
+      border-color: var(--accent);
+      color: #ffffff;
+      outline: none;
+    }
+
+    &[aria-current='page'] {
+      background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(var(--ui-accent-rgb), 0.4);
+      color: var(--ui-on-accent, #ffffff);
+      // Labels inside: _base paints every span, p and div white itself, so they need telling.
+      > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.35;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      :root:not([data-motion='on']) & {
+        transition: none;
+      }
+    }
+  }
+
+  .admin-page-gap {
+    color: #5f7a89;
+    padding: 0 2px;
+  }
+
+  // ---- Admin forms (components/admin/form-kit): label over control, one grid, one save bar ----
+
+  .admin-form {
+    h4 {
+      text-align: left;
+    }
+
+    hr {
+      margin-left: 0;
+      width: 40%;
+    }
+  }
+
+  .admin-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+    min-width: 0;
+
+    > .form-label {
+      margin-bottom: 7px;
+    }
+
+    &:focus-within > .form-label {
+      color: var(--accent);
+    }
+  }
+
+  .admin-field-hint {
+    color: #6f8fa1;
+    display: block;
+    font-size: 0.75rem;
+    margin-top: 6px;
+  }
+
+  // Two columns; `data-wide` rows (content, parent, images, translations) span both.
+  .admin-form-grid {
+    display: grid;
+    gap: 0 18px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    > [data-wide='true'] {
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 1200px) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  // Switch with its label beside it, a row of its own.
+  .admin-switch {
+    align-items: center;
+    display: flex;
+    gap: 10px;
+    margin: 4px 0 8px;
+
+    .form-check-label {
+      color: #cfe9f7;
+      font-size: 0.85rem;
+    }
+  }
+
+  .admin-form-actions {
+    border-top: 1px solid rgba(var(--ui-accent-rgb), 0.18);
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 14px;
+    padding-top: 16px;
+  }
+
+  .admin-form-empty {
+    align-items: center;
+    color: #7fa3b6;
+    display: flex;
+    gap: 10px;
+    margin: 6px 0 4px;
+
+    svg {
+      color: rgba(var(--ui-accent-rgb), 0.6);
+      height: 1.1em;
+      width: 1.1em;
+    }
+  }
+
+  // The row being edited (glossary) stays lit.
+  .table tr[aria-current='true'] > * {
+    --bs-table-bg-type: rgba(var(--ui-accent-rgb), 0.2);
+    color: #ffffff;
+  }
+
+  // "Answer or pick from glossary": two fields side by side with an "or" between them.
+  .admin-answer {
+    align-items: start;
+    display: grid;
+    gap: 0 12px;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+
+    .admin-field {
+      margin-bottom: 8px;
+    }
+
+    @media (max-width: 700px) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  .admin-answer-or {
+    align-self: center;
+    color: #6f8fa1;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    margin-top: 18px;
+    text-transform: uppercase;
+  }
+
+  .admin-answer-error {
+    grid-column: 1 / -1;
+    margin: 0 0 12px;
+  }
+
+  // Translations: one tinted panel, a field per language with the language as a tag.
+  .admin-translations {
+    background: rgba(var(--ui-accent-rgb), 0.04);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.18);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    padding: 12px 14px 4px;
+  }
+
+  .admin-translations-grid {
+    display: grid;
+    gap: 10px 14px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    margin-bottom: 8px;
+  }
+
+  .admin-translation {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    margin: 0;
+  }
+
+  .admin-translation-lang {
+    background: rgba(var(--ui-accent-rgb), 0.14);
+    border-radius: 6px;
+    color: var(--ui-accent-mist);
+    flex: 0 0 auto;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    min-width: 44px;
+    padding: 4px 6px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  // PrimeReact multi-select in the admin field style (scoped over the theme).
+  .p-multiselect {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+    border-radius: 12px;
+    min-height: 44px;
+
+    &:hover,
+    &.p-focus {
+      border-color: var(--accent);
+    }
+
+    &.p-focus {
+      box-shadow: 0 0 0 1px var(--accent), 0 0 16px rgba(var(--ui-accent-rgb), 0.3);
+    }
+
+    .p-multiselect-token {
+      background: rgba(var(--ui-accent-rgb), 0.2);
+      border: 1px solid rgba(var(--ui-accent-rgb), 0.5);
+      border-radius: 999px;
+      color: #eaf6fd;
+    }
+  }
+
+  // ---- Knowledge base article editor: writing area + publishing sidebar ------------------
+
+  .kb-editor {
+    align-items: start;
+    display: grid;
+    gap: 24px;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    margin: 8px;
+
+    @media (max-width: 1100px) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    h4 {
+      text-align: left;
+    }
+
+    hr {
+      margin-left: 0;
+      width: 40%;
+    }
+  }
+
+  .kb-editor-side {
+    position: sticky;
+    top: 90px;
+
+    @media (max-width: 1100px) {
+      position: static;
+    }
+  }
+
+  // Headline-sized title field.
+  .kb-editor-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    min-height: 54px;
+  }
+
+  // Rich-text editor in the dark field style.
+  .kb-editor-content {
+    .p-editor-container .p-editor-toolbar {
+      background: rgba(var(--ui-accent-rgb), 0.06);
+      border-color: rgba(var(--ui-accent-rgb), 0.3);
+      border-radius: 12px 12px 0 0;
+    }
+
+    .p-editor-container .p-editor-content {
+      border-color: rgba(var(--ui-accent-rgb), 0.3);
+      border-radius: 0 0 12px 12px;
+    }
+
+    .p-editor-container .p-editor-content .ql-editor {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 0 0 12px 12px;
+      color: #eaf6fd;
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .p-editor-container .p-editor-content:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 0 16px rgba(var(--ui-accent-rgb), 0.3);
+    }
+
+    &[data-invalid='true'] .p-editor-container .p-editor-content,
+    &[data-invalid='true'] .p-editor-container .p-editor-toolbar {
+      border-color: #ff5d6c;
+    }
+  }
+
+  // Status as selectable cards, each with its own colour dot.
+  fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  legend.form-label {
+    float: none;
+    margin-bottom: 8px;
+    width: auto;
+  }
+
+  .kb-status-options {
+    display: grid;
+    gap: 6px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .kb-status-option {
+    --dot: #7fa3b6;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.22);
+    border-radius: 10px;
+    color: #9fb6c4;
+    cursor: pointer;
+    display: flex;
+    font-size: 0.8rem;
+    font-weight: 600;
+    gap: 8px;
+    padding: 8px 10px;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+
+    &[data-status='ACTIVE'] { --dot: #3ddc97; }
+    &[data-status='DRAFT'] { --dot: #ffc76b; }
+    &[data-status='PENDING'] { --dot: var(--ui-accent-light); }
+    &[data-status='HIDDEN'] { --dot: #7f8c96; }
+    &[data-status='INTERNAL'] { --dot: #b48cff; }
+
+    // The radio stays for keyboard and screen readers; the card is what shows.
+    input {
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+    }
+
+    &:hover {
+      border-color: rgba(var(--ui-accent-rgb), 0.55);
+      color: #eaf6fd;
+    }
+
+    &:has(input:focus-visible) {
+      box-shadow: 0 0 0 2px rgba(var(--ui-accent-rgb), 0.5);
+    }
+
+    &:has(input:checked) {
+      background: rgba(var(--ui-accent-rgb), 0.12);
+      border-color: var(--dot);
+      color: #ffffff;
+
+      .kb-status-dot {
+        box-shadow: 0 0 8px var(--dot);
+      }
+    }
+  }
+
+  .kb-status-dot {
+    background: var(--dot);
+    border-radius: 50%;
+    flex: 0 0 8px;
+    height: 8px;
+  }
+
+  // Tags as chips inside one field-looking box.
+  .kb-tags-input {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+    border-radius: 12px;
+    cursor: text;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 44px;
+    padding: 6px 8px;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+
+    &:focus-within {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 0 16px rgba(var(--ui-accent-rgb), 0.3);
+    }
+
+    input {
+      background: none;
+      border: 0;
+      color: #eaf6fd;
+      flex: 1;
+      min-width: 90px;
+      outline: none;
+      padding: 4px;
+
+      &::placeholder {
+        color: #5f7a89;
+      }
+    }
+  }
+
+  .kb-tags-chip {
+    align-items: center;
+    background: rgba(var(--ui-accent-rgb), 0.16);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+    border-radius: 999px;
+    color: #cfe9f7;
+    display: inline-flex;
+    font-size: 0.78rem;
+    gap: 4px;
+    padding: 2px 4px 2px 10px;
+
+    button {
+      background: none;
+      border: 0;
+      border-radius: 50%;
+      color: #7fa3b6;
+      display: grid;
+      height: 20px;
+      padding: 0;
+      place-items: center;
+      width: 20px;
+
+      svg {
+        height: 0.7em;
+        width: 0.7em;
+      }
+
+      &:hover,
+      &:focus-visible {
+        background: rgba(255, 93, 108, 0.2);
+        color: #ff8a95;
+        outline: none;
+      }
+    }
+  }
+
+  // Cover image drop zone.
+  .kb-cover {
+    position: relative;
+  }
+
+  .kb-cover-zone {
+    align-items: center;
+    aspect-ratio: 16 / 9;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px dashed rgba(var(--ui-accent-rgb), 0.45);
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    overflow: hidden;
+    transition: background-color 180ms ease, border-color 180ms ease;
+    width: 100%;
+
+    // Content images are square: shown whole inside the wide zone, not cropped to it.
+    img {
+      height: 100%;
+      object-fit: contain;
+      width: 100%;
+    }
+
+    &:hover,
+    &:focus-within,
+    &[data-dragging='true'] {
+      background: rgba(var(--ui-accent-rgb), 0.1);
+      border-color: var(--accent);
+    }
+  }
+
+  .kb-cover-empty {
+    align-items: center;
+    color: #7fa3b6;
+    display: flex;
+    flex-direction: column;
+    font-size: 0.78rem;
+    gap: 8px;
+    text-align: center;
+
+    svg {
+      color: rgba(var(--ui-accent-rgb), 0.6);
+      height: 1.6rem;
+      width: 1.6rem;
+    }
+  }
+
+  .kb-cover-remove {
+    background: rgba(4, 14, 22, 0.85);
+    border: 1px solid rgba(255, 93, 108, 0.5);
+    border-radius: 50%;
+    color: #ff8a95;
+    display: grid;
+    height: 30px;
+    place-items: center;
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    width: 30px;
+
+    svg {
+      height: 0.8em;
+      width: 0.8em;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(255, 93, 108, 0.25);
+      color: #ffffff;
+      outline: none;
+    }
+  }
+
+  .kb-visible .form-check-label {
+    color: #cfe9f7;
+    font-size: 0.85rem;
+    margin-left: 6px;
+  }
+
+  .kb-editor-save {
+    width: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      .kb-status-option,
+      .kb-tags-input,
+      .kb-cover-zone {
+        transition: none;
+      }
+    }
+  }
+
+  // Knowledge base status hint: green when the record will be published, muted otherwise.
+  .kb-status-hint {
+    color: #7fa3b6;
+    display: block;
+    font-size: 0.78rem;
+    margin-top: 6px;
+
+    &[data-published='true'] {
+      color: #3ddc97;
+    }
+  }
+
+  // Previews beside the forms (category / knowledge-base images).
+  .shadowed > form img,
+  form .img-fluid {
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgba(var(--ui-accent-rgb), 0.35), 0 8px 20px rgba(0, 0, 0, 0.45);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      .admin-menu .nav-link,
+      .admin-menu-icon {
+        transition: none;
+      }
+
+      .admin-menu .nav-link:hover,
+      .admin-menu .nav-link:focus-visible {
+        transform: none;
+      }
+    }
+  }
+}

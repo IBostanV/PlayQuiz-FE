@@ -1,0 +1,255 @@
+// Tooltip (components/common/tooltip): dark glass bubble with a cyan edge; the arrow sits on
+// the side facing the target (data-placement) and points at its centre (--arrow-x / --arrow-y).
+.tooltip-bubble {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  background: rgba(6, 20, 30, 0.96);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 9px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 16px rgba(var(--ui-accent-rgb), 0.25);
+  color: #eaf6fd;
+  font-size: 0.76rem;
+  font-weight: 600;
+  left: 0;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  max-width: 260px;
+  opacity: 0;
+  padding: 7px 11px;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  transform: scale(0.94);
+  transition: opacity 140ms ease, transform 140ms ease;
+  z-index: 2000;
+
+  &[data-ready='true'] {
+    opacity: 1;
+    transform: none;
+  }
+
+  &::after {
+    background: inherit;
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+    content: '';
+    height: 10px;
+    position: absolute;
+    width: 10px;
+  }
+
+  // Arrow per side. Only the two outer borders show, so it reads as part of the bubble's edge.
+  &[data-placement='top']::after {
+    border-left: 0;
+    border-top: 0;
+    bottom: -6px;
+    left: clamp(12px, var(--arrow-x), calc(100% - 12px));
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  &[data-placement='bottom']::after {
+    border-bottom: 0;
+    border-right: 0;
+    left: clamp(12px, var(--arrow-x), calc(100% - 12px));
+    top: -6px;
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  &[data-placement='left']::after {
+    border-bottom: 0;
+    border-left: 0;
+    right: -6px;
+    top: clamp(10px, var(--arrow-y), calc(100% - 10px));
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  &[data-placement='right']::after {
+    border-right: 0;
+    border-top: 0;
+    left: -6px;
+    top: clamp(10px, var(--arrow-y), calc(100% - 10px));
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      transform: none;
+      transition: none;
+    }
+  }
+}
+
+// Toasts (react-toastify, mounted in _app): frosted dark glass with a glow in the colour of what
+// happened — accent for news, green for done, amber for a warning, red for a failure — a lit
+// strip down the leading edge, the icon in its own glowing tile, and the time left as a thin
+// light along the bottom. Scoped under .Toastify: the library's own stylesheet loads after this
+// one, so an equally specific rule would lose to it, and its colours are variables set here.
+.Toastify {
+  --toast-tone: var(--ui-accent);
+  --toast-tone-rgb: var(--ui-accent-rgb);
+  --toastify-toast-width: 360px;
+  --toastify-font-family: inherit;
+  --toastify-toast-min-height: 60px;
+
+  .Toastify__toast {
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    backdrop-filter: blur(14px) saturate(160%);
+    background:
+      radial-gradient(120% 90% at 0% 0%, rgba(var(--toast-tone-rgb), 0.2) 0%, rgba(var(--toast-tone-rgb), 0) 60%),
+      linear-gradient(180deg, rgba(10, 30, 44, 0.95) 0%, rgba(3, 11, 17, 0.97) 100%);
+    border: 1px solid rgba(var(--toast-tone-rgb), 0.35);
+    border-radius: 16px;
+    box-shadow:
+      0 18px 40px rgba(0, 0, 0, 0.6),
+      0 0 24px rgba(var(--toast-tone-rgb), 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    color: #dcecf5;
+    margin-bottom: 12px;
+    overflow: hidden;
+    padding: 12px 12px 14px 16px;
+    position: relative;
+
+    // The strip down the leading edge.
+    &::before {
+      background: linear-gradient(180deg, var(--toast-tone) 0%, rgba(var(--toast-tone-rgb), 0.2) 100%);
+      box-shadow: 0 0 12px var(--toast-tone);
+      content: '';
+      inset: 0 auto 0 0;
+      position: absolute;
+      width: 3px;
+    }
+  }
+
+  .Toastify__toast--success {
+    --toast-tone: #2fd07a;
+    --toast-tone-rgb: 47, 208, 122;
+  }
+
+  .Toastify__toast--warning {
+    --toast-tone: #ffb45c;
+    --toast-tone-rgb: 255, 180, 92;
+  }
+
+  .Toastify__toast--error {
+    --toast-tone: #ff5d6c;
+    --toast-tone-rgb: 255, 93, 108;
+  }
+
+  .Toastify__toast-body {
+    align-items: center;
+    font-size: 0.86rem;
+    gap: 12px;
+    line-height: 1.4;
+    margin: 0;
+    padding: 0;
+
+    // A failed request reads "Status code: 403", a rule, then the reason: the rule as a hairline.
+    hr {
+      border-color: rgba(var(--toast-tone-rgb), 0.3);
+      margin: 6px 0;
+      opacity: 1;
+    }
+  }
+
+  // The icon in a glowing tile of its own tone.
+  .Toastify__toast-icon {
+    align-items: center;
+    background: rgba(var(--toast-tone-rgb), 0.14);
+    border: 1px solid rgba(var(--toast-tone-rgb), 0.45);
+    border-radius: 10px;
+    box-shadow: 0 0 14px rgba(var(--toast-tone-rgb), 0.35);
+    display: flex;
+    height: 34px;
+    justify-content: center;
+    margin: 0;
+    width: 34px;
+
+    svg {
+      fill: var(--toast-tone);
+      height: 18px;
+      width: 18px;
+    }
+  }
+
+  .Toastify__close-button {
+    align-self: flex-start;
+    border-radius: 50%;
+    color: #9fb6c4;
+    display: grid;
+    flex: none;
+    height: 24px;
+    opacity: 0.7;
+    place-items: center;
+    transition: background-color 160ms ease, opacity 160ms ease;
+    width: 24px;
+
+    svg {
+      height: 12px;
+      width: 12px;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(255, 255, 255, 0.08);
+      opacity: 1;
+      outline: none;
+    }
+  }
+
+  // The time left, as a thin light along the bottom in the toast's tone.
+  .Toastify__progress-bar {
+    background: linear-gradient(90deg, rgba(var(--toast-tone-rgb), 0.35) 0%, var(--toast-tone) 100%);
+    box-shadow: 0 0 10px var(--toast-tone);
+    height: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & .Toastify__close-button {
+      transition: none;
+    }
+  }
+}
+
+// On a phone the container spans the screen; the cards keep a gutter and their rounded corners.
+@media (max-width: 480px) {
+  .Toastify .Toastify__toast-container {
+    padding: 0 12px 12px;
+  }
+}
+
+// New-message toast (context/chat-notifications): sender on top, preview below; click opens the chat.
+.chat-notification {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  strong {
+    color: #eaf6fd;
+    font-size: 0.85rem;
+  }
+
+  span {
+    color: #9fb6c4;
+    font-size: 0.82rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+// Round glowing initial: chat groups and the friends list.
+// Initials on a flat, muted colour; --avatar-hue comes from the name (components/common/avatar).
+.chat-avatar {
+  background: hsl(var(--avatar-hue, 200) 38% 28%);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px hsl(var(--avatar-hue, 200) 45% 45% / 0.6);
+  color: hsl(var(--avatar-hue, 200) 70% 88%);
+  display: grid;
+  flex: 0 0 40px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  height: 40px;
+  letter-spacing: 0.04em;
+  place-items: center;
+  transition: box-shadow 180ms ease;
+}

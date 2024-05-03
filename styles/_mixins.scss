@@ -1,0 +1,196 @@
+@use "sass:math";
+
+// Top-bar capsule: dark glass with a cyan-to-blue gradient border that glows on hover/focus.
+// Shared by the main links and the account pill.
+@mixin nav-capsule {
+  align-items: center;
+  // Gradient border: the padding-box layer is the fill, the border-box layer shows through
+  // the transparent 1px border.
+  background:
+    linear-gradient(rgba(6, 20, 30, 0.88), rgba(6, 20, 30, 0.88)) padding-box,
+    linear-gradient(120deg, rgba(var(--ui-accent-rgb), 0.85), rgba(43, 63, 214, 0.6) 55%, rgba(var(--ui-accent-rgb), 0.35)) border-box;
+  //border: 1px solid transparent;
+  border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  display: inline-flex;
+  transition: box-shadow 220ms ease;
+
+  &:hover,
+  &:focus-within {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 18px rgba(var(--ui-accent-rgb), 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      transition: none;
+    }
+  }
+}
+
+// Glass panel shared by the category tiles and the quiz question: faint cyan wash from the
+// top, hairline outline, energy line on the top edge. --panel-glow lets hover brighten the wash.
+// An outline that follows a cut-corner box, diagonals included.
+//
+// An inset box-shadow cannot do this: it is drawn against the element's rectangle and then the
+// clip-path cuts it away, so the cut corners come out with no line at all. This paints the frame
+// itself — one polygon around the outside and another back around the inside, with evenodd
+// leaving only the gap between them.
+//
+// Sizes are unitless px. A cut is given as how far it runs across and down, so the corners need
+// not be square: the answer cards' are not.
+
+// Where an edge inset by $w meets a cut inset by $w, measured along the $a axis.
+//
+// The cut from ($a, 0) to (0, $b) is the line $b*x + $a*y = $a*$b, and the inside of the shape is
+// the side where that sum is greater, so the inset line is $a*$b + $w*hypot. Stepping the corner
+// in by $w on both axes instead — the obvious guess — moves a 45-degree cut root-two away and
+// draws the diagonals half again as thick as the straight edges.
+@function cut-inset($a, $b, $w) {
+  @return $a + math.div($w * (math.sqrt($a * $a + $b * $b) - $a), $b);
+}
+
+// The cut-corner shape itself.
+@mixin cut-corner-clip($tl-x, $tl-y, $br-x, $br-y) {
+  clip-path: polygon(#{$tl-x}px 0, 100% 0, 100% calc(100% - #{$br-y}px),
+    calc(100% - #{$br-x}px) 100%, 0 100%, 0 #{$tl-y}px);
+}
+
+// The frame's own shape: the outline above, then back round inside it $w in.
+@mixin cut-corner-frame-path($tl-x, $tl-y, $br-x, $br-y, $w) {
+  clip-path: polygon(evenodd,
+    #{$tl-x}px 0, 100% 0, 100% calc(100% - #{$br-y}px),
+    calc(100% - #{$br-x}px) 100%, 0 100%, 0 #{$tl-y}px,
+    #{cut-inset($tl-x, $tl-y, $w)}px #{$w}px,
+    calc(100% - #{$w}px) #{$w}px,
+    calc(100% - #{$w}px) calc(100% - #{cut-inset($br-y, $br-x, $w)}px),
+    calc(100% - #{cut-inset($br-x, $br-y, $w)}px) calc(100% - #{$w}px),
+    #{$w}px calc(100% - #{$w}px),
+    #{$w}px #{cut-inset($tl-y, $tl-x, $w)}px);
+}
+
+@mixin cut-corner-frame($tl-x, $tl-y, $br-x, $br-y, $w, $color) {
+  @include cut-corner-clip($tl-x, $tl-y, $br-x, $br-y);
+  position: relative;
+
+  &::before {
+    @include cut-corner-frame-path($tl-x, $tl-y, $br-x, $br-y, $w);
+    background: $color;
+    content: '';
+    inset: 0;
+    // The frame sits over the fill and never takes a click.
+    pointer-events: none;
+    position: absolute;
+  }
+}
+
+// Square cuts, one px thick: the common case.
+@mixin cut-corner-outline($cut, $color) {
+  @include cut-corner-frame($cut, $cut, $cut, $cut, 1, $color);
+}
+
+@mixin quiz-panel($cut) {
+  // The outline comes from here, not an inset shadow: that one is drawn against the element's
+  // rectangle and then clipped away along both cut corners, leaving the diagonals bare.
+  @include cut-corner-outline($cut, rgba(var(--ui-accent-rgb), 0.28));
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(var(--ui-accent-rgb), var(--panel-glow, 0.22)) 0%, rgba(var(--ui-accent-rgb), 0) 70%),
+    linear-gradient(180deg, rgba(10, 32, 48, 0.9) 0%, rgba(4, 14, 22, 0.9) 100%);
+  // The glow under the bottom edge; the outline above draws the edge itself.
+  box-shadow: inset 0 -24px 40px -30px rgba(var(--ui-accent-rgb), 0.35);
+  text-shadow: 0 0 18px rgba(var(--ui-accent-rgb), 0.45);
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 15%;
+    right: 15%;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0) 0%, var(--ui-accent) 50%, rgba(var(--ui-accent-rgb), 0) 100%);
+    box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.8);
+  }
+}
+
+// Floating slab of matte glass: the blur frosts whatever is behind it, the stacked hard
+// shadows draw a solid edge $depth px thick under the face, the soft ones lift it off the page.
+@mixin glass-slab($depth: 8) {
+  $edge: (inset 0 1px 0 rgba(255, 255, 255, 0.22), inset 1px 0 0 rgba(255, 255, 255, 0.1));
+  @for $i from 1 through $depth {
+    // Extruded toward the bottom-right, one flat colour so it reads as the pane's solid side
+    // (a fade to dark read as a cast shadow).
+    $edge: append($edge, #{$i}px #{$i}px 0 #0d161d, comma);
+  }
+  -webkit-backdrop-filter: blur(4px) saturate(140%);
+  backdrop-filter: blur(4px) saturate(140%);
+  // Same wash as quiz-panel at --panel-glow 0.12.
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(var(--ui-accent-rgb), 0.12) 0%, rgba(var(--ui-accent-rgb), 0) 70%),
+    linear-gradient(180deg, rgba(10, 32, 48, 0.9) 0%, rgba(4, 14, 22, 0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 20px;
+  // Navbar item shape, scaled up: chipped top-left, slanted bottom-right. corner-shape
+  // bevels the radii instead of clipping, so the border and glow follow the cut; browsers
+  // without it just round those two corners.
+  corner-shape: bevel;
+  // Glow comes off the edge only: pushed further out and shrunk by the same amount (negative
+  // spread), so its blur never reaches past the face's top-right or bottom-left corners.
+  box-shadow: $edge, 8px 10px 15px 10px rgba(0, 0, 0, 0);
+  margin-bottom: #{$depth + 20}px;
+}
+
+// Glowing cyan call-to-action button, used app-wide (chat, auth, profile, admin, popups).
+// Defined up here so every section below can include it.
+@mixin chat-button {
+  align-items: center;
+  background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(var(--ui-accent-rgb), 0.35);
+  color: var(--ui-on-accent, #ffffff);
+  // Labels inside: _base paints every span, p and div white itself, so they need telling.
+  > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 8px;
+  justify-content: center;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transition: box-shadow 180ms ease, filter 180ms ease, opacity 180ms ease, transform 180ms ease;
+
+  // Sized here so the icon never flashes full-size before FontAwesome's CSS lands.
+  svg {
+    height: 1em;
+    width: 1em;
+  }
+
+  span {
+    color: inherit;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    box-shadow: 0 8px 26px rgba(var(--ui-accent-rgb), 0.6);
+    color: var(--ui-on-accent, #ffffff);
+    // Labels inside: _base paints every span, p and div white itself, so they need telling.
+    > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+    filter: brightness(1.1);
+    outline: none;
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    box-shadow: none;
+    color: var(--ui-on-accent, #ffffff);
+    // Labels inside: _base paints every span, p and div white itself, so they need telling.
+    > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      transition: none;
+    }
+  }
+}

@@ -1,0 +1,159 @@
+// Site footer (components/footer): a glowing hairline on top, brand and tagline, a row of links,
+// back-to-top, then a slim bar with copyright and data credits.
+.site-footer {
+  background:
+    radial-gradient(ellipse 60% 120% at 50% 0%, rgba(var(--ui-accent-rgb), 0.14) 0%, rgba(var(--ui-accent-rgb), 0) 70%),
+    linear-gradient(180deg, #06141e 0%, #02080c 100%);
+  color: #9fb6c4;
+  padding: 20px clamp(16px, 4vw, 48px) 0;
+  position: relative;
+
+  &::before {
+    background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0) 0%, var(--ui-accent) 50%, rgba(var(--ui-accent-rgb), 0) 100%);
+    box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.8);
+    content: '';
+    height: 1px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+  }
+}
+
+.site-footer-main {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 40px;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding-bottom: 14px;
+  position: relative;
+}
+
+.site-footer-brand {
+  flex: 1 1 260px;
+  max-width: 340px;
+}
+
+.site-footer-logo {
+  filter: drop-shadow(0 0 10px rgba(var(--ui-accent-rgb), 0.35));
+  width: 84px;
+}
+
+.site-footer-tagline {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  margin: 8px 0 0;
+}
+
+// One row, wrapping only when the screen is too narrow for it.
+.site-footer-links {
+  flex: 1 1 auto;
+
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 24px;
+    justify-content: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  // Each link keeps its full size on one line; the row wraps between links instead.
+  li {
+    flex: none;
+  }
+}
+
+.site-footer-link {
+  align-items: center;
+  color: #9fb6c4;
+  display: inline-flex;
+  font-size: 0.8rem;
+  gap: 8px;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 160ms ease, transform 160ms ease;
+
+  svg {
+    color: var(--ui-text-accent, rgba(var(--ui-accent-rgb), 0.6));
+    transition: color 160ms ease;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: #ffffff;
+    transform: translateX(3px);
+
+    svg {
+      color: var(--ui-text-accent, var(--ui-accent-light));
+    }
+  }
+}
+
+.site-footer-top {
+  background:
+    linear-gradient(180deg, rgba(10, 32, 48, 0.95), rgba(4, 14, 22, 0.95)) padding-box,
+    linear-gradient(135deg, var(--ui-accent-soft) 0%, rgba(var(--ui-accent-rgb), 0.25) 50%, var(--ui-accent-dark) 100%) border-box;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(var(--ui-accent-rgb), 0.2);
+  color: var(--ui-text-accent, var(--ui-accent-light));
+  display: grid;
+  font-size: 0.8rem;
+  height: 32px;
+  place-items: center;
+  transition: box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
+  width: 32px;
+
+  &:hover,
+  &:focus-visible {
+    box-shadow: 0 0 18px rgba(var(--ui-accent-rgb), 0.55);
+    color: #ffffff;
+    outline: none;
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px #04121a, 0 0 0 4px var(--ui-accent-light);
+  }
+}
+
+.site-footer-bottom {
+  border-top: 1px solid rgba(var(--ui-accent-rgb), 0.12);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.68rem;
+  gap: 4px 24px;
+  justify-content: space-between;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 8px 0 calc(10px + env(safe-area-inset-bottom, 0px));
+
+  a {
+    color: #7fa3b6;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--ui-text-accent, var(--ui-accent-light));
+      text-decoration: underline;
+    }
+  }
+}
+
+.site-footer-credits {
+  color: #5f7f90;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .site-footer-link,
+    .site-footer-link svg,
+    .site-footer-top {
+      transition: none;
+    }
+  }
+}

@@ -1,0 +1,403 @@
+// ---- Conquest: the world map, who holds what, and what is open this round ---------------------
+
+// Wider than the other pages on purpose: the map is the page, and 1180px left it squeezed into
+// what a 320px panel did not take.
+.conquest-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0 auto;
+  max-width: 1560px;
+  padding-top: 10px;
+  width: 100%;
+}
+
+.conquest-hero {
+  @include glass-slab(6);
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  justify-content: space-between;
+  padding: 20px 24px;
+}
+
+.conquest-title {
+  color: #eaf6fd;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.conquest-lead {
+  color: #9fb6c4;
+  font-size: 0.88rem;
+  margin: 0;
+  max-width: 62ch;
+}
+
+// Open reads cyan and live; locked reads amber and still.
+.conquest-round {
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.35);
+  border-radius: 14px;
+  padding: 10px 16px;
+  text-align: right;
+
+  &[data-open='false'] {
+    border-color: rgba(245, 184, 46, 0.4);
+  }
+}
+
+.conquest-round-label {
+  color: #6f8fa1;
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.conquest-round-state {
+  align-items: center;
+  color: #cfe9f7;
+  display: inline-flex;
+  font-size: 0.85rem;
+  font-weight: 600;
+  gap: 7px;
+  margin-top: 4px;
+  white-space: nowrap;
+
+  .conquest-round[data-open='false'] & {
+    color: #f5b82e;
+  }
+
+  svg {
+    height: 0.85em;
+    width: 0.85em;
+  }
+}
+
+// Each column is as tall as its own content. Stretching them to the row instead left the map's
+// slab reaching down to wherever the panel happened to end, with nothing under the legend.
+.conquest-body {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) 320px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+// Wraps the map and its legend and nothing else: the map's own height is measured and set in
+// script, and the slab takes whatever that plus the legend comes to.
+.conquest-map-frame {
+  @include glass-slab(6);
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+}
+
+// The frame's height is measured and set in script (the window's leftovers); the map fills it.
+.conquest-map-viewport {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.conquest-map {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.conquest-sphere {
+  fill: url(#conquest-ocean);
+}
+
+// Every country is drawn; the ones in the game answer to the pointer.
+.conquest-country {
+  fill: #12212c;
+  stroke: #061019;
+  stroke-width: 0.4;
+  transition: fill 0.18s ease;
+
+  &[data-state='idle'] {
+    fill: #1d3444;
+    cursor: pointer;
+  }
+
+  &[data-state='held'] {
+    fill: #8a6a12;
+    cursor: pointer;
+  }
+
+  // Held for a team: the team's own colour (utils/team-colour), set on the path.
+  &[data-state='held'][data-team] {
+    fill: var(--team-fill);
+  }
+
+  &[data-state='open'] {
+    cursor: pointer;
+    fill: var(--ui-accent-dark);
+  }
+
+  &[data-state='selected'] {
+    fill: var(--ui-accent-bright);
+    stroke: #eaf6fd;
+    stroke-width: 0.9;
+  }
+
+  &[data-state='idle']:hover,
+  &[data-state='held']:hover,
+  &[data-state='open']:hover {
+    fill: #35a7dd;
+  }
+
+  &:focus-visible {
+    outline: none;
+    stroke: #eaf6fd;
+    stroke-width: 1.2;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      transition: none;
+    }
+  }
+}
+
+.conquest-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  list-style: none;
+  margin: 10px 0 2px;
+  padding: 0 4px;
+
+  li {
+    align-items: center;
+    color: #9fb6c4;
+    display: flex;
+    font-size: 0.74rem;
+    gap: 7px;
+
+    &::before {
+      border-radius: 3px;
+      content: '';
+      height: 10px;
+      width: 10px;
+    }
+
+    &[data-state='open']::before { background: var(--ui-accent-dark); }
+    &[data-state='held']::before { background: #8a6a12; }
+    &[data-state='idle']::before { background: #1d3444; }
+    &[data-state='team']::before { background: var(--team-fill); }
+  }
+}
+
+.conquest-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.conquest-selected {
+  @include glass-slab(6);
+  padding: 18px 20px;
+}
+
+.conquest-country-name {
+  align-items: baseline;
+  color: #eaf6fd;
+  display: flex;
+  font-size: 1.15rem;
+  font-weight: 700;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.conquest-country-code {
+  color: #6f8fa1;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.conquest-holder {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.conquest-holder-avatar {
+  flex-basis: 40px;
+  font-size: 0.8rem;
+  height: 40px;
+  width: 40px;
+}
+
+.conquest-holder-name {
+  align-items: center;
+  color: #f5b82e;
+  display: flex;
+  font-weight: 700;
+  gap: 7px;
+  margin: 0;
+
+  // The holder's name opens their profile.
+  a {
+    color: inherit;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
+  }
+
+  svg {
+    height: 0.85em;
+    width: 0.85em;
+  }
+}
+
+.conquest-holder-score {
+  align-items: center;
+  color: #cfe9f7;
+  display: flex;
+  font-size: 0.82rem;
+  gap: 12px;
+  margin: 2px 0 0;
+}
+
+.conquest-holder-time {
+  align-items: center;
+  color: #9fb6c4;
+  display: inline-flex;
+  gap: 5px;
+}
+
+.conquest-unclaimed,
+.conquest-blocked {
+  align-items: center;
+  color: #9fb6c4;
+  display: flex;
+  font-size: 0.85rem;
+  gap: 8px;
+  margin: 0 0 16px;
+
+  svg {
+    height: 1.4em;
+    width: 1.4em;
+  }
+}
+
+.conquest-blocked {
+  color: #f5b82e;
+  margin-bottom: 0;
+  // As tall as the Take button it stands in for, so the panel does not jump between countries.
+  min-height: 50px;
+}
+
+.conquest-play {
+  align-items: center;
+  background: linear-gradient(120deg, var(--ui-accent), #2b3fd6);
+  border-radius: 999px;
+  color: var(--ui-on-accent, #ffffff);
+  // Labels inside: _base paints every span, p and div white itself, so they need telling.
+  > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  display: flex;
+  font-size: 1.05rem;
+  font-weight: 700;
+  gap: 9px;
+  height: 50px;
+  justify-content: center;
+  padding: 0 20px;
+  text-decoration: none;
+
+  svg {
+    height: 1.2em;
+    width: 1.2em;
+  }
+
+  &:hover,
+  &:focus-visible {
+    box-shadow: 0 0 18px rgba(var(--ui-accent-rgb), 0.5);
+    color: var(--ui-on-accent, #ffffff);
+    // Labels inside: _base paints every span, p and div white itself, so they need telling.
+    > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+    outline: none;
+  }
+}
+
+.conquest-list-title {
+  color: #eaf6fd;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+
+.conquest-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.conquest-list-entry {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.18);
+  border-radius: 10px;
+  color: #cfe9f7;
+  display: flex;
+  font: inherit;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 9px 12px;
+  text-align: left;
+  width: 100%;
+
+  &[data-selected='true'] {
+    background: rgba(var(--ui-accent-rgb), 0.16);
+    border-color: rgba(var(--ui-accent-rgb), 0.5);
+    color: #ffffff;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba(var(--ui-accent-rgb), 0.5);
+    outline: none;
+  }
+}
+
+.conquest-list-name {
+  font-weight: 600;
+}
+
+.conquest-list-holder {
+  align-items: center;
+  color: #f5b82e;
+  display: inline-flex;
+  font-size: 0.72rem;
+  gap: 5px;
+  white-space: nowrap;
+
+  svg {
+    height: 0.8em;
+    width: 0.8em;
+  }
+}
+
+.conquest-list-empty {
+  color: #9fb6c4;
+  font-size: 0.82rem;
+}

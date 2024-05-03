@@ -7,9 +7,9 @@ const SecureComponent = ({ isAuthenticated, roles = [], defaultRender = null, ch
     const userRoles = useUserContext();
 
     useEffect(() => {
-        if (!isAuthenticated && isAuthenticated !== undefined) {
-            router.push('/login').then(() => null);
-        }
+        // if (!isAuthenticated && isAuthenticated !== undefined) {
+        //     router.push('/login').then(() => null);
+        // }
     }, [isAuthenticated]);
 
     return isAuthenticated && roles.some(role => userRoles?.includes(role)) ? children : defaultRender;

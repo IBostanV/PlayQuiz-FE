@@ -1,12 +1,12 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {useRouter} from 'next/router';
-import {Button, Col, Container, Row,} from 'react-bootstrap';
 import {LOGIN_URL} from '../../api/constant';
 import validateEmail from '../../utils/validation';
 import {authenticate} from '../../api/authentication';
 import {toast} from 'react-toastify';
-import {InputText} from "primereact/inputtext";
 import {useTranslation} from "react-i18next";
+import {faEnvelope, faLock} from "@fortawesome/free-solid-svg-icons";
+import {AuthCard, AuthField, AuthSwitch} from "../../components/auth/auth-card";
 
 function Login({isLoggedIn}) {
   const router = useRouter();
@@ -14,6 +14,7 @@ function Login({isLoggedIn}) {
 
   const email = useRef();
   const password = useRef();
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -21,69 +22,42 @@ function Login({isLoggedIn}) {
     }
   }, [isLoggedIn]);
 
-  useEffect(() => {
-    const keyDownHandler = (event) => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        login();
-      }
-    };
-    document.addEventListener('keydown', keyDownHandler);
-
-    return () => document.removeEventListener('keydown', keyDownHandler);
-  }, [email, password]);
-
   const login = () => {
     if (!validateEmail(email.current.value)) {
       toast.error('Invalid email address');
-    } else {
-      authenticate(LOGIN_URL, {
-        email: email.current.value,
-        password: password.current.value
-      })
-          .then((account) => {
-            if (account) {
-              localStorage.setItem('langCode', account.data.language.langCode);
-              localStorage.setItem('langId', parseInt(account.data.language.langId));
-              localStorage.setItem('userId', parseInt(account.data.id));
-
-              router.push('/home').then(() => null);
-            }
-          });
+      return;
     }
+
+    setBusy(true);
+    authenticate(LOGIN_URL, {
+      email: email.current.value,
+      password: password.current.value
+    })
+        .then((account) => {
+          if (account) {
+            localStorage.setItem('langCode', account.data.language.langCode);
+            localStorage.setItem('langId', parseInt(account.data.language.langId));
+            localStorage.setItem('userId', parseInt(account.data.id));
+
+            router.push('/home').then(() => null);
+          }
+        })
+        .finally(() => setBusy(false));
   };
 
   return (
-    <div className="login-form">
-      <Container>
-        <Row>
-          <Col>
-            <h2 className="text-center">Login</h2>
-          </Col>
-        </Row>
-        <Row className="mt-5">
-          <Col>
-            <span className="p-float-label">
-              <InputText type={'email'} ref={email} className="w-100"/>
-              <label>{t('email')}</label>
-            </span>
-          </Col>
-        </Row>
-        <Row className="mt-5">
-          <Col>
-            <span className="p-float-label">
-              <InputText type={'password'} ref={password} className="w-100"/>
-              <label>{t('password')}</label>
-            </span>
-          </Col>
-        </Row>
-        <Row className="p-3">
-          <Col>
-            <Button onClick={login}>Login</Button>
-          </Col>
-        </Row>
-      </Container>
-    </div>
+    <AuthCard title={t('login')}
+              subtitle={t('login_subtitle', 'Welcome back! Ready for another round?')}
+              submitLabel={t('login')}
+              busy={busy}
+              onSubmit={login}
+              footer={<AuthSwitch text={t('no_account', "Don't have an account?")}
+                                  href='/register'
+                                  linkText={t('register')}/>}>
+      <AuthField icon={faEnvelope} label={t('email')} type='email' inputRef={email} autoComplete='email'/>
+      <AuthField icon={faLock} label={t('password')} type='password' inputRef={password}
+                 autoComplete='current-password'/>
+    </AuthCard>
   );
 }
 

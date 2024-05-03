@@ -1,0 +1,211 @@
+@font-face {
+  font-family: 'Montserrat-Medium';
+  src: local('Montserrat-Medium'), url('/fonts/Montserrat/Montserrat-Medium.ttf');
+}
+
+@font-face {
+  font-family: 'TimeBurner';
+  src: local('TimeBurner'), url('/fonts/TimeBurner/Timeburner-xJB8.ttf');
+}
+
+// The accent, and its lighter and darker shades, as variables so a player can recolour the site
+// for themselves (context/appearance.jsx). By default each shade is the exact colour it always
+// was. A player who picks their own accent gets data-accent on the root and --ui-accent-rgb set
+// to their colour, and every shade is then mixed from it instead. (--ui-, because a few blocks
+// below keep an --accent of their own.)
+:root {
+  --ui-accent-rgb: 0, 168, 232;
+  --ui-accent: rgb(var(--ui-accent-rgb));
+  --ui-accent-light: #33c1f5;
+  --ui-accent-bright: #1cc0ff;
+  --ui-accent-dark: #0087c2;
+  --ui-accent-deep: #0073a8;
+  --ui-accent-soft: #5fd3ff;
+  --ui-accent-pale: #7fe0ff;
+  --ui-accent-mist: #9fe3ff;
+  --ui-accent-haze: #9fd8f2;
+}
+
+:root[data-accent] {
+  --ui-accent-light: color-mix(in srgb, var(--ui-accent) 80%, #ffffff);
+  --ui-accent-bright: color-mix(in srgb, var(--ui-accent) 88%, #ffffff);
+  --ui-accent-dark: color-mix(in srgb, var(--ui-accent) 78%, #000000);
+  --ui-accent-deep: color-mix(in srgb, var(--ui-accent) 66%, #000000);
+  --ui-accent-soft: color-mix(in srgb, var(--ui-accent) 62%, #ffffff);
+  --ui-accent-pale: color-mix(in srgb, var(--ui-accent) 50%, #ffffff);
+  --ui-accent-mist: color-mix(in srgb, var(--ui-accent) 38%, #ffffff);
+  --ui-accent-haze: color-mix(in srgb, var(--ui-accent) 38%, #d8e6ee);
+}
+
+html, body, #__next {
+  height: 100%;
+  font-family: 'Montserrat-Medium', sans-serif;
+}
+
+body {
+  //background: url('/resources/bg.jpg') no-repeat fixed center;
+  //background-size: cover;
+  //backdrop-filter: blur(3px);
+  //overflow-x: hidden;
+  background-color: #000;
+}
+
+main {
+  background-color: #000000ad;
+  box-shadow: 0 0 15px black;
+  // Fill the space left by the sticky header, but keep growing past it so tall pages
+  // scroll the window instead of scrolling inside a fixed-height <main>.
+  flex: 1 0 auto;
+  padding: 20px;
+  // Column flex rather than `height: 100%`: main's own height comes from flex and so is
+  // indefinite, which makes a percentage height on a child resolve to auto. A child that
+  // wants the full height asks for `flex: 1` instead.
+  display: flex;
+  flex-direction: column;
+}
+
+p,
+span,
+div {
+  color: #FFF;
+}
+
+ul {
+  margin-bottom: initial;
+  padding-left: initial;
+}
+
+.background {
+  background: url("/resources/favicon.png") no-repeat fixed center;
+  background-size: 6%;
+  min-height: 100%;
+  position: relative;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  // Above page content, but below PrimeReact overlays (z-index 1000+) so dropdowns
+  // opened near the top of the page are not covered by the bar.
+  z-index: 10;
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 12px 24px;
+  width: 100%;
+  background: linear-gradient(180deg, rgba(4, 14, 22, 0.94) 0%, rgba(4, 14, 22, 0.7) 100%);
+  backdrop-filter: blur(5px) saturate(150%);
+  -webkit-backdrop-filter: blur(5px) saturate(150%);
+  border-bottom: 1px solid rgba(var(--ui-accent-rgb), 0.35);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  // Energy line: brightest mid-span, fading out at both ends.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0) 0%, var(--ui-accent) 50%, rgba(var(--ui-accent-rgb), 0) 100%);
+    box-shadow: 0 0 12px rgba(var(--ui-accent-rgb), 0.75);
+    pointer-events: none;
+  }
+}
+
+.swiper-slide {
+  text-align: center;
+}
+
+.highlight {
+  transition: transform 0.300ms ease;
+
+  &:hover {
+    text-decoration: underline !important;
+    transform: scale(1.8);
+  }
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.p-virtualscroller::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.p-virtualscroller {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.shadowed {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+}
+
+.input {
+  background-color: #0000;
+  backdrop-filter: blur(20px);
+  color: #FFFFFF;
+  outline: none;
+  border: 1px solid #728993;
+  padding: 10px 15px;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.text-shadow {
+  text-shadow: black 0 0 7px;
+}
+
+.card {
+  --bs-card-border-width: none;
+  --bs-card-border-color: none;
+  --bs-card-border-radius: none;
+  --bs-card-box-shadow: none;
+  --bs-card-inner-border-radius: none;
+  --bs-card-bg: none;
+}
+
+.lang-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: rgba(var(--ui-accent-rgb), 0.08);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath fill='%2300A8E8' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-position: right 9px center;
+  background-repeat: no-repeat;
+  background-size: 9px 6px;
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 2px;
+  color: #cfe9f7;
+  cursor: pointer;
+  font-family: 'Montserrat-Medium', sans-serif;
+  font-size: 0.85em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  outline: none;
+  padding: 5px 26px 5px 10px;
+  text-transform: uppercase;
+  transition: border-color 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+
+  &:hover,
+  &:focus-visible {
+    background-color: rgba(var(--ui-accent-rgb), 0.16);
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 12px rgba(var(--ui-accent-rgb), 0.45);
+  }
+
+  // Native option lists do not inherit the bar's translucency.
+  option {
+    background-color: #05121c;
+    color: #cfe9f7;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      transition: none;
+    }
+  }
+}

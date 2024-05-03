@@ -1,23 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import getExpressQuiz from '../../../api/quiz/get-express';
-import { Button, Image } from 'react-bootstrap';
+import React, { useEffect, useRef, useState } from 'react';
+import {getExpressQuiz} from '../../../api/quiz';
 import saveUserQuiz from '../../../api/quiz/save';
 import { useRouter } from 'next/router';
 import moment from 'moment';
-import getQuestionWithOptions from '../../../api/question/get-with-options';
-import { Knob } from 'primereact/knob';
-import base64Util from '../../../utils/base64Util';
-import {FlexContainer} from "../../../components/common/FlexContainer";
+import { useTranslation } from 'react-i18next';
+import formatTime from '../../../utils/formatTime';
+import {SingleOption} from "../../../components/quiz/single-option";
+import {ReportQuestion} from "../../../components/feedback/report-question";
+
+// Remaining seconds at which the countdown turns red.
+const LOW_TIME = 10;
 
 function ExpressQuiz() {
+  const { t } = useTranslation();
   const router = useRouter();
 
   const [overallTime, setOverallTime] = useState(0);
   const [userAnswers, setUserAnswers] = useState([]);
-  const [questionIds, setQuestionIds] = useState([]);
+  // The quiz arrives with its questions, options and all; they are asked in the order given.
+  const [questions, setQuestions] = useState([]);
   const [completed, setCompleted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState({});
   const [currentQuestionTime, setCurrentQuestionTime] = useState(0);
+  // Questions skipped after reporting them; they count towards progress like answered ones.
+  const [skipped, setSkipped] = useState(0);
+  // The question on screen, read when a report comes back (see skipQuestion). Cleared once the
+  // quiz is over, which the overall timer can do while a report is open.
+  const shownQuestionId = useRef(null);
   const [quiz, setQuiz] = useState({
     quizTime: null,
     questionIds: []
@@ -25,18 +34,22 @@ function ExpressQuiz() {
 
   useEffect(() => {
     const fetchExpressQuiz = async () => await getExpressQuiz();
+    let timer;
 
     fetchExpressQuiz()
       .then(expressQuiz => {
         if (expressQuiz) {
-          setQuiz(expressQuiz);
+          // The questions are not part of the run that is saved, so they are kept apart from
+          // the quiz that is posted back.
+          const { questionList, ...quizWithoutQuestions } = expressQuiz;
+          setQuiz(quizWithoutQuestions);
           setCurrentQuestionTime(Date.now());
-          setQuestionIds(Array.from(expressQuiz.questionIds));
+          setQuestions(Array.from(questionList ?? []));
 
           const time = moment()
             .clone()
             .add(expressQuiz.quizTime + 1, 'seconds');
-          setInterval(() => {
+          timer = setInterval(() => {
             const remainingTime = moment(time)
               .diff(moment(), 'seconds');
             if (remainingTime !== 0 && remainingTime > -1) {
@@ -47,23 +60,25 @@ function ExpressQuiz() {
           }, 100);
         }
       });
+
+    return () => clearInterval(timer);
   }, []);
 
   useEffect(() => {
-    if (questionIds.length) {
-      handleCurrentQuestion(questionIds.shift());
+    if (questions.length) {
+      handleCurrentQuestion(questions.shift());
     }
-  }, [questionIds]);
+  }, [questions]);
 
   useEffect(() => {
     if (completed) {
+      shownQuestionId.current = null;
       saveQuizResult(quiz.quizTime - overallTime);
     }
   }, [completed]);
 
   const saveQuizResult = (spentTime) => {
-    const saveResult = async () =>
-      await saveUserQuiz({
+    const saveResult = async () => await saveUserQuiz({
         quiz,
         spentTime,
         answersJson: JSON.stringify(userAnswers)
@@ -71,8 +86,10 @@ function ExpressQuiz() {
 
     saveResult()
       .then(result => {
-        router.push('/quiz/result?historyId=' + result.data.historyId)
-          .then(pushEvent => console.log(pushEvent));
+        if (result) {
+          router.push('/quiz/result?historyId=' + result.data.historyId)
+            .then(pushEvent => console.log(pushEvent));
+        }
       });
   };
 
@@ -86,54 +103,74 @@ function ExpressQuiz() {
     }]);
     setCurrentQuestionTime(now);
 
-    if (questionIds.length) {
-      handleCurrentQuestion(questionIds.shift());
+    if (questions.length) {
+      handleCurrentQuestion(questions.shift());
     } else {
       setCompleted(true);
     }
   };
 
-  const handleCurrentQuestion = (questionId) => {
-    const fetchQuestionWithOptions = async () => await getQuestionWithOptions(questionId);
-    fetchQuestionWithOptions()
-      .then(question => setCurrentQuestion(question));
+  const handleCurrentQuestion = (question) => {
+    shownQuestionId.current = question?.id ?? null;
+    setCurrentQuestion(question);
   };
 
+  // A reported question the player chose to skip: nothing is recorded, so the result shows it
+  // unanswered with its right answer. Only if it is still the question on screen: the report
+  // popup stays open while the quiz carries on underneath.
+  const skipQuestion = (questionId) => {
+    if (shownQuestionId.current !== questionId) return;
+    shownQuestionId.current = null;
+    setSkipped(value => value + 1);
+    setCurrentQuestionTime(Date.now());
+
+    if (questions.length) {
+      handleCurrentQuestion(questions.shift());
+    } else {
+      setCompleted(true);
+    }
+  };
+
+  const total = quiz.questionIds.length;
+  const answered = userAnswers.length + skipped;
+
   return (
-    <div className="d-flex h-100 flex-column">
-      <Knob
-        readOnly
-        size={100}
-        strokeWidth={4}
-        textColor="white"
-        valueColor="white"
-        rangeColor="#0d6efd"
-        value={overallTime}
-        className="text-center"
-      />
-      <div className="d-flex justify-content-center align-items-center h-100 flex-column">
-        <h1 className="text-center">{currentQuestion?.content}</h1>
-        <FlexContainer>
-          {currentQuestion?.answers?.map(answer => (
-            <div key={answer.content} className="d-flex align-items-center flex-column justify-content-center">
-              <Image
-                fluid
-                rounded
-                width={200}
-                height={150}
-                src={base64Util(answer?.glossaryAttachment)}
+    <div className="quiz-play">
+      <header className="quiz-hud">
+        <span className="quiz-hud-step">
+          {t('question', 'Question')} <b>{Math.min(answered + 1, total)}</b> / {total}
+        </span>
+        <span className={`quiz-hud-timer${quiz.quizTime && overallTime <= LOW_TIME ? ' is-low' : ''}`}>
+          {formatTime(overallTime)}
+          {quiz.quizTime && (
+            // Border that drains with the time left; viewBox matches the timer's fixed size and cut corners.
+            <svg className="quiz-hud-timer-ring" viewBox="0 0 132 46" aria-hidden="true">
+              <polygon
+                points="10.5,1 131,1 131,35.5 120.5,45 1,45 1,10.5"
+                pathLength="100"
+                strokeDasharray="100"
+                strokeDashoffset={100 - (overallTime / quiz.quizTime) * 100}
               />
-              <Button
-                key={answer.content}
-                variant="outline-light"
-                onClick={() => handleAnswer(answer.termId)}
-              >
-                {answer.content}
-              </Button>
-            </div>
-          ))}
-        </FlexContainer>
+            </svg>
+          )}
+        </span>
+      </header>
+      <div className="quiz-progress">
+        <div className="quiz-progress-bar" style={{ width: `${total ? (answered / total) * 100 : 0}%` }} />
       </div>
+
+      {currentQuestion?.id ? (
+        // Keyed by question so each new one replays the entrance animation.
+        <section className="quiz-stage" key={currentQuestion.id}>
+          <h2 className="quiz-question">{currentQuestion.content}</h2>
+          <SingleOption currentQuestion={currentQuestion} handleAnswer={handleAnswer} />
+        </section>
+      ) : (
+        <div className="quiz-loading" aria-label={t('loading', 'Loading')} />
+      )}
+
+      {/* Outside the keyed stage, so an open report is not unmounted by the next question. */}
+      {currentQuestion?.id && <ReportQuestion question={currentQuestion} onSkip={skipQuestion} />}
     </div>
   );
 }

@@ -1,0 +1,336 @@
+// ---- Trophies: the shelf, the faces, and the one pinned to a profile --------------------------
+.trophies-page {
+  @include glass-slab(6);
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin: 20px auto;
+  max-width: 900px;
+  padding: 24px 22px 20px;
+  width: 100%;
+}
+
+.trophies-header {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+
+.trophies-icon {
+  background: radial-gradient(circle at 35% 30%, #ffe27a 0%, #f5b82e 55%, #b97a07 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 22px rgba(245, 184, 46, 0.55);
+  color: #3a2600;
+  display: grid;
+  flex: none;
+  font-size: 1.05rem;
+  height: 46px;
+  place-items: center;
+  width: 46px;
+}
+
+.trophies-title {
+  color: #eaf6fd;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.trophies-lead {
+  color: #9fb6c4;
+  font-size: 0.82rem;
+  margin: 4px 0 0;
+}
+
+.trophies-group-title {
+  color: #7fa3b6;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+
+.trophies-list {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+// The whole card is the button: an earned trophy can be pinned to the profile, a locked one not.
+.trophy {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.18);
+  border-radius: 12px;
+  display: flex;
+  gap: 12px;
+  padding: 10px;
+  text-align: left;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  width: 100%;
+
+  &[data-earned='true'] {
+    border-color: rgba(var(--ui-accent-rgb), 0.4);
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      box-shadow: 0 0 16px rgba(var(--ui-accent-rgb), 0.3);
+      outline: none;
+      transform: translateY(-2px);
+    }
+  }
+
+  // Locked: still readable, plainly not yours yet.
+  &[data-earned='false'] {
+    cursor: default;
+    opacity: 0.72;
+  }
+
+  &[data-preferred='true'] {
+    border-color: #f5b82e;
+    box-shadow: 0 0 18px rgba(245, 184, 46, 0.35);
+  }
+}
+
+.trophy-face {
+  align-items: center;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--ui-accent-pale) 35%, transparent) 0%, color-mix(in srgb, var(--ui-accent-deep) 25%, transparent) 60%, rgba(0, 0, 0, 0.3) 100%);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.35);
+  border-radius: 50%;
+  color: var(--ui-accent-mist);
+  display: flex;
+  flex: none;
+  font-size: 1.05rem;
+  height: 46px;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  width: 46px;
+
+  // Sized to the circle it sits in: an unsized FontAwesome svg draws at its own size, which is
+  // wider than the disc.
+  svg {
+    height: 1.2rem;
+    width: 1.2rem;
+  }
+
+  // Earned: gold, which is the whole visual difference between having one and not.
+  &[data-earned='true'] {
+    background: radial-gradient(circle at 35% 30%, #ffe27a 0%, #f5b82e 55%, #b97a07 100%);
+    border-color: rgba(245, 184, 46, 0.7);
+    box-shadow: 0 0 16px rgba(245, 184, 46, 0.45);
+    color: #3a2600;
+  }
+
+  &[data-secret='true'],
+  &[data-empty='true'] {
+    background: rgba(255, 255, 255, 0.04);
+    border-style: dashed;
+    color: #5f88a0;
+  }
+}
+
+.trophy-image {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+// Over the middle of the face rather than off its corner: a veil across the disc with the
+// padlock in the centre of it, so a locked trophy reads as locked at a glance and its own icon
+// still shows faintly behind.
+.trophy-lock {
+  align-items: center;
+  background: rgba(4, 14, 22, 0.62);
+  border-radius: 50%;
+  color: #cfe9f7;
+  display: flex;
+  font-size: 0.72rem;
+  inset: 0;
+  justify-content: center;
+  position: absolute;
+
+  svg {
+    height: 0.72rem;
+    width: 0.72rem;
+  }
+}
+
+.trophy-body {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+  min-width: 0;
+}
+
+.trophy-name {
+  color: #eaf6fd;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.trophy-what {
+  color: #7fa3b6;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.trophy-bar {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  display: flex;
+  height: 12px;
+  margin-top: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.trophy-fill {
+  background: linear-gradient(90deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+  display: block;
+  height: 100%;
+}
+
+.trophy-count {
+  color: #cfe9f7;
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  left: 8px;
+  position: absolute;
+}
+
+.trophy-chosen {
+  color: #f5b82e;
+  flex: none;
+  font-size: 0.8rem;
+}
+
+// ---- The one pinned to a profile --------------------------------------------------------------
+.profile-avatar-slot {
+  display: inline-block;
+  position: relative;
+}
+
+// Another player's profile shows the avatar and trophy without offering to change them.
+.profile-avatar[data-readonly='true'],
+.profile-trophy[data-readonly='true'] {
+  cursor: default;
+  pointer-events: none;
+}
+
+.profile-trophy[data-readonly='true'] {
+  pointer-events: auto;
+}
+
+// Read-only details on another player's profile.
+.profile-value {
+  color: #eaf6fd;
+  margin: 0;
+  min-height: 1.5em;
+
+  &[data-empty='true'] {
+    color: #7fa3b6;
+  }
+}
+
+.profile-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    background: rgba(var(--ui-accent-rgb), 0.14);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+    border-radius: 999px;
+    color: #eaf6fd;
+    font-size: 0.8rem;
+    padding: 3px 10px;
+  }
+}
+
+.profile-missing {
+  color: #7fa3b6;
+  margin: 40px auto;
+  text-align: center;
+}
+
+// On the avatar's lower right, where a badge belongs.
+.profile-trophy {
+  background: none;
+  border: none;
+  bottom: 12px;
+  cursor: pointer;
+  padding: 0;
+  position: absolute;
+  right: -2px;
+  transition: transform 180ms ease;
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    transform: scale(1.08);
+  }
+}
+
+.trophy-picker {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  list-style: none;
+  margin: 0 0 14px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.trophy-choice {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.18);
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 8px;
+  text-align: center;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+  width: 100%;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--ui-accent);
+    outline: none;
+  }
+
+  &[data-chosen='true'] {
+    border-color: #f5b82e;
+    box-shadow: 0 0 16px rgba(245, 184, 46, 0.35);
+  }
+}
+
+.trophy-choice-name {
+  color: #cfe9f7;
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .trophy,
+    .profile-trophy,
+    .trophy-choice {
+      transition: none;
+    }
+  }
+}

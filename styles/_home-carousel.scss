@@ -1,0 +1,272 @@
+// Home page categories: section header with arrows over a carousel of image cards.
+.home-section-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.home-section-title {
+  color: #eaf6fd;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  margin: 0;
+  text-transform: uppercase;
+
+  &::after {
+    background: linear-gradient(90deg, var(--ui-accent) 0%, rgba(var(--ui-accent-rgb), 0) 100%);
+    box-shadow: 0 0 10px rgba(var(--ui-accent-rgb), 0.6);
+    content: '';
+    display: block;
+    height: 1px;
+    margin-top: 10px;
+    width: 90px;
+  }
+}
+
+.home-carousel-nav {
+  display: flex;
+  gap: 8px;
+
+  button {
+    background: rgba(var(--ui-accent-rgb), 0.08);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+    border-radius: 50%;
+    color: var(--ui-accent-haze);
+    display: grid;
+    height: 38px;
+    place-items: center;
+    transition: background-color 180ms ease, box-shadow 180ms ease, color 180ms ease;
+    width: 38px;
+
+    svg {
+      height: 0.85em;
+      width: 0.85em;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(var(--ui-accent-rgb), 0.2);
+      box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.5);
+      color: #ffffff;
+      outline: none;
+    }
+  }
+}
+
+// The carousel's own height, held before it is mounted so the page does not jump when it lands.
+// Worked out the way the cards size themselves: a slide is the width less the 8px gaps, over the
+// slides shown (3, 5 or 7, Swiper's breakpoints); a card is 88% of its slide at 8:9, so 0.99 of the
+// slide; plus the carousel's 18px + 22px of padding. cqw is the width of .home-categories.
+.home-categories {
+  container-type: inline-size;
+}
+
+.home-carousel-frame {
+  min-height: calc((100cqw - 2 * 8px) / 3 * 0.99 + 40px);
+
+  @media (min-width: 768px) {
+    min-height: calc((100cqw - 4 * 8px) / 5 * 0.99 + 40px);
+  }
+
+  @media (min-width: 1400px) {
+    min-height: calc((100cqw - 6 * 8px) / 7 * 0.99 + 40px);
+  }
+
+  // No category has a picture: nothing is coming, so nothing is held.
+  &[data-empty] {
+    min-height: 0;
+  }
+
+  // It arrives whole, pictures decoded, and fades into the space kept for it.
+  .home-carousel {
+    animation: carousel-in 450ms ease both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & .home-carousel {
+      animation: none;
+    }
+  }
+}
+
+@keyframes carousel-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// Room above and below for the hover lift and glow, which Swiper's overflow would clip;
+// the edges fade out so cards slide in and out of view instead of being cut.
+.home-carousel {
+  mask-image: linear-gradient(90deg, transparent 0, #000 40px, #000 calc(100% - 40px), transparent 100%);
+  padding: 18px 0 22px;
+
+  // Coverflow pushes the side cards back in 3D, and the wrapper is a plane at depth 0: in front
+  // of every card behind it, so it took their clicks. It is shifted left for the loop, which is
+  // why only the cards left of centre were dead. Clicks go through it to the cards; dragging
+  // still works, Swiper listens on the carousel itself.
+  .swiper-wrapper {
+    pointer-events: none;
+  }
+
+  .swiper-slide {
+    pointer-events: auto;
+  }
+}
+
+.category-card {
+  // Nearer a square than the old portrait card, but not square: a little height still leaves
+  // room for the name and the Play pill over the artwork.
+  aspect-ratio: 8 / 9;
+  border-radius: 16px;
+  box-shadow: 0 0 0 1px rgba(var(--ui-accent-rgb), 0.25), 0 10px 24px rgba(0, 0, 0, 0.45);
+  display: block;
+  overflow: hidden;
+  position: relative;
+  text-align: left;
+  text-decoration: none;
+  transition: box-shadow 260ms ease, transform 260ms ease;
+
+  // Lifts, zooms its artwork and shows Play; no glow.
+  &:hover,
+  &:focus-visible {
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.5);
+    outline: none;
+    transform: translateY(-6px);
+
+    .category-card-image {
+      transform: scale(1.08);
+    }
+
+    .category-card-play {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  // Keyboard focus keeps a cyan edge: the lift alone does not say where you are.
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--ui-accent), 0 16px 30px rgba(0, 0, 0, 0.5);
+  }
+}
+
+.category-card-image {
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  position: absolute;
+  transition: transform 500ms ease;
+  width: 100%;
+}
+
+// Keeps the name readable over any artwork, with a cyan tint rising from the bottom.
+.category-card-shade {
+  background: linear-gradient(180deg, rgba(4, 14, 22, 0) 35%, rgba(4, 14, 22, 0.75) 72%, rgba(2, 40, 60, 0.95) 100%);
+  inset: 0;
+  position: absolute;
+}
+
+.category-card-body {
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  left: 0;
+  padding: 14px;
+  position: absolute;
+  right: 0;
+}
+
+.category-card-name {
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+  text-transform: uppercase;
+}
+
+// Slides up on hover: says what a click does.
+.category-card-play {
+  align-self: flex-start;
+  background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(var(--ui-accent-rgb), 0.5);
+  color: var(--ui-on-accent, #ffffff);
+  // Labels inside: _base paints every span, p and div white itself, so they need telling.
+  > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  opacity: 0;
+  padding: 4px 12px;
+  text-transform: uppercase;
+  transform: translateY(8px);
+  transition: opacity 220ms ease, transform 220ms ease;
+
+  svg {
+    height: 0.8em;
+    width: 0.8em;
+  }
+}
+
+// The centre card is the featured one: full brightness and the Play chip. The smaller cards
+// around it step back a little so the size falloff reads as depth.
+.home-carousel {
+  // Cards a little smaller than their slides (same 4:5 shape, centred), so the carousel takes
+  // less room without changing how many cards it shows.
+  .swiper-slide .category-card {
+    filter: brightness(0.7) saturate(0.85);
+    margin: 0 auto;
+    transition: box-shadow 260ms ease, filter 400ms ease, transform 260ms ease;
+    width: 88%;
+  }
+
+  .swiper-slide-active .category-card,
+  .swiper-slide .category-card:hover,
+  .swiper-slide .category-card:focus-visible {
+    filter: none;
+  }
+
+  // The centre card is the featured one by its size and full brightness; no glow on top of that.
+  .swiper-slide-active .category-card {
+    .category-card-play {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      .swiper-slide .category-card {
+        transition: none;
+      }
+    }
+  }
+}
+
+// Touch screens have no hover, so the Play chip just stays visible.
+@media (hover: none) {
+  .category-card-play {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .home-carousel-nav button,
+    .category-card,
+    .category-card-image,
+    .category-card-play {
+      transition: none;
+    }
+  }
+}

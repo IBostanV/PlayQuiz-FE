@@ -1,5 +1,6 @@
 import request, { PATCH } from '../../utils/request';
 import { GLOSSARY_PATH } from '../constant';
+import { GLOSSARY_CHANGED } from './missing-type-count';
 
 export default (body, attachment) => {
   const formData = new FormData();
@@ -17,5 +18,11 @@ export default (body, attachment) => {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
+    // A saved term may have just been given the type it was missing, so the dashboard recounts.
+  }).then((response) => {
+    if (response) {
+      window.dispatchEvent(new Event(GLOSSARY_CHANGED));
+    }
+    return response;
   });
 };

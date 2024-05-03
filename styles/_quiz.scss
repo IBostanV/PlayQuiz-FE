@@ -1,0 +1,879 @@
+.quiz-page {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  margin: 0 auto;
+  max-width: 1120px;
+  min-height: 0;
+  padding-top: 10px;
+  width: 100%;
+
+  // Hovered category artwork, over the layout's logo backdrop. Fixed and z-index 0 so it
+  // paints above main's background but below the page content, which sits at z-index 1.
+  .quiz-backdrop {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    position: fixed;
+    transition: opacity 500ms ease-in-out;
+    z-index: 0;
+
+    // A new layer mounts already shown, so it fades in by animation; leaving is the transition.
+    &[data-shown='true'] {
+      animation: quiz-backdrop-in 500ms ease-in-out;
+      opacity: 1;
+    }
+
+    // Dark, slightly frosted veil, so the artwork stays a backdrop and the tiles stay readable.
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      -webkit-backdrop-filter: blur(4px);
+      backdrop-filter: blur(4px);
+      background: linear-gradient(180deg, rgba(4, 14, 22, 0.8) 0%, rgba(4, 14, 22, 0.92) 100%);
+    }
+  }
+
+  // Grid: header over the list on the right, filter rail on the left in the list's row, so
+  // both slabs start at the same height. .quiz-main dissolves into the grid.
+  .quiz-body {
+    display: grid;
+    flex: 1;
+    gap: 24px 26px;
+    grid-template-areas: '. hero' 'filters list';
+    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+    position: relative;
+    z-index: 1;
+  }
+
+  .quiz-main {
+    display: contents;
+  }
+
+  // ---- Header: badge, title, subtitle, search (the knowledge base's look) ----------------
+
+  .quiz-hero {
+    grid-area: hero;
+    margin: 0 auto;
+    max-width: 620px;
+    text-align: center;
+    width: 100%;
+  }
+
+  .quiz-hero-icon {
+    background: rgba(var(--ui-accent-rgb), 0.12);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(var(--ui-accent-rgb), 0.45), 0 0 26px rgba(var(--ui-accent-rgb), 0.25);
+    color: var(--ui-accent);
+    display: grid;
+    font-size: 1.4rem;
+    height: 58px;
+    margin: 0 auto 14px;
+    place-items: center;
+    width: 58px;
+
+    svg {
+      height: 1em;
+      width: 1em;
+    }
+  }
+
+  .quiz-title {
+    color: #eaf6fd;
+    font-family: 'Montserrat-Medium', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+
+  .quiz-subtitle {
+    color: #9fb6c4;
+    margin-bottom: 18px;
+  }
+
+  .quiz-search input {
+    height: 50px;
+  }
+
+  // ---- Filter rail: quiz type as pill options -------------------------------------------
+
+  .quiz-filters {
+    @include glass-slab;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    grid-area: filters;
+    overflow-y: auto;
+    padding: 14px 12px;
+  }
+
+  .quiz-filter {
+    border: 0;
+    margin: 0;
+    min-width: 0;
+    padding: 0;
+  }
+
+  // The row that opens the filter: its name over what is picked, with a caret beside them.
+  .quiz-filter-toggle {
+    align-items: center;
+    column-gap: 8px;
+    cursor: pointer;
+    display: grid;
+    grid-template-areas: 'label caret' 'value caret';
+    grid-template-columns: minmax(0, 1fr) auto;
+    list-style: none;
+    padding: 4px 0;
+    row-gap: 2px;
+
+    .quiz-filter-label {
+      grid-area: label;
+    }
+
+    .quiz-filter-value {
+      grid-area: value;
+    }
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::after {
+      border-bottom: 1.5px solid currentColor;
+      border-right: 1.5px solid currentColor;
+      color: #6f8fa1;
+      content: '';
+      grid-area: caret;
+      height: 6px;
+      transform: rotate(45deg);
+      transition: transform 180ms ease;
+      width: 6px;
+    }
+
+    &:hover .quiz-filter-value,
+    &:focus-visible .quiz-filter-value {
+      color: #ffffff;
+    }
+
+    &:focus-visible {
+      outline: 1px solid rgba(var(--ui-accent-rgb), 0.6);
+      outline-offset: 2px;
+    }
+  }
+
+  .quiz-filter[open] > .quiz-filter-toggle::after {
+    transform: rotate(225deg);
+  }
+
+  // What this filter is set to, when it is closed as much as when it is open.
+  .quiz-filter-value {
+    color: var(--ui-accent-light);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .quiz-filter[open] > .quiz-type-options {
+    margin-top: 8px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      .quiz-filter-toggle::after {
+        transition: none;
+      }
+    }
+  }
+
+  .quiz-filter-label {
+    color: #9fb6c4;
+    float: none;
+    font-size: 0.68em;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    width: auto;
+  }
+
+  .quiz-type-options {
+    display: grid;
+    gap: 6px;
+    grid-template-columns: repeat(auto-fit, minmax(86px, 1fr));
+  }
+
+  // One option per line, for the quiz types, whose names do not share a row well.
+  .quiz-type-options-column {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .quiz-type-option {
+    align-items: center;
+    background: rgba(var(--ui-accent-rgb), 0.05);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.22);
+    border-radius: 3px;
+    color: #9fb6c4;
+    cursor: pointer;
+    display: flex;
+    font-size: 0.75rem;
+    font-weight: 600;
+    // Every box the same size, its label centred however long it is.
+    justify-content: center;
+    line-height: 1.25;
+    margin: 0;
+    min-height: 34px;
+    padding: 5px 8px;
+    text-align: center;
+    transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+
+    // The radio stays for keyboard and screen readers; the pill is what shows.
+    input {
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+    }
+
+    span {
+      color: inherit;
+    }
+
+    &:hover {
+      border-color: rgba(var(--ui-accent-rgb), 0.6);
+      color: #eaf6fd;
+    }
+
+    &:has(input:focus-visible) {
+      box-shadow: 0 0 0 2px rgba(var(--ui-accent-rgb), 0.5);
+    }
+
+    &:has(input:checked) {
+      background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+      border-color: transparent;
+      box-shadow: 0 4px 14px rgba(var(--ui-accent-rgb), 0.4);
+      color: var(--ui-on-accent, #ffffff);
+      // Labels inside: _base paints every span, p and div white itself, so they need telling.
+      > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+    }
+  }
+
+  // ---- Category list -----------------------------------------------------------------------
+
+  .quiz-list {
+    @include glass-slab;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    grid-area: list;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 10px;
+  }
+
+  // One rounded row per category: caret, thumbnail, name, subcategory count, Play pill.
+  .quiz-tile {
+    align-items: center;
+    border-radius: 12px;
+    color: #cfe9f7;
+    cursor: pointer;
+    display: flex;
+    list-style: none;
+    min-height: 58px;
+    padding: 8px 12px 8px 8px;
+    position: relative;
+    text-decoration: none;
+    transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &:hover,
+    &:focus-visible,
+    &:has(:focus-visible) {
+      background-color: rgba(var(--ui-accent-rgb), 0.1);
+      color: #ffffff;
+      outline: none;
+      transform: translateX(3px);
+
+      .quiz-tile-play {
+        opacity: 1;
+        transform: none;
+      }
+    }
+  }
+
+  // Painted over a branch's two hit zones; ignores the pointer so the zones get the clicks.
+  .quiz-tile-content {
+    align-items: center;
+    display: flex;
+    flex: 1;
+    gap: 12px;
+    min-width: 0;
+    pointer-events: none;
+    position: relative;
+  }
+
+  .quiz-tile-caret {
+    color: #7fb6d0;
+    flex: 0 0 14px;
+    height: 0.75rem;
+    transition: color 180ms ease, transform 180ms ease;
+    width: 14px;
+  }
+
+  .quiz-tile-thumb {
+    border-radius: 0;
+    box-shadow: 0 0 0 1px rgba(var(--ui-accent-rgb), 0.3);
+    flex: 0 0 52px;
+    height: 52px;
+    object-fit: cover;
+    width: 52px;
+  }
+
+  // The initials fallback shares the thumbnail's square.
+  .chat-avatar.quiz-tile-thumb {
+    font-size: 0.72rem;
+  }
+
+  .quiz-tile-name {
+    flex: 1;
+    font-family: 'Montserrat-Medium', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .quiz-tile-count {
+    background: rgba(var(--ui-accent-rgb), 0.14);
+    border-radius: 999px;
+    color: var(--ui-accent-mist);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 2px 8px;
+  }
+
+  // Appears on hover/focus: says what a click (on the right-hand part) does.
+  .quiz-tile-play {
+    align-items: center;
+    background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+    border-radius: 999px;
+    box-shadow: 0 4px 12px rgba(var(--ui-accent-rgb), 0.45);
+    color: var(--ui-on-accent, #ffffff);
+    // Labels inside: _base paints every span, p and div white itself, so they need telling.
+    > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+    display: inline-flex;
+    font-size: 0.68rem;
+    font-weight: 700;
+    gap: 6px;
+    letter-spacing: 0.12em;
+    opacity: 0;
+    padding: 4px 12px;
+    text-transform: uppercase;
+    transform: translateX(-6px);
+    transition: opacity 180ms ease, transform 180ms ease;
+
+    svg {
+      height: 0.8em;
+      width: 0.8em;
+    }
+  }
+
+  @media (hover: none) {
+    .quiz-tile-play {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  // ---- Branches: two hit zones (left toggles, right plays), open state, children ---------
+
+  .quiz-branch-toggle,
+  .quiz-branch-play {
+    border-radius: 12px;
+    bottom: 0;
+    position: absolute;
+    top: 0;
+  }
+
+  .quiz-branch-toggle {
+    left: 0;
+    width: 30%;
+  }
+
+  .quiz-branch-play {
+    left: 30%;
+    right: 0;
+  }
+
+  // Whichever half is under the pointer says so: the caret lights for "expand", the Play pill
+  // stays for "play".
+  .quiz-tile:has(.quiz-branch-toggle:hover) {
+    .quiz-tile-caret {
+      color: #ffffff;
+    }
+
+    .quiz-tile-play {
+      opacity: 0.35;
+    }
+  }
+
+  .quiz-branch[open] > .quiz-tile {
+    background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0.24) 0%, rgba(var(--ui-accent-rgb), 0.04) 100%);
+    box-shadow: inset 3px 0 0 var(--ui-accent);
+    color: #ffffff;
+
+    .quiz-tile-caret {
+      color: var(--ui-accent);
+      transform: rotate(90deg);
+    }
+  }
+
+  // Subcategories hang off a guide line under their parent.
+  .quiz-children {
+    border-left: 1px solid rgba(var(--ui-accent-rgb), 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 2px 0 6px 21px;
+    padding-left: 10px;
+  }
+
+  .quiz-empty {
+    color: #7fa3b6;
+    margin: 30px auto;
+    text-align: center;
+  }
+
+  // Stack the rail above the list when there is no room for two columns.
+  @media (max-width: 720px) {
+    .quiz-body {
+      grid-template-areas: 'hero' 'filters' 'list';
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto auto minmax(0, 1fr);
+    }
+
+    .quiz-filters {
+      align-self: stretch;
+      overflow-y: visible;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      .quiz-backdrop,
+      .quiz-tile,
+      .quiz-tile-caret,
+      .quiz-tile-play,
+      .quiz-type-option {
+        animation: none;
+        transition: none;
+      }
+    }
+  }
+}
+
+// Answering a player's own quiz by typing or by ordering: the same glass and cyan as the cards.
+.quiz-play {
+  .answer-input {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+
+    input {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--accent-soft);
+      border-radius: 12px;
+      color: #eaf6fd;
+      font-size: 1.1rem;
+      height: 54px;
+      max-width: 560px;
+      padding: 0 18px;
+      text-align: center;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+      width: 100%;
+
+      &:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 1px var(--accent), 0 0 16px rgba(var(--ui-accent-rgb), 0.35);
+        outline: none;
+      }
+    }
+  }
+
+  .answer-order {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    list-style: none;
+    margin: 0;
+    max-width: 640px;
+    padding: 0;
+    width: 100%;
+  }
+
+  .answer-order-item {
+    align-items: center;
+    animation: quiz-enter 380ms ease both;
+    background: linear-gradient(to right, rgba(var(--ui-accent-rgb), 0.14) 0%, rgba(4, 14, 22, 0.85) 70%);
+    box-shadow: inset 0 0 0 1px var(--accent-soft);
+    color: #cfe9f7;
+    display: flex;
+    gap: 14px;
+    padding: 10px 12px 10px 16px;
+  }
+
+  .answer-order-text {
+    flex: 1;
+    font-size: 1.05rem;
+    font-weight: 600;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .answer-order-move {
+    align-items: center;
+    background: none;
+    border: 1px solid var(--accent-soft);
+    color: var(--accent);
+    display: grid;
+    flex: none;
+    height: 36px;
+    place-items: center;
+    transition: background-color 160ms ease, border-color 160ms ease;
+    width: 36px;
+
+    svg {
+      height: 0.9em;
+      width: 0.9em;
+    }
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+      background: rgba(var(--ui-accent-rgb), 0.18);
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.25;
+    }
+  }
+
+  .quiz-unavailable {
+    color: #9fb6c4;
+    margin: 60px auto 0;
+    max-width: 520px;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .quiz-play .answer-order-item {
+      animation: none;
+    }
+
+    .quiz-play .answer-input input,
+    .quiz-play .answer-order-move {
+      transition: none;
+    }
+  }
+}
+
+// Quiz in progress: status bar, progress line, question card, answer cards.
+.quiz-play {
+  --accent: var(--ui-accent);
+  --accent-soft: rgba(var(--ui-accent-rgb), 0.35);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0 auto;
+  max-width: 980px;
+  width: 100%;
+
+  .quiz-hud {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    text-transform: uppercase;
+  }
+
+  .quiz-hud-step {
+    color: #9fb6c4;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+
+    b {
+      color: #eaf6fd;
+      font-size: 1.2rem;
+    }
+  }
+
+  .quiz-hud-timer {
+    align-items: center;
+    border: 1px solid var(--accent-soft);
+    display: inline-flex;
+    height: 46px;
+    justify-content: center;
+    position: relative;
+    // Fixed so the drain ring's viewBox lines up with the cut corners.
+    width: 132px;
+    box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.25), inset 0 0 10px rgba(var(--ui-accent-rgb), 0.15);
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    color: #eaf6fd;
+    font-size: 1.3rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.12em;
+    transition: color 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+
+    // Follows the text colour, so it turns red with it.
+    polygon {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      filter: drop-shadow(0 0 4px currentColor);
+      // The countdown ticks once a second; a 1s linear slide makes the drain continuous.
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    // Countdown about to run out.
+    &.is-low {
+      animation: quiz-pulse 1s ease-in-out infinite;
+      border-color: rgba(255, 77, 94, 0.7);
+      box-shadow: 0 0 14px rgba(255, 77, 94, 0.45), inset 0 0 10px rgba(255, 77, 94, 0.2);
+      color: #ff4d5e;
+    }
+  }
+
+  .quiz-hud-timer-ring {
+    height: 100%;
+    inset: 0;
+    overflow: visible;
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+  }
+
+  .quiz-progress {
+    background: rgba(var(--ui-accent-rgb), 0.12);
+    height: 3px;
+  }
+
+  .quiz-progress-bar {
+    background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0.4), var(--accent));
+    box-shadow: 0 0 12px var(--accent);
+    height: 100%;
+    transition: width 420ms ease;
+  }
+
+  .quiz-stage {
+    animation: quiz-enter 380ms ease both;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    padding: 16px 0 30px;
+  }
+
+  .quiz-question {
+    @include quiz-panel(22);
+    align-content: center;
+    color: #ffffff;
+    display: grid;
+    font-size: clamp(1.4rem, 3vw, 2.1rem);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+    margin: 0;
+    max-width: 860px;
+    // Room for two lines whatever this question needs, with the text centred in it: the answers
+    // below must not move from question to question, and most questions are one line or two.
+    min-height: calc(2.8em + 60px);
+    padding: 30px clamp(20px, 5vw, 56px);
+    text-align: center;
+    width: 100%;
+  }
+
+  .answer-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    width: 100%;
+  }
+
+  .answer-card {
+    align-items: stretch;
+    animation: quiz-enter 380ms ease both;
+    // The cuts are not square here (16 across at the top left, 19 by 14 at the bottom right),
+    // which is why the frame takes each one's size rather than a single number.
+    @include cut-corner-frame(16, 14, 19, 14, 1, var(--accent-soft));
+    background: linear-gradient(to top, rgba(var(--ui-accent-rgb), 0.16) 0%, rgba(4, 14, 22, 0.85) 70%);
+    border: none;
+    color: #cfe9f7;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    font-family: inherit;
+    padding: 0;
+    text-align: left;
+    transition: filter 180ms ease, background-color 180ms ease;
+
+    @for $i from 1 through 8 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{$i * 60}ms;
+      }
+    }
+
+    &:hover,
+    &:focus-visible {
+      background-color: rgba(var(--ui-accent-rgb), 0.2);
+      color: #ffffff;
+      filter: drop-shadow(0 -4px 14px rgba(var(--ui-accent-rgb), 0.4));
+      outline: none;
+
+      &::before {
+        background: var(--accent);
+      }
+    }
+
+    // Pressed reads through the wash and the lit frame; nothing about a card moves while it is
+    // being answered.
+    &:active {
+      background-color: rgba(var(--ui-accent-rgb), 0.3);
+    }
+
+    &.is-selected {
+      background-color: rgba(var(--ui-accent-rgb), 0.38);
+      color: #ffffff;
+
+      // Twice as thick, so the frame is re-cut two px in rather than one.
+      &::before {
+        @include cut-corner-frame-path(16, 14, 19, 14, 2);
+        background: var(--accent);
+      }
+
+      .answer-card-key {
+        background: var(--accent);
+        color: #04121c;
+      }
+    }
+  }
+
+  .answer-card-image {
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    width: 100%;
+  }
+
+  .answer-card-label {
+    align-items: center;
+    color: inherit;
+    display: flex;
+    font-size: 1.05rem;
+    font-weight: 600;
+    gap: 14px;
+    letter-spacing: 0.03em;
+    padding: 16px 18px;
+  }
+
+  .answer-card-key {
+    align-items: center;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    display: inline-flex;
+    flex: 0 0 30px;
+    font-size: 0.85rem;
+    height: 30px;
+    justify-content: center;
+    transition: background-color 180ms ease, color 180ms ease;
+  }
+
+  .quiz-confirm {
+    background: var(--accent);
+    border: none;
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    color: #04121c;
+    font-family: inherit;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    padding: 12px 48px;
+    text-transform: uppercase;
+    transition: filter 180ms ease, opacity 180ms ease;
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+      filter: brightness(1.15) drop-shadow(0 0 12px var(--accent));
+      outline: none;
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.35;
+    }
+  }
+
+  .quiz-loading {
+    align-self: center;
+    animation: quiz-spin 900ms linear infinite;
+    border: 2px solid rgba(var(--ui-accent-rgb), 0.2);
+    border-radius: 50%;
+    border-top-color: var(--accent);
+    height: 48px;
+    margin: auto;
+    width: 48px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      .quiz-stage,
+      .quiz-hud-timer,
+      .quiz-hud-timer polygon,
+      .answer-card,
+      .quiz-loading,
+      .quiz-progress-bar {
+        animation: none;
+        transition: none;
+      }
+    }
+  }
+}
+
+@keyframes quiz-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@keyframes quiz-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes quiz-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes quiz-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

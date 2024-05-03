@@ -1,0 +1,647 @@
+// Notifications and news. One line style for both: the bell's list in the navbar and the News
+// page are the same lines (components/feed/feed-line.jsx), so they read the same in either.
+
+.nav-bell {
+  position: relative;
+
+  // The unread count sits on the bell's rim, the way the feedback count sits on the admin's face.
+  > .nav-user-action {
+    position: relative;
+  }
+
+  // Something new: the count sends out a slow ring, so it is noticed without flashing.
+  .nav-user-badge {
+    animation: bell-badge-ping 2.4s ease-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & .nav-user-badge {
+      animation: none;
+    }
+  }
+}
+
+@keyframes bell-badge-ping {
+  0% {
+    box-shadow: 0 0 0 2px #06141e, 0 0 0 2px rgba(255, 93, 108, 0.7);
+  }
+
+  70%,
+  100% {
+    box-shadow: 0 0 0 2px #06141e, 0 0 0 10px rgba(255, 93, 108, 0);
+  }
+}
+
+// The bell's list: a frosted card that drops out of the bell with a caret pointing back at it, a
+// header with the count of new ones, the new and the earlier in their own groups, and a footer bar
+// to the News page.
+.nav-bell-panel {
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  background:
+    radial-gradient(120% 60% at 100% 0%, rgba(var(--ui-accent-rgb), 0.18) 0%, rgba(var(--ui-accent-rgb), 0) 60%),
+    linear-gradient(180deg, rgba(10, 30, 44, 0.96) 0%, rgba(3, 11, 17, 0.97) 100%);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.28);
+  border-radius: 18px;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.65),
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(var(--ui-accent-rgb), 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  max-height: min(72vh, 560px);
+  position: absolute;
+  right: -6px;
+  top: calc(100% + 14px);
+  transform-origin: calc(100% - 22px) -10px;
+  // The navbar capsule does not wrap; the lines in here must.
+  white-space: normal;
+  width: min(400px, calc(100vw - 24px));
+  z-index: 1050;
+  animation: bell-panel-in 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+
+  // The caret, a turned square matching the card's top edge, over the bell's centre.
+  &::before {
+    background: rgb(12, 34, 49);
+    border-left: 1px solid rgba(var(--ui-accent-rgb), 0.28);
+    border-top: 1px solid rgba(var(--ui-accent-rgb), 0.28);
+    content: '';
+    height: 12px;
+    position: absolute;
+    right: 22px;
+    top: -7px;
+    transform: rotate(45deg);
+    width: 12px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      animation: none;
+    }
+  }
+}
+
+@keyframes bell-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+}
+
+.nav-bell-head {
+  align-items: center;
+  border-bottom: 1px solid rgba(var(--ui-accent-rgb), 0.14);
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px 11px;
+}
+
+.nav-bell-orb {
+  background: radial-gradient(circle at 35% 30%, var(--ui-accent-pale) 0%, var(--ui-accent-bright) 55%, var(--ui-accent-deep) 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 16px rgba(var(--ui-accent-rgb), 0.55);
+  color: var(--ui-on-accent, #03202e);
+  display: grid;
+  flex: none;
+  height: 28px;
+  place-items: center;
+  width: 28px;
+
+  svg {
+    height: 0.8rem;
+    width: 0.8rem;
+  }
+}
+
+.nav-bell-title {
+  color: #eaf6fd;
+  flex: 1;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.nav-bell-new {
+  background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(var(--ui-accent-rgb), 0.45);
+  color: var(--ui-on-accent, #ffffff);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  text-transform: uppercase;
+}
+
+// Scrolls on its own, so the header and the footer bar stay put; a thin accent scrollbar.
+.nav-bell-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  padding: 8px;
+  scrollbar-color: rgba(var(--ui-accent-rgb), 0.35) transparent;
+  scrollbar-width: thin;
+}
+
+.nav-bell-group-title {
+  color: #7fa3b6;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  margin: 6px 8px 4px;
+  text-transform: uppercase;
+}
+
+// In the bell the lines are cards of their own, lifting a little under the pointer.
+.nav-bell-panel .feed-line {
+  border: 1px solid transparent;
+  padding: 9px 10px;
+  position: relative;
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+
+  &[href]:hover,
+  &[href]:focus-visible {
+    border-color: rgba(var(--ui-accent-rgb), 0.25);
+    transform: translateX(2px);
+  }
+
+  // New: a glowing dot on the right instead of the bar the News page uses.
+  &[data-unread] {
+    background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0.12) 0%, rgba(var(--ui-accent-rgb), 0.03) 100%);
+    border-color: rgba(var(--ui-accent-rgb), 0.18);
+    box-shadow: none;
+    padding-right: 26px;
+
+    &::after {
+      background: var(--ui-accent-light);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--ui-accent-light);
+      content: '';
+      height: 8px;
+      position: absolute;
+      right: 11px;
+      top: 50%;
+      translate: 0 -50%;
+      width: 8px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      transition: none;
+
+      &[href]:hover,
+      &[href]:focus-visible {
+        transform: none;
+      }
+    }
+  }
+}
+
+.nav-bell-panel .feed-line-icon {
+  border-radius: 10px;
+  height: 34px;
+  width: 34px;
+}
+
+.nav-bell-empty {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 26px 16px 22px;
+  text-align: center;
+
+  .feed-empty {
+    margin: 0;
+  }
+}
+
+.nav-bell-empty-icon {
+  background: rgba(var(--ui-accent-rgb), 0.08);
+  border: 1px dashed rgba(var(--ui-accent-rgb), 0.35);
+  border-radius: 50%;
+  color: rgba(var(--ui-accent-rgb), 0.7);
+  display: grid;
+  height: 54px;
+  place-items: center;
+  width: 54px;
+
+  svg {
+    height: 1.2rem;
+    width: 1.2rem;
+  }
+}
+
+// The way to the News page: a bar across the foot of the card, its arrow nudging on hover.
+.nav-bell-more {
+  align-items: center;
+  border-top: 1px solid rgba(var(--ui-accent-rgb), 0.14);
+  border-radius: 0 0 18px 18px;
+  color: var(--ui-text-accent, var(--ui-accent-light));
+  display: flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  gap: 8px;
+  justify-content: center;
+  letter-spacing: 0.14em;
+  padding: 11px;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background-color 160ms ease, color 160ms ease;
+
+  svg {
+    height: 0.8em;
+    transition: transform 160ms ease;
+    width: 0.8em;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.1);
+    color: #ffffff;
+    outline: none;
+
+    svg {
+      transform: translateX(3px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      transition: none;
+
+      svg {
+        transition: none;
+      }
+    }
+  }
+}
+
+.feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.feed-line {
+  align-items: flex-start;
+  border-radius: 12px;
+  color: inherit;
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+  text-decoration: none;
+  transition: background-color 160ms ease;
+
+  &[href]:hover,
+  &[href]:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.1);
+    outline: none;
+  }
+
+  // New since the list was last opened: a bar down the side, not a colour the eye has to decode.
+  &[data-unread] {
+    background: rgba(var(--ui-accent-rgb), 0.08);
+    box-shadow: inset 3px 0 0 var(--ui-accent-light);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      transition: none;
+    }
+  }
+}
+
+.feed-line-icon {
+  background: rgba(var(--ui-accent-rgb), 0.14);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.4);
+  border-radius: 50%;
+  color: var(--ui-accent-light);
+  display: grid;
+  flex: none;
+  height: 30px;
+  place-items: center;
+  width: 30px;
+
+  svg {
+    height: 0.8rem;
+    width: 0.8rem;
+  }
+
+  // What is yours to be proud of in gold; what was taken from you in red.
+  &[data-type='TROPHY'],
+  &[data-type='FRIEND_CONQUEST'] {
+    background: rgba(245, 184, 46, 0.14);
+    border-color: rgba(245, 184, 46, 0.5);
+    color: #f5b82e;
+  }
+
+  &[data-type='CONQUEST_LOST'] {
+    background: rgba(255, 93, 108, 0.12);
+    border-color: rgba(255, 93, 108, 0.45);
+    color: #ff8a95;
+  }
+
+  // The rest by what they are about, so a list can be read by colour before a word of it.
+  &[data-type='WIKI_ARTICLE'] {
+    background: rgba(167, 139, 250, 0.14);
+    border-color: rgba(167, 139, 250, 0.45);
+    color: #c4b5fd;
+  }
+
+  &[data-type='QUESTIONS_ADDED'] {
+    background: rgba(47, 208, 122, 0.12);
+    border-color: rgba(47, 208, 122, 0.45);
+    color: #6ee7a8;
+  }
+
+  &[data-type='FRIEND_LEVELS'],
+  &[data-type='FRIEND_POST'] {
+    background: rgba(244, 114, 182, 0.12);
+    border-color: rgba(244, 114, 182, 0.45);
+    color: #f9a8d4;
+  }
+
+  &[data-type='PATCH'],
+  &[data-type='WORLD'] {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: #cfe0ea;
+  }
+}
+
+.feed-line-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.feed-line-text {
+  color: #eaf6fd;
+  font-size: 0.84rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.feed-line-detail {
+  color: #b8cdd9;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.feed-line-meta {
+  color: #7fa3b6;
+  font-size: 0.7rem;
+}
+
+.feed-empty {
+  color: #9fb6c4;
+  font-size: 0.82rem;
+  margin: 4px;
+}
+
+.news-page {
+  @include glass-slab(6);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 20px auto;
+  max-width: 760px;
+  padding: 24px 22px 20px;
+  width: 100%;
+}
+
+.news-icon {
+  background: radial-gradient(circle at 35% 30%, var(--ui-accent-pale) 0%, var(--ui-accent-bright) 55%, var(--ui-accent-deep) 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 22px rgba(var(--ui-accent-rgb), 0.5);
+  color: var(--ui-on-accent, #03202e);
+  // Labels inside: _base paints every span, p and div white itself, so they need telling.
+  > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  display: grid;
+  flex: none;
+  height: 44px;
+  place-items: center;
+  width: 44px;
+}
+
+.news-compose {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  input,
+  textarea {
+    background: rgba(4, 14, 22, 0.7);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+    border-radius: 10px;
+    color: #eaf6fd;
+    font-size: 0.85rem;
+    padding: 8px 10px;
+
+    &:focus-visible {
+      border-color: var(--ui-accent-light);
+      outline: none;
+    }
+  }
+
+  button {
+    align-self: flex-end;
+    width: auto;
+    padding: 0 18px;
+  }
+}
+
+.news-item {
+  align-items: flex-start;
+  display: flex;
+  gap: 4px;
+
+  > .feed-line {
+    flex: 1;
+  }
+}
+
+.news-delete {
+  flex: none;
+  margin-top: 6px;
+}
+
+// Home page news, under "Did you know?": as wide as the rows above it.
+.home-news {
+  @include glass-slab(6);
+  display: flex;
+  flex: 1 1 420px;
+  flex-direction: column;
+  gap: 8px;
+  max-width: calc(460px + 380px + 28px);
+  padding: 10px 12px;
+}
+
+.home-news-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.home-news-icon {
+  background: radial-gradient(circle at 35% 30%, var(--ui-accent-pale) 0%, var(--ui-accent-bright) 55%, var(--ui-accent-deep) 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 18px rgba(var(--ui-accent-rgb), 0.5);
+  color: var(--ui-on-accent, #03202e);
+  // Labels inside: _base paints every span, p and div white itself, so they need telling.
+  > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  display: grid;
+  flex: none;
+  height: 26px;
+  place-items: center;
+  width: 26px;
+
+  svg {
+    height: 0.7rem;
+    width: 0.7rem;
+  }
+}
+
+// With friends' news beside it, the two share the row the way the quick question and today's
+// tasks do above: the same two caps, so the rows line up.
+.home-news[data-beside-friends] {
+  max-width: 460px;
+}
+
+.home-friends {
+  flex: 1 1 280px;
+  max-width: 380px;
+}
+
+// Pushed to the far end of the header.
+.home-news-all {
+  margin-left: auto;
+}
+
+.home-news-more {
+  align-self: center;
+  background: transparent;
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 999px;
+  color: #cfe9f7;
+  font-size: 0.7rem;
+  font-weight: 600;
+  height: 30px;
+  letter-spacing: 0.12em;
+  padding: 0 16px;
+  text-transform: uppercase;
+  transition: background-color 160ms ease, color 160ms ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.16);
+    color: #ffffff;
+    outline: none;
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px #04121a, 0 0 0 4px var(--ui-accent-light);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      transition: none;
+    }
+  }
+}
+
+// The news filter, on the home page and the News page: the sliders button at the end of the
+// header, with the count of kinds switched off on its rim, and a row of checkboxes under the
+// header while it is open.
+.news-filter-button {
+  flex: none;
+  margin-left: auto;
+  position: relative;
+
+  + .home-news-all {
+    margin-left: 0;
+  }
+}
+
+.news-kinds {
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.25);
+  border-radius: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 8px 12px;
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.news-kind {
+  align-items: center;
+  color: #cfe9f7;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.78rem;
+  gap: 6px;
+
+  input {
+    accent-color: var(--ui-accent-bright);
+  }
+}
+
+// The News page with friends' news: a second column for it, so the page widens to make room. On a
+// narrow screen the columns stack, friends under the rest.
+.news-page[data-friends] {
+  max-width: 1100px;
+}
+
+.news-columns {
+  display: grid;
+  gap: 18px 24px;
+  grid-template-columns: minmax(0, 1fr);
+
+  .news-page[data-friends] & {
+    @media (min-width: 900px) {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+    }
+  }
+}
+
+.news-column {
+  min-width: 0;
+}
+
+.news-friends {
+  align-self: start;
+  border-left: 1px solid rgba(var(--ui-accent-rgb), 0.2);
+  padding-left: 16px;
+
+  @media (max-width: 899.98px) {
+    border-left: none;
+    border-top: 1px solid rgba(var(--ui-accent-rgb), 0.2);
+    padding: 14px 0 0;
+  }
+}
+
+.news-friends-title {
+  align-items: center;
+  color: #7fa3b6;
+  display: flex;
+  font-size: 0.72rem;
+  gap: 8px;
+  letter-spacing: 0.22em;
+  margin: 0 0 8px;
+  text-transform: uppercase;
+}

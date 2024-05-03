@@ -1,0 +1,752 @@
+// Chat: group rail on the left, conversation on the right, both glass slabs like Take quiz.
+.chat-page {
+  --chat-accent: var(--ui-accent);
+  display: grid;
+  gap: 26px;
+  grid-template-columns: 290px minmax(0, 1fr);
+  // A bounded height, so the thread scrolls inside the slab and the composer stays put.
+  height: calc(100dvh - 160px);
+  margin: 0 auto;
+  max-width: 1200px;
+  min-height: 460px;
+  padding-top: 10px;
+  width: 100%;
+
+  .chat-sidebar,
+  .chat-main {
+    @include glass-slab(6);
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+    min-height: 0;
+  }
+
+  // ---- Group rail -------------------------------------------------------------------------
+
+  .chat-sidebar {
+    padding: 20px 14px 14px;
+  }
+
+  .chat-sidebar-title {
+    color: #eaf6fd;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    margin: 0 8px 14px;
+    text-transform: uppercase;
+
+    &::after {
+      background: linear-gradient(90deg, var(--chat-accent) 0%, rgba(var(--ui-accent-rgb), 0) 100%);
+      box-shadow: 0 0 10px rgba(var(--ui-accent-rgb), 0.6);
+      content: '';
+      display: block;
+      height: 1px;
+      margin-top: 10px;
+      width: 70px;
+    }
+  }
+
+  .chat-groups {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .chat-group {
+    align-items: center;
+    border-radius: 10px;
+    color: #cfe9f7;
+    display: flex;
+    gap: 9px;
+    padding: 6px 9px;
+
+    // Smaller than the one on a message: the rail is a list, not a conversation.
+    .chat-avatar {
+      flex: 0 0 32px;
+      font-size: 0.68rem;
+      height: 32px;
+    }
+    text-decoration: none;
+    transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+
+    &:hover,
+    &:focus-visible {
+      background-color: rgba(var(--ui-accent-rgb), 0.1);
+      outline: none;
+      transform: translateX(3px);
+    }
+
+    // Open chat: lit left edge and a wash fading to the right.
+    &[aria-current='page'] {
+      background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0.28) 0%, rgba(var(--ui-accent-rgb), 0.04) 100%);
+      box-shadow: inset 3px 0 0 var(--chat-accent);
+
+      .chat-avatar {
+        box-shadow: 0 0 0 2px var(--chat-accent);
+      }
+    }
+  }
+
+  .chat-group-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .chat-group-name,
+  .chat-group-members {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .chat-group-name {
+    color: #eaf6fd;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .chat-group-members {
+    color: #7fa3b6;
+    font-size: 0.68rem;
+  }
+
+  // "Create group" pinned to the bottom of the rail; it opens the create-group popup.
+  .chat-create {
+    border-top: 1px solid rgba(var(--ui-accent-rgb), 0.2);
+    margin-top: 8px;
+    padding-top: 8px;
+
+    > .chat-create-toggle {
+      background: none;
+      border: 1px dashed rgba(var(--ui-accent-rgb), 0.5);
+      width: 100%;
+      border-radius: 10px;
+      color: var(--ui-accent-haze);
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      padding: 10px;
+      text-align: center;
+      text-transform: uppercase;
+      transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+
+      svg {
+        height: 0.85em;
+        margin-right: 8px;
+        vertical-align: -0.05em;
+        width: 0.85em;
+      }
+
+      &:hover,
+      &:focus-visible {
+        background-color: rgba(var(--ui-accent-rgb), 0.1);
+        border-color: var(--chat-accent);
+        color: #ffffff;
+        outline: none;
+      }
+    }
+  }
+
+  // ---- Conversation -----------------------------------------------------------------------
+
+  .chat-main {
+    overflow: hidden;
+  }
+
+  .chat-header {
+    align-items: center;
+    background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0.14) 0%, rgba(var(--ui-accent-rgb), 0) 70%);
+    border-bottom: 1px solid rgba(var(--ui-accent-rgb), 0.2);
+    display: flex;
+    gap: 10px;
+    padding: 9px 16px;
+
+    .chat-avatar {
+      flex: 0 0 34px;
+      font-size: 0.7rem;
+      height: 34px;
+    }
+  }
+
+  // Takes the slack, so the header's actions (mute, delete) sit at the far right.
+  .chat-header-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  // Bell: amber while muted, so a silenced chat is noticeable at a glance.
+  .chat-mute[aria-pressed='true'] {
+    color: #ffc76b;
+  }
+
+  // Quiet text button above "Create group"; the browser's own prompt does the rest.
+  .chat-desktop-toggle {
+    align-items: center;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    color: #7fa3b6;
+    display: flex;
+    font-size: 0.75rem;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 8px;
+    padding: 6px;
+    transition: background-color 180ms ease, color 180ms ease;
+    width: 100%;
+
+    svg {
+      height: 0.9em;
+      width: 0.9em;
+    }
+
+    &:hover,
+    &:focus-visible {
+      background-color: rgba(var(--ui-accent-rgb), 0.1);
+      color: var(--ui-accent);
+      outline: none;
+    }
+  }
+
+  .chat-group-muted {
+    color: #6f8fa1;
+    flex: 0 0 auto;
+
+    svg {
+      height: 0.85em;
+      width: 0.85em;
+    }
+  }
+
+  .chat-header-title {
+    color: #eaf6fd;
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    margin: 0;
+  }
+
+  .chat-header-status {
+    align-items: center;
+    color: #7fa3b6;
+    display: inline-flex;
+    font-size: 0.66rem;
+    gap: 6px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+
+    &::before {
+      background: #7fa3b6;
+      border-radius: 50%;
+      content: '';
+      height: 7px;
+      width: 7px;
+    }
+
+    &[data-online='true']::before {
+      animation: chat-pulse 2s ease-in-out infinite;
+      background: #3ddc97;
+      box-shadow: 0 0 8px #3ddc97;
+    }
+  }
+
+  .chat-thread {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px 16px;
+    scrollbar-color: rgba(var(--ui-accent-rgb), 0.4) transparent;
+    scrollbar-width: thin;
+  }
+
+  // Divider before the first message of each day.
+  .chat-day {
+    align-self: center;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    color: #7fa3b6;
+    font-size: 0.66rem;
+    letter-spacing: 0.06em;
+    margin: 6px 0 2px;
+    padding: 2px 10px;
+    text-transform: uppercase;
+  }
+
+  .chat-empty {
+    color: #7fa3b6;
+    letter-spacing: 0.06em;
+    margin: auto;
+  }
+
+  // Two columns: the edit / delete buttons, then the bubble. The meta row sits over the bubble,
+  // and the button column is empty (so zero-width) on anyone else's messages.
+  .chat-message {
+    align-items: center;
+    align-self: flex-start;
+    animation: chat-in 260ms ease both;
+    column-gap: 4px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    max-width: min(72%, 560px);
+
+    &[data-own='true'] {
+      align-self: flex-end;
+
+      .chat-message-meta {
+        justify-content: flex-end;
+      }
+
+      .chat-message-body {
+        background: linear-gradient(135deg, rgba(var(--ui-accent-rgb), 0.6) 0%, rgba(0, 104, 152, 0.6) 100%);
+        border-color: rgba(var(--ui-accent-rgb), 0.7);
+        border-radius: 16px 4px 16px 16px;
+        box-shadow: 0 6px 20px rgba(var(--ui-accent-rgb), 0.22);
+        // A player's own text colour on the accent, where they picked one.
+        color: var(--ui-on-accent, inherit);
+      }
+    }
+  }
+
+  .chat-message-meta {
+    color: #6f93a6;
+    display: flex;
+    font-size: 0.66rem;
+    gap: 6px;
+    grid-area: 1 / 2;
+    line-height: 1.2;
+    margin: 0 6px 1px;
+  }
+
+  .chat-message-author {
+    color: var(--ui-accent-haze);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  // Another member's name opens their profile.
+  a.chat-message-author:hover,
+  a.chat-message-author:focus-visible {
+    text-decoration: underline;
+  }
+
+  .chat-message-edited {
+    color: #6f93a6;
+    font-style: italic;
+  }
+
+  // Inside a run only the first message keeps the author and time, and the tail corner.
+  .chat-message[data-grouped='true'] {
+    margin-top: -3px;
+
+    .chat-message-author,
+    time {
+      display: none;
+    }
+
+    .chat-message-body {
+      border-radius: 16px;
+    }
+  }
+
+  // Edit / delete on your own messages: hidden until the message is hovered or a button is
+  // focused, so the thread stays calm; always shown on touch screens, which cannot hover.
+  .chat-message-actions {
+    display: inline-flex;
+    gap: 2px;
+    grid-area: 2 / 1;
+    opacity: 0;
+    transition: opacity 150ms ease;
+
+    button {
+      background: none;
+      border: 0;
+      border-radius: 6px;
+      color: #7fa3b6;
+      display: grid;
+      height: 22px;
+      padding: 0;
+      place-items: center;
+      width: 22px;
+
+      svg {
+        height: 0.75rem;
+        width: 0.75rem;
+      }
+
+      &:hover,
+      &:focus-visible {
+        background: rgba(var(--ui-accent-rgb), 0.16);
+        color: #ffffff;
+        outline: none;
+      }
+
+      &[data-danger='true']:hover,
+      &[data-danger='true']:focus-visible {
+        background: rgba(255, 93, 108, 0.18);
+        color: #ff8a95;
+      }
+    }
+  }
+
+  .chat-message:hover .chat-message-actions,
+  .chat-message-actions:focus-within {
+    opacity: 1;
+  }
+
+  @media (hover: none) {
+    .chat-message-actions {
+      opacity: 1;
+    }
+  }
+
+  // The message being edited: dashed outline, so it is clear which one the composer changes.
+  .chat-message-body[data-editing='true'] {
+    outline: 1px dashed rgba(255, 199, 107, 0.8);
+    outline-offset: 3px;
+  }
+
+  // Strip above the composer while editing: what is happening and how to get out of it.
+  .chat-editing-bar {
+    align-items: center;
+    background: rgba(255, 199, 107, 0.1);
+    border-top: 1px solid rgba(255, 199, 107, 0.35);
+    color: #ffd79a;
+    display: flex;
+    font-size: 0.8rem;
+    font-weight: 600;
+    gap: 10px;
+    padding: 8px 18px;
+
+    svg {
+      height: 0.8em;
+      width: 0.8em;
+    }
+
+    span {
+      color: inherit;
+      flex: 1;
+    }
+
+    button {
+      background: none;
+      border: 1px solid rgba(255, 199, 107, 0.45);
+      border-radius: 999px;
+      color: #ffd79a;
+      font-size: 0.75rem;
+      padding: 3px 12px;
+
+      &:hover,
+      &:focus-visible {
+        background: rgba(255, 199, 107, 0.16);
+        color: #ffffff;
+        outline: none;
+      }
+    }
+
+    kbd {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+      color: inherit;
+      font-size: 0.65rem;
+      margin-left: 4px;
+      padding: 1px 5px;
+    }
+  }
+
+  // Composer in edit mode: amber instead of cyan, matching the strip above it.
+  .chat-composer[data-editing='true'] .p-editor-container .p-editor-content:focus-within {
+    border-color: #ffc76b;
+    box-shadow: 0 0 0 1px #ffc76b, 0 0 16px rgba(255, 199, 107, 0.3);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      .chat-message-actions {
+        transition: none;
+      }
+    }
+  }
+
+  .chat-message-body {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 4px 16px 16px 16px;
+    color: #e6f3fa;
+    font-size: 0.86rem;
+    grid-area: 2 / 2;
+    line-height: 1.4;
+
+    // A quiz card needs room to breathe; plain text does not.
+    &[data-card='quiz'] {
+      padding: 10px 12px;
+    }
+    overflow-wrap: anywhere;
+    padding: 5px 10px;
+
+    p {
+      margin: 0;
+    }
+
+    img {
+      border-radius: 8px;
+      max-width: 100%;
+    }
+
+    a {
+      color: var(--ui-accent-mist);
+    }
+  }
+
+  // ---- Composer ---------------------------------------------------------------------------
+
+  .chat-composer {
+    align-items: flex-end;
+    background: rgba(4, 14, 22, 0.55);
+    border-top: 1px solid rgba(var(--ui-accent-rgb), 0.2);
+    display: flex;
+    gap: 12px;
+    padding: 14px 18px;
+
+    .p-editor-container {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .p-editor-container .p-editor-toolbar {
+      background: rgba(var(--ui-accent-rgb), 0.06);
+      border-color: rgba(var(--ui-accent-rgb), 0.25);
+      border-radius: 12px 12px 0 0;
+      padding: 6px 8px;
+    }
+
+    .p-editor-container .p-editor-content {
+      border-color: rgba(var(--ui-accent-rgb), 0.25);
+      border-radius: 0 0 12px 12px;
+    }
+
+    .p-editor-container .p-editor-content .ql-editor {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 0 0 12px 12px;
+      color: #eaf6fd;
+      max-height: 160px;
+      min-height: 64px;
+      overflow-y: auto;
+    }
+
+    .p-editor-container .p-editor-content:focus-within {
+      border-color: var(--chat-accent);
+      box-shadow: 0 0 0 1px var(--chat-accent), 0 0 16px rgba(var(--ui-accent-rgb), 0.3);
+    }
+  }
+
+  .chat-send {
+    @include chat-button;
+    height: 46px;
+    padding: 0 20px;
+  }
+
+  // Phones: rail on top (short, scrolls), conversation under it.
+  @media (max-width: 860px) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    height: auto;
+
+    .chat-groups {
+      max-height: 180px;
+    }
+
+    .chat-main {
+      height: 70dvh;
+    }
+
+    .chat-message {
+      max-width: 88%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      .chat-group,
+      .chat-send,
+      .chat-create > .chat-create-toggle {
+        transition: none;
+      }
+
+      .chat-message,
+      .chat-header-status[data-online='true']::before {
+        animation: none;
+      }
+    }
+  }
+}
+
+@keyframes chat-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes chat-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+// Create-group form, used in the chat rail and on the no-groups welcome card.
+.chat-create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+
+  // Scoped twice over the PrimeReact theme, which loads after this file.
+  .p-inputtext,
+  .p-multiselect {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.35);
+    border-radius: 10px;
+    color: #eaf6fd;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+    width: 100%;
+
+    &:hover {
+      border-color: rgba(var(--ui-accent-rgb), 0.7);
+    }
+  }
+
+  .p-inputtext:focus,
+  .p-multiselect.p-focus {
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 0 1px var(--ui-accent), 0 0 14px rgba(var(--ui-accent-rgb), 0.3);
+    outline: none;
+  }
+
+  .chat-create-submit {
+    @include chat-button;
+    height: 42px;
+  }
+}
+
+// /chat for someone in no group yet: one centred welcome card around the create form.
+.chat-welcome {
+  @include glass-slab(8);
+  margin: 40px auto;
+  max-width: 460px;
+  padding: 36px 32px 28px;
+  text-align: center;
+  width: 100%;
+
+  // Same quiet badge as the popups: tinted circle, thin ring, accent glyph.
+  .chat-welcome-icon {
+    background: rgba(var(--ui-accent-rgb), 0.12);
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(var(--ui-accent-rgb), 0.45);
+    color: var(--ui-accent);
+    display: grid;
+    font-size: 1.6rem;
+    height: 72px;
+    margin: 0 auto 20px;
+    place-items: center;
+    width: 72px;
+
+    svg {
+      height: 1em;
+      width: 1em;
+    }
+  }
+
+  .chat-welcome-title {
+    color: #eaf6fd;
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+
+  .chat-welcome-text {
+    color: #9fb6c4;
+    margin-bottom: 24px;
+  }
+
+  .chat-welcome-cta {
+    @include chat-button;
+    height: 48px;
+    width: 100%;
+
+    svg {
+      height: 0.9em;
+      width: 0.9em;
+    }
+  }
+}
+
+// The participants of a chat, behind the header's people button.
+.chat-participants {
+  display: grid;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.chat-participant {
+  align-items: center;
+  border-radius: 10px;
+  display: flex;
+  gap: 10px;
+  padding: 4px 6px;
+
+  .chat-avatar {
+    flex: 0 0 30px;
+    font-size: 0.66rem;
+    height: 30px;
+  }
+}
+
+.chat-participant-name {
+  color: #eaf6fd;
+  font-size: 0.85rem;
+  overflow: hidden;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.chat-participant-name:hover,
+a.chat-participant-name:focus-visible {
+  color: var(--ui-accent);
+  text-decoration: underline;
+}
+
+// Which of them is the person reading the list.
+.chat-participant-you {
+  background: rgba(var(--ui-accent-rgb), 0.18);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 999px;
+  color: var(--ui-accent-mist);
+  font-size: 0.62rem;
+  font-weight: 700;
+  margin-left: auto;
+  padding: 0 7px;
+}
+
+// The count on the header's button, so the size of a chat is visible without opening anything.
+.chat-participants-count {
+  color: #9fb6c4;
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  margin-left: 4px;
+}
