@@ -11,6 +11,7 @@ import {CoverImage, Field, readPreview, SaveButton} from '../../../components/ad
 import {Pagination, PAGE_SIZE, usePagination} from '../../../components/admin/pagination';
 import {EmptyRow, TableSearch, useSearch} from '../../../components/admin/search';
 import {SortHeader, useSort} from '../../../components/admin/sort';
+import {formatDate, toDate} from '../../../utils/toDate';
 import {RowActions} from '../../../components/admin/row-actions';
 import {ConfirmDialog} from '../../../components/common/popup';
 import {deleteGlossary} from '../../../api/glossary/manage';
@@ -48,6 +49,7 @@ export default function Glossary({
   const glossarySearch = useSearch(glossaries, ['key', 'value', 'categoryName', (glossary) => glossary.type?.name]);
   const glossarySort = useSort(glossarySearch.results, {
     key: 'key', value: 'value', category: 'categoryName', type: (glossary) => glossary.type?.name, active: 'isActive',
+    created: (glossary) => toDate(glossary.createdDate)?.getTime(),
   });
   const glossaryPages = usePagination(glossarySort.sorted, PAGE_SIZE,
     `${glossarySearch.query}|${glossarySort.sort.key}|${glossarySort.sort.direction}`);
@@ -225,6 +227,7 @@ export default function Glossary({
             <SortHeader column="value" sort={glossarySort.sort} onSort={glossarySort.toggle}>Value</SortHeader>
             <SortHeader column="category" sort={glossarySort.sort} onSort={glossarySort.toggle}>Category</SortHeader>
             <SortHeader column="type" sort={glossarySort.sort} onSort={glossarySort.toggle}>Type</SortHeader>
+            <SortHeader column="created" sort={glossarySort.sort} onSort={glossarySort.toggle}>Created</SortHeader>
             <SortHeader column="active" sort={glossarySort.sort} onSort={glossarySort.toggle} className="text-center">Active</SortHeader>
             <th className="text-center"><span className="visually-hidden">Actions</span></th>
           </tr>
@@ -237,6 +240,7 @@ export default function Glossary({
               <td>{glossary.value}</td>
               <td>{glossary.categoryName}</td>
               <td>{glossary.type?.name}</td>
+              <td>{formatDate(glossary.createdDate, undefined, {dateStyle: 'medium'})}</td>
               <td className="text-center">
                 <Form.Switch
                   disabled
@@ -248,7 +252,7 @@ export default function Glossary({
                           onDelete={() => setPendingDelete(glossary)}
                           busy={deleting && pendingDelete?.termId === glossary.termId}/>
             </tr>))}
-            <EmptyRow show={!glossarySearch.results.length} columns={6} query={glossarySearch.query} what="glossaries"/>
+            <EmptyRow show={!glossarySearch.results.length} columns={7} query={glossarySearch.query} what="glossaries"/>
           </tbody>
         </Table>
         <Pagination {...glossaryPages} onChange={glossaryPages.setPage} label="Glossaries pages"/>

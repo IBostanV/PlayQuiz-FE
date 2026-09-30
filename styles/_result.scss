@@ -132,6 +132,15 @@
   &[data-kind='wrong'] dd {
     color: #ff8a95;
   }
+
+  &[data-kind='coins'] dd {
+    color: #ffd166;
+
+    svg {
+      height: 0.8em;
+      width: 0.8em;
+    }
+  }
 }
 
 .result-stat-of {

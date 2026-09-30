@@ -93,6 +93,31 @@
   }
 }
 
+.site-footer-link[data-highlight='true'] {
+  // Donate stands out a little: a soft pill, brighter text and a warm heart.
+  background: rgba(var(--ui-accent-rgb), 0.1);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.35);
+  border-radius: 999px;
+  color: #eaf6fd;
+  font-weight: 600;
+  margin: -4px 0;
+  padding: 3px 12px;
+
+  svg {
+    color: #ff8fab;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.2);
+    border-color: var(--ui-accent);
+
+    svg {
+      color: #ffb3c6;
+    }
+  }
+}
+
 .site-footer-top {
   background:
     linear-gradient(180deg, rgba(10, 32, 48, 0.95), rgba(4, 14, 22, 0.95)) padding-box,

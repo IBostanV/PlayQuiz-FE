@@ -4,9 +4,10 @@ import Link from 'next/link';
 import {useTranslation} from 'react-i18next';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons';
+import {SocialLogin} from './social-login';
 
-// Shared shell for login and register: logo, title, the fields, one glowing submit and a
-// link across to the other page. A real <form>, so Enter submits natively.
+// Shared shell for login and register: logo, title, the fields, one glowing submit, the
+// "continue with" providers and a link across to the other page. A real <form>, so Enter submits natively.
 export const AuthCard = ({title, subtitle, submitLabel, busy, onSubmit, footer, children}) => (
     <div className='auth-page'>
         <form className='auth-card' onSubmit={(event) => {
@@ -23,6 +24,8 @@ export const AuthCard = ({title, subtitle, submitLabel, busy, onSubmit, footer, 
                 {busy ? <span className='auth-spinner' aria-hidden/> : null}
                 {submitLabel}
             </button>
+
+            <SocialLogin/>
 
             <p className='auth-footer'>{footer}</p>
         </form>

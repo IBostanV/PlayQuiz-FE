@@ -939,6 +939,14 @@
   }
 }
 
+// Left alone because its neighbour had nothing to show (no weak spot yet, no recent runs): as
+// wide as the rows around it, not stuck at half a row. A card with nothing renders no element,
+// so :only-child is exactly that case.
+.home-row > .home-card:only-child {
+  flex-basis: 100%;
+  max-width: calc(460px + 380px + 28px);
+}
+
 // A row whose cards had nothing to show takes no room, gap included.
 .home-row:empty {
   display: none;

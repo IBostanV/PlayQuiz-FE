@@ -7,10 +7,12 @@ import {faKey, faLock, faShieldHalved} from '@fortawesome/free-solid-svg-icons';
 import {changePassword, verifyOldPassword} from '../../api/authentication';
 import {CHANGE_PASSWORD_URL} from '../../api/constant';
 import {AuthField} from '../auth/auth-card';
+import {PasswordStrength} from '../auth/password-strength';
+import {checkPassword} from '../../utils/password-strength';
 
-// Old password (checked as soon as the field is left), new one twice. Success signs the
-// user out, so they log back in with the new password.
-export const ChangePasswordForm = ({onCancel}) => {
+// Old password (checked as soon as the field is left), new one twice, with the strength meter
+// the registration page has. Success signs the user out, so they log back in with the new password.
+export const ChangePasswordForm = ({email, onCancel}) => {
     const router = useRouter();
     const {t} = useTranslation();
 
@@ -19,6 +21,10 @@ export const ChangePasswordForm = ({onCancel}) => {
     const repeatPassword = useRef();
     const [oldPasswordValid, setOldPasswordValid] = useState(null);
     const [saving, setSaving] = useState(false);
+    // Kept as it is typed, for the meter; the ref still carries what is submitted.
+    const [typed, setTyped] = useState('');
+    const [tried, setTried] = useState(false);
+    const {ok, verdict} = checkPassword(typed, email);
 
     const checkOldPassword = () => {
         const value = oldPassword.current.value;
@@ -31,6 +37,15 @@ export const ChangePasswordForm = ({onCancel}) => {
 
     const submit = (event) => {
         event.preventDefault();
+        setTried(true);
+        // The server refuses it too (PasswordPolicy); this just says so before the round trip.
+        if (!ok) {
+            toast.error(verdict === 'common'
+                ? t('password_common_toast', 'That password is too common and easy to guess: choose another.')
+                : t('password_not_strong',
+                    'Choose a stronger password: at least 8 characters, mixing lowercase, uppercase, numbers and symbols.'));
+            return;
+        }
         if (password.current.value !== repeatPassword.current.value) {
             toast.error(t('passwords_do_not_match', 'Passwords do not match'));
             return;
@@ -62,7 +77,9 @@ export const ChangePasswordForm = ({onCancel}) => {
                            autoComplete='current-password' onBlur={checkOldPassword}
                            invalid={oldPasswordValid === false}/>
                 <AuthField icon={faLock} label={t('new_password')} type='password' inputRef={password}
-                           autoComplete='new-password'/>
+                           autoComplete='new-password' minLength={8} invalid={tried && !ok}
+                           onInput={(event) => setTyped(event.target.value)}/>
+                <PasswordStrength password={typed} email={email}/>
                 <AuthField icon={faShieldHalved} label={t('retype_new_password')} type='password'
                            inputRef={repeatPassword} autoComplete='new-password'/>
             </div>
@@ -80,5 +97,6 @@ export const ChangePasswordForm = ({onCancel}) => {
 };
 
 ChangePasswordForm.propTypes = {
+    email: PropTypes.string,
     onCancel: PropTypes.func,
 };

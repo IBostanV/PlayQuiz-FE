@@ -11,6 +11,7 @@ import { CoverImage, Field, readPreview, SaveButton } from '../../../components/
 import { Pagination, PAGE_SIZE, usePagination } from '../../../components/admin/pagination';
 import { EmptyRow, TableSearch, useSearch } from '../../../components/admin/search';
 import { SortHeader, useSort } from '../../../components/admin/sort';
+import { formatDate, toDate } from '../../../utils/toDate';
 
 // Edit popup body: name, parent (never itself), visibility, and the image, which is only
 // replaced when a new one is picked.
@@ -86,7 +87,10 @@ const Category = ({
 
   const handleName = (event) => setName(event.target.value);
   const categorySearch = useSearch(categories, ['name', 'parentName']);
-  const categorySort = useSort(categorySearch.results, { name: 'name', parent: 'parentName', visible: 'visible' });
+  const categorySort = useSort(categorySearch.results, {
+    name: 'name', parent: 'parentName', visible: 'visible',
+    created: (item) => toDate(item.createdDate)?.getTime(),
+  });
   const categoryPages = usePagination(categorySort.sorted, PAGE_SIZE,
     `${categorySearch.query}|${categorySort.sort.key}|${categorySort.sort.direction}`);
 
@@ -164,6 +168,7 @@ const Category = ({
                 <SortHeader column="name" sort={categorySort.sort} onSort={categorySort.toggle} className="col-4">Name</SortHeader>
                 <SortHeader column="parent" sort={categorySort.sort} onSort={categorySort.toggle} className="col-3">Parent</SortHeader>
                 <th className="col-3">Attachment</th>
+                <SortHeader column="created" sort={categorySort.sort} onSort={categorySort.toggle}>Created</SortHeader>
                 <SortHeader column="visible" sort={categorySort.sort} onSort={categorySort.toggle} className="text-center col-2">Visible</SortHeader>
                 <th className="text-center"><span className="visually-hidden">Actions</span></th>
               </tr>
@@ -183,6 +188,7 @@ const Category = ({
                   />
                 )}
               </td>
+              <td>{formatDate(item.createdDate, undefined, { dateStyle: 'medium' })}</td>
               <td className="text-center">
                 <Form.Switch
                   disabled
@@ -196,7 +202,7 @@ const Category = ({
                           busy={deleting && pendingDelete?.catId === item.catId}/>
             </tr>
           ))}
-            <EmptyRow show={!categorySearch.results.length} columns={5} query={categorySearch.query} what="categories"/>
+            <EmptyRow show={!categorySearch.results.length} columns={6} query={categorySearch.query} what="categories"/>
           </tbody>
         </Table>
         <Pagination {...categoryPages} onChange={categoryPages.setPage} label="Categories pages"/>

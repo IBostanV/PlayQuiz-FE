@@ -1,8 +1,9 @@
 import axios from 'axios';
 import Qs from 'qs';
-import { getCookie, hasCookie } from 'cookies-next';
+import { deleteCookie, getCookie, hasCookie, setCookie } from 'cookies-next';
 import { toast } from 'react-toastify';
 import { CSRF_TOKEN_URL } from '../api/constant';
+import { reportError } from './report-error';
 
 export const POST = 'post';
 export const GET = 'get';
@@ -17,6 +18,36 @@ export const axiosInstance = axios.create({
     serialize: (params) => Qs.stringify(params, { arrayFormat: 'brackets' }),
   },
 });
+
+// The token lasts an hour and every signed-in answer brings a fresh one, so a player who keeps
+// playing stays signed in. Only while signed in: a reply to a request sent before signing out
+// must not sign the player back in. A token the server turned away (expired after a long break,
+// account blocked) ends the session here too, instead of every page failing with a 403.
+const followToken = (response) => {
+  if (!response || !hasCookie('authorization')) {
+    return;
+  }
+  if (response.headers?.['x-token-rejected']) {
+    deleteCookie('authorization');
+    localStorage.removeItem('userId');
+    if (window.location.pathname !== '/login') {
+      window.location.assign('/login');
+    }
+  } else if (response.headers?.authorization) {
+    setCookie('authorization', response.headers.authorization);
+  }
+};
+
+axiosInstance.interceptors.response.use(
+  (response) => {
+    followToken(response);
+    return response;
+  },
+  (error) => {
+    followToken(error.response);
+    return Promise.reject(error);
+  },
+);
 
 const axiosRequest = (url, params = {}) => {
   const options = {
@@ -54,13 +85,23 @@ const axiosRequest = (url, params = {}) => {
   };
 
   return request.then((response) => (params.withHeaders) ? response : unwrap(response))
-    .catch(({ response }) => {
+    .catch((error) => {
+      const { response } = error;
       // The session ended (signing out, or an expired token): requests already in flight, and
       // any the page fires before it notices, come back 401/403. There is nothing to tell the
       // user about that — they just signed out. A refusal while still signed in is a real
       // error and still shows.
       if (response && [401, 403].includes(response.status) && !hasCookie('authorization')) {
         return undefined;
+      }
+
+      // An answer from the server is already in its own log. No answer (offline, CORS, timeout)
+      // is only known here, so that one is reported.
+      if (response) {
+        console.error(`[PlayQuiz] ${options.method.toUpperCase()} ${url} failed`,
+            { status: response.status, data: response.data });
+      } else {
+        reportError('Network error', new Error(`${options.method.toUpperCase()} ${url}: ${error.message}`));
       }
 
       const message = (error) => (
