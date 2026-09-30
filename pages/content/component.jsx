@@ -4,7 +4,7 @@ import Category from './category/component';
 import Question from './question/component';
 import GlossaryType from './glossary-type/component';
 import { Tab } from 'react-bootstrap';
-import { getAllCategories } from '../../api/category';
+import { getManagedCategories } from '../../api/category';
 import getByCategoryGlossaries from '../../api/glossary/get-all';
 import getGlossaryTypes from '../../api/glossary/get-types';
 import getMissingTypeCount, { GLOSSARY_CHANGED } from '../../api/glossary/missing-type-count';
@@ -49,7 +49,7 @@ const ContentDashboardPage = () => {
   ];
 
   useEffect(() => {
-    const fetchCategories = async () => await getAllCategories();
+    const fetchCategories = async () => await getManagedCategories();
     fetchCategories().then(setCategories);
   }, []);
 

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {useTranslation} from 'react-i18next';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
-    faArrowUp, faBolt, faBookOpen, faComments, faEnvelope, faHouse, faPuzzlePiece, faUser,
+    faArrowUp, faBolt, faBookOpen, faComments, faEnvelope, faHandHoldingHeart, faHouse, faPuzzlePiece, faUser,
 } from '@fortawesome/free-solid-svg-icons';
 import {FeedbackDialog} from '../feedback/feedback-dialog';
 
@@ -15,6 +15,7 @@ const LINKS = [
     {href: '/knowledge-base', text: ['knowledge_base', 'Wiki'], icon: faBookOpen},
     {href: '/chat', text: ['chat', 'Chat'], icon: faComments},
     {href: '/profile', text: ['profile', 'Profile'], icon: faUser},
+    {href: '/donate', text: ['donate', 'Donate'], icon: faHandHoldingHeart, highlight: true},
 ];
 
 // Site footer: brand and tagline, one row of links, a way to write to the admins (for everyone;
@@ -33,7 +34,7 @@ export const Footer = ({isLoggedIn}) => {
                         <img className='site-footer-logo' src='/resources/pq-white-logo.png' alt='Play Quiz'/>
                     </Link>
                     <p className='site-footer-tagline'>
-                        {t('footer_tagline', 'Learn something new every day, test youho rself and challenge your friends.')}
+                        {t('footer_tagline', 'Learn something new every day, test yourself and challenge your friends.')}
                     </p>
                 </div>
 
@@ -41,7 +42,7 @@ export const Footer = ({isLoggedIn}) => {
                     <ul>
                         {LINKS.map(link => (
                             <li key={link.href}>
-                                <Link href={link.href} className='site-footer-link'>
+                                <Link href={link.href} className='site-footer-link' data-highlight={link.highlight}>
                                     <FontAwesomeIcon icon={link.icon} fixedWidth/> {t(...link.text)}
                                 </Link>
                             </li>

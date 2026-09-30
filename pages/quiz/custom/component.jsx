@@ -10,6 +10,7 @@ import {MultipleOption} from '../../../components/quiz/multiple-option';
 import {InputOption} from '../../../components/quiz/input-option';
 import {OrderOption} from '../../../components/quiz/order-option';
 import {ReportQuestion} from '../../../components/feedback/report-question';
+import {ExtraTimeButton} from '../../../components/quiz/coin-actions';
 
 // Seconds left at which a question's countdown turns red.
 const LOW_TIME = 5;
@@ -38,6 +39,8 @@ function CustomQuiz({isLoggedIn}) {
     // The position whose turn has already ended, so an answer and the countdown hitting zero at the
     // same moment cannot both move on and skip a question.
     const endedTurn = useRef(-1);
+    // This question's deadline; a ref so bought extra time can push it back.
+    const deadline = useRef(0);
 
     useEffect(() => {
         if (!isLoggedIn) router.replace('/login');
@@ -76,9 +79,9 @@ function CustomQuiz({isLoggedIn}) {
         if (!question) return undefined;
         shownAt.current = Date.now();
         setSecondsLeft(quiz.questionTime);
-        const deadline = shownAt.current + quiz.questionTime * 1000;
+        deadline.current = shownAt.current + quiz.questionTime * 1000;
         const timer = setInterval(() => {
-            const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+            const left = Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000));
             setSecondsLeft(left);
             if (!left) endTurn(undefined);
         }, 250);
@@ -135,7 +138,7 @@ function CustomQuiz({isLoggedIn}) {
                             <polygon points="10.5,1 131,1 131,35.5 120.5,45 1,45 1,10.5"
                                      pathLength="100"
                                      strokeDasharray="100"
-                                     strokeDashoffset={100 - (secondsLeft / quiz.questionTime) * 100}/>
+                                     strokeDashoffset={100 - Math.min(secondsLeft / quiz.questionTime, 1) * 100}/>
                         </svg>
                     )}
                 </span>
@@ -150,6 +153,9 @@ function CustomQuiz({isLoggedIn}) {
                 <section className="quiz-stage" key={question.id}>
                     <h2 className="quiz-question">{question.content}</h2>
                     {renderAnswering()}
+                    <div className="quiz-coin-actions">
+                        <ExtraTimeButton onAdd={(seconds) => { deadline.current += seconds * 1000; }}/>
+                    </div>
                 </section>
             ) : (
                 <div className="quiz-loading" aria-label={t('loading', 'Loading')}/>

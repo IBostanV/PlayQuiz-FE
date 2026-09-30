@@ -37,8 +37,7 @@
     padding-right: 6px;
   }
 
-  // For an admin the identity is the link to the admin dashboard, so it answers to the pointer;
-  // for everyone else it is a plain span and none of this applies.
+  // The identity is the link to the profile settings, so it answers to the pointer.
   a.nav-user-identity {
     border-radius: 999px;
     color: inherit;
@@ -49,13 +48,26 @@
 
     &:hover,
     &:focus-visible {
-      background-color: rgba(255, 0, 0, 0.18);
-      box-shadow: 0 0 14px rgba(255, 0, 0, 0.45);
+      background-color: rgba(var(--ui-accent-rgb), 0.16);
+      box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.45);
       outline: none;
 
       .nav-user-name {
         color: #ffffff;
       }
+    }
+
+    &[aria-current='page'] {
+      background-color: rgba(var(--ui-accent-rgb), 0.22);
+    }
+  }
+
+  // Admins keep the red on the pill's own glow.
+  &[data-admin='true'] a.nav-user-identity {
+    &:hover,
+    &:focus-visible {
+      background-color: rgba(255, 0, 0, 0.18);
+      box-shadow: 0 0 14px rgba(255, 0, 0, 0.45);
     }
 
     &[aria-current='page'] {
@@ -234,6 +246,8 @@
   justify-items: center;
   line-height: 1;
   padding: 0;
+  // Anchors a count badge (bell, admin gear).
+  position: relative;
   transition: background-color 180ms ease, box-shadow 180ms ease, color 180ms ease;
   width: 34px;
 
