@@ -1,0 +1,331 @@
+// ---- Quiz result: the score, then every question as it was answered ------------------------
+
+.result-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 0 auto;
+  max-width: 880px;
+  padding-top: 10px;
+  width: 100%;
+}
+
+.result-hero {
+  @include glass-slab(6);
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  padding: 18px 22px;
+}
+
+// The ring fills with the share answered right; its colour says how the run went.
+.result-score {
+  --score: var(--ui-accent);
+  display: grid;
+  flex: none;
+  height: 96px;
+  place-items: center;
+  position: relative;
+  width: 96px;
+
+  &[data-band='high'] {
+    --score: #4ade80;
+  }
+
+  &[data-band='low'] {
+    --score: #ff7a86;
+  }
+
+  svg {
+    height: 100%;
+    transform: rotate(-90deg);
+    width: 100%;
+  }
+
+  circle {
+    fill: none;
+    stroke-width: 8;
+  }
+}
+
+.result-score-track {
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+.result-score-arc {
+  stroke: var(--score);
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--score) 55%, transparent));
+  transition: stroke-dashoffset 900ms ease;
+}
+
+.result-score-value {
+  color: #ffffff;
+  font-family: 'Montserrat-Medium', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  position: absolute;
+}
+
+.result-score-unit {
+  font-size: 0.8rem;
+  margin-left: 2px;
+  opacity: 0.7;
+}
+
+.result-hero-text {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.result-title {
+  color: #eaf6fd;
+  font-family: 'Montserrat-Medium', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.result-verdict {
+  color: #9fb6c4;
+  margin-bottom: 14px;
+}
+
+// Right, wrong and the clock, side by side.
+.result-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+}
+
+.result-stat {
+  background: rgba(var(--ui-accent-rgb), 0.06);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.22);
+  border-radius: 10px;
+  min-width: 74px;
+  padding: 5px 10px;
+
+  dt {
+    color: #7fa3b6;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  dd {
+    color: #eaf6fd;
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 1px 0 0;
+  }
+
+  &[data-kind='right'] dd {
+    color: #6ee7a0;
+  }
+
+  &[data-kind='wrong'] dd {
+    color: #ff8a95;
+  }
+}
+
+.result-stat-of {
+  color: #6f8fa1;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.result-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+// One question per row, its edge lit green or red by how it went.
+.result-answer {
+  align-items: flex-start;
+  background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0.07) 0%, rgba(4, 14, 22, 0.75) 60%);
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  display: flex;
+  gap: 10px;
+  padding: 9px 12px;
+  position: relative;
+
+  &::before {
+    background: #ff7a86;
+    border-radius: 14px 0 0 14px;
+    bottom: 0;
+    content: '';
+    left: 0;
+    position: absolute;
+    top: 0;
+    width: 3px;
+  }
+
+  &[data-right='true']::before {
+    background: #4ade80;
+  }
+}
+
+.result-answer-mark {
+  align-items: center;
+  background: rgba(255, 122, 134, 0.14);
+  border-radius: 50%;
+  color: #ff8a95;
+  display: grid;
+  flex: none;
+  height: 24px;
+  place-items: center;
+  width: 24px;
+
+  svg {
+    height: 0.7em;
+    width: 0.7em;
+  }
+
+  .result-answer[data-right='true'] & {
+    background: rgba(74, 222, 128, 0.14);
+    color: #6ee7a0;
+  }
+}
+
+.result-answer-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-answer-question {
+  color: #eaf6fd;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.result-answer-index {
+  color: #6f8fa1;
+  font-weight: 700;
+  margin-right: 8px;
+}
+
+.result-answer-line {
+  align-items: baseline;
+  color: #cfe9f7;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.84rem;
+  gap: 7px;
+  line-height: 1.3;
+  margin: 0 0 2px;
+
+  &[data-kind='right'] {
+    color: #6ee7a0;
+  }
+
+  &[data-kind='wrong'] {
+    color: #ff8a95;
+  }
+
+  &[data-kind='expected'] {
+    color: #6ee7a0;
+  }
+}
+
+.result-answer-label {
+  color: #6f8fa1;
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.result-answer-time {
+  align-items: center;
+  color: #7fa3b6;
+  display: inline-flex;
+  flex: none;
+  font-size: 0.74rem;
+  gap: 5px;
+
+  svg {
+    height: 0.9em;
+    width: 0.9em;
+  }
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  padding-bottom: 10px;
+}
+
+.result-again {
+  @include chat-button;
+  height: 44px;
+  padding: 0 22px;
+  text-decoration: none;
+}
+
+.result-home {
+  align-items: center;
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 12px;
+  color: #cfe9f7;
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 8px;
+  height: 44px;
+  letter-spacing: 0.14em;
+  padding: 0 22px;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+
+  svg {
+    height: 1em;
+    width: 1em;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.12);
+    border-color: var(--ui-accent);
+    color: #ffffff;
+    outline: none;
+  }
+}
+
+.result-loading {
+  animation: kb-shimmer 1.4s ease-in-out infinite;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 30%, rgba(var(--ui-accent-rgb), 0.08) 50%, rgba(255, 255, 255, 0) 70%) 0 0 / 200% 100%;
+  border-radius: 16px;
+  height: 220px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .result-score-arc {
+      transition: none;
+    }
+
+    .result-loading {
+      animation: none;
+    }
+
+    .result-home {
+      transition: none;
+    }
+  }
+}

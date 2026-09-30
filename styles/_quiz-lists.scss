@@ -1,0 +1,186 @@
+// Switching between the invitations and the quizzes I made.
+.quiz-tabs {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.quiz-tab {
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+  border-radius: 999px;
+  color: #9fb6c4;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 7px 16px;
+  text-decoration: none;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba(var(--ui-accent-rgb), 0.7);
+    color: #eaf6fd;
+    outline: none;
+  }
+
+  &[aria-current='page'] {
+    background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+    border-color: transparent;
+    color: var(--ui-on-accent, #ffffff);
+    // Labels inside: _base paints every span, p and div white itself, so they need telling.
+    > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  }
+}
+
+// Quiz invitations and my quizzes: one glass row per quiz, Play at the end.
+.quiz-invitations {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin: 0 auto;
+  max-width: 760px;
+  width: 100%;
+}
+
+.quiz-invitations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.quiz-invitation {
+  @include glass-slab(4);
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 4px;
+  padding: 14px 16px;
+}
+
+.quiz-invitation-body {
+  display: flex;
+  flex: 1 1 220px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.quiz-invitation-from {
+  align-items: baseline;
+  color: #eaf6fd;
+  display: flex;
+  flex-wrap: wrap;
+  font-weight: 600;
+  gap: 10px;
+}
+
+.quiz-invitation-date,
+.quiz-invitation-details {
+  color: #7fa3b6;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+
+.quiz-invitation-played {
+  align-items: center;
+  color: #4ade80;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 600;
+  gap: 6px;
+
+  svg {
+    height: 0.9em;
+    width: 0.9em;
+  }
+}
+
+.quiz-invitation-play {
+  @include chat-button;
+  height: 40px;
+  padding: 0 18px;
+  text-decoration: none;
+}
+
+// Deleting my own quiz: an icon only, red on hover, well away from Play.
+.quiz-invitation-delete {
+  align-items: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  color: #7fa3b6;
+  display: grid;
+  flex: none;
+  height: 36px;
+  place-items: center;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  width: 36px;
+
+  svg {
+    height: 0.95em;
+    width: 0.95em;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(255, 90, 90, 0.12);
+    border-color: rgba(255, 90, 90, 0.45);
+    color: #ff8a8a;
+    outline: none;
+  }
+}
+
+// Copying a quiz's link is secondary to playing it, so it stays outlined.
+.quiz-invitation-copy {
+  align-items: center;
+  background: none;
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 12px;
+  color: #cfe9f7;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  gap: 8px;
+  height: 40px;
+  letter-spacing: 0.12em;
+  padding: 0 14px;
+  text-transform: uppercase;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+
+  svg {
+    height: 1em;
+    width: 1em;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.14);
+    border-color: var(--ui-accent);
+    color: #ffffff;
+    outline: none;
+  }
+}
+
+.quiz-invitations-loading {
+  animation: kb-shimmer 1.4s ease-in-out infinite;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 30%, rgba(var(--ui-accent-rgb), 0.08) 50%, rgba(255, 255, 255, 0) 70%) 0 0 / 200% 100%;
+  border-radius: 16px;
+  height: 180px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .quiz-invitations-loading {
+      animation: none;
+    }
+
+    .quiz-tab,
+    .quiz-invitation-copy,
+    .quiz-invitation-delete {
+      transition: none;
+    }
+  }
+}

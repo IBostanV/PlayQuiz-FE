@@ -1,0 +1,367 @@
+// Profile: identity card (avatar, name, privacy) beside the details form, both glass slabs.
+.profile-page {
+  align-items: start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 300px minmax(0, 1fr);
+  margin: 0 auto;
+  max-width: 1080px;
+  padding-top: 10px;
+  width: 100%;
+
+  @media (max-width: 860px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.profile-section-title {
+  color: #eaf6fd;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+
+  &::after {
+    background: linear-gradient(90deg, var(--ui-accent) 0%, rgba(var(--ui-accent-rgb), 0) 100%);
+    box-shadow: 0 0 10px rgba(var(--ui-accent-rgb), 0.6);
+    content: '';
+    display: block;
+    height: 1px;
+    margin-top: 10px;
+    width: 70px;
+  }
+}
+
+// ---- Identity card -------------------------------------------------------------------------
+
+.profile-card {
+  @include glass-slab(6);
+  padding: 20px 18px 16px;
+  text-align: center;
+}
+
+.profile-avatar {
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(var(--ui-accent-rgb), 0.55), 0 0 36px rgba(var(--ui-accent-rgb), 0.45);
+  cursor: pointer;
+  display: block;
+  height: 112px;
+  margin: 0 auto 8px;
+  overflow: hidden;
+  position: relative;
+  transition: box-shadow 220ms ease;
+  width: 112px;
+
+  img {
+    height: 100%;
+    object-fit: cover;
+    width: 100%;
+  }
+
+  // Keyboard users reach the hidden file input; the ring shows where focus is.
+  &:hover,
+  &:focus-within {
+    box-shadow: 0 0 0 3px var(--ui-accent), 0 0 44px rgba(var(--ui-accent-rgb), 0.7);
+
+    .profile-avatar-overlay {
+      opacity: 1;
+    }
+  }
+}
+
+.profile-avatar-initial {
+  background: radial-gradient(circle at 30% 25%, #4fd2ff 0%, #0b6f9c 55%, #06324a 100%);
+  color: #ffffff;
+  display: grid;
+  font-size: 3.4rem;
+  font-weight: 700;
+  height: 100%;
+  place-items: center;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  text-transform: uppercase;
+}
+
+.profile-avatar-overlay {
+  align-content: center;
+  background: rgba(2, 14, 22, 0.7);
+  color: #ffffff;
+  display: grid;
+  font-size: 0.7rem;
+  font-weight: 700;
+  gap: 6px;
+  inset: 0;
+  justify-items: center;
+  letter-spacing: 0.14em;
+  opacity: 0;
+  position: absolute;
+  text-transform: uppercase;
+  transition: opacity 200ms ease;
+
+  svg {
+    height: 1.6rem;
+    width: 1.6rem;
+  }
+}
+
+.profile-avatar-pending {
+  color: #ffd27a;
+  display: block;
+  font-size: 0.75rem;
+  margin-bottom: 6px;
+}
+
+.profile-name {
+  color: #eaf6fd;
+  font-size: 1.12rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 6px 0 2px;
+  overflow-wrap: anywhere;
+}
+
+.profile-username {
+  color: var(--ui-accent);
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+// No username yet: the placeholder reads as missing, not as a name.
+.profile-name[data-placeholder='true'],
+.profile-username[data-placeholder='true'] {
+  color: #7fa3b6;
+  font-style: italic;
+  font-weight: 500;
+}
+
+// Points at the username field in the form beside the card (a label, so clicking focuses it).
+.profile-username-hint {
+  color: var(--ui-accent);
+  cursor: pointer;
+  display: block;
+  font-size: 0.78rem;
+  margin: 6px 0 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.profile-email {
+  color: #9fb6c4;
+  font-size: 0.8rem;
+  margin: 6px 0 0;
+  overflow-wrap: anywhere;
+
+  svg {
+    height: 0.9em;
+    margin-right: 4px;
+    width: 0.9em;
+  }
+}
+
+.profile-privacy,
+.profile-iq {
+  border-top: 1px solid rgba(var(--ui-accent-rgb), 0.2);
+  margin-top: 16px;
+  padding-top: 14px;
+  text-align: left;
+}
+
+// The score with the range it was measured to, side by side: the range is part of the number,
+// not a footnote to it.
+.profile-iq-score {
+  align-items: baseline;
+  display: flex;
+  gap: 10px;
+  margin: 0 0 6px;
+}
+
+.profile-iq-number {
+  color: #ffffff;
+  font-size: 2.2rem;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 0 22px rgba(var(--ui-accent-rgb), 0.5);
+}
+
+.profile-iq-range {
+  color: var(--ui-accent-mist);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.profile-hint {
+  color: #9fb6c4;
+  font-size: 0.85rem;
+  margin-bottom: 14px;
+}
+
+.profile-secondary-button {
+  align-items: center;
+  background: transparent;
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 12px;
+  color: #cfe9f7;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 8px;
+  height: 42px;
+  justify-content: center;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease;
+  width: 100%;
+
+  svg {
+    height: 0.95em;
+    width: 0.95em;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.12);
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.35);
+    color: #ffffff;
+    outline: none;
+  }
+}
+
+// ---- Details form --------------------------------------------------------------------------
+
+.profile-form {
+  @include glass-slab(6);
+  padding: 18px 20px 16px;
+}
+
+.profile-grid {
+  display: grid;
+  gap: 12px 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  @media (max-width: 600px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+
+  &[data-wide='true'] {
+    grid-column: 1 / -1;
+  }
+
+  // A <span> on another player's profile, which has no inputs to label.
+  > label,
+  > .profile-field-label {
+    color: #7fa3b6;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    margin: 0;
+    text-transform: uppercase;
+    transition: color 180ms ease;
+  }
+
+  &:focus-within > label {
+    color: var(--ui-accent);
+  }
+
+  // Doubly scoped over the PrimeReact theme, which loads after this file.
+  .p-inputtext,
+  .p-multiselect,
+  .p-calendar {
+    width: 100%;
+  }
+
+  .p-inputtext,
+  .p-multiselect {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+    border-radius: 12px;
+    color: #eaf6fd;
+    min-height: 46px;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+
+    &:hover {
+      border-color: rgba(var(--ui-accent-rgb), 0.6);
+    }
+  }
+
+  .p-inputtext:focus,
+  .p-multiselect.p-focus {
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 0 1px var(--ui-accent), 0 0 16px rgba(var(--ui-accent-rgb), 0.3);
+    outline: none;
+  }
+
+  .p-multiselect .p-multiselect-label {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 44px;
+  }
+
+  .p-multiselect .p-multiselect-token {
+    background: rgba(var(--ui-accent-rgb), 0.2);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.5);
+    border-radius: 999px;
+    color: #eaf6fd;
+    margin: 0;
+  }
+
+  // Calendar: input and its button read as one control.
+  .p-calendar-w-btn {
+    .p-inputtext {
+      border-bottom-right-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+    .p-datepicker-trigger {
+      background: rgba(var(--ui-accent-rgb), 0.15);
+      border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+      border-left: none;
+      border-radius: 0 12px 12px 0;
+      color: var(--ui-accent-haze);
+
+      &:hover {
+        background: rgba(var(--ui-accent-rgb), 0.3);
+        color: #ffffff;
+      }
+    }
+  }
+}
+
+.profile-actions {
+  border-top: 1px solid rgba(var(--ui-accent-rgb), 0.2);
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 20px;
+}
+
+.profile-save {
+  @include chat-button;
+  height: 46px;
+  min-width: 170px;
+  padding: 0 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .profile-avatar,
+    .profile-avatar-overlay,
+    .profile-secondary-button,
+    .profile-field > label,
+    .profile-field .p-inputtext,
+    .profile-field .p-multiselect {
+      transition: none;
+    }
+  }
+}

@@ -1,0 +1,219 @@
+// ---- A player's own appearance (context/appearance.jsx sets these on the root) ----------------
+
+// Motion. Left alone, the site follows the system's "reduce motion" setting: every
+// prefers-reduced-motion rule above only applies without data-motion='on'. A player can override it
+// either way: 'on' keeps every animation whatever the system says, 'off' stops them all.
+:root[data-motion='off'] *,
+:root[data-motion='off'] *::before,
+:root[data-motion='off'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+  transition-duration: 0.01ms !important;
+}
+
+// Icons only in the main navigation at every width, the way narrow screens already have it.
+:root[data-compact-nav] {
+  .nav-link-pill {
+    padding: 7px 9px;
+  }
+
+  .nav-link-label {
+    clip: rect(0 0 0 0);
+    height: 1px;
+    overflow: hidden;
+    position: absolute;
+    white-space: nowrap;
+    width: 1px;
+  }
+}
+
+// The friends dock in the bottom right corner instead of the left; the toasts move to the left
+// to keep out of its way.
+:root[data-friends-dock='right'] .friends-dock {
+  align-self: flex-end;
+}
+
+// Friends' news on the home page: left of the news instead of right, or a full row under it.
+:root[data-home-friends='left'] .home-friends {
+  order: -1;
+}
+
+:root[data-home-friends='below'] {
+  .home-friends {
+    flex-basis: 100%;
+    max-width: calc(460px + 380px + 28px);
+  }
+
+  .home-news[data-beside-friends] {
+    max-width: calc(460px + 380px + 28px);
+  }
+}
+
+// The Appearance page: one row per setting, each with its own reset once it has been changed.
+.appearance-page {
+  @include glass-slab(6);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px auto;
+  max-width: 760px;
+  padding: 24px 22px 20px;
+  width: 100%;
+}
+
+.appearance-setting {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.appearance-setting-head {
+  align-items: flex-start;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.appearance-setting-title {
+  color: #eaf6fd;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.appearance-setting-hint {
+  color: #9fb6c4;
+  font-size: 0.78rem;
+  margin: 4px 0 0;
+}
+
+.appearance-reset {
+  align-items: center;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  color: #cfe9f7;
+  display: inline-flex;
+  flex: none;
+  font-size: 0.68rem;
+  gap: 6px;
+  height: 28px;
+  letter-spacing: 0.1em;
+  padding: 0 12px;
+  text-transform: uppercase;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--ui-accent-light);
+    color: #ffffff;
+    outline: none;
+  }
+}
+
+.appearance-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.appearance-swatch {
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
+  color: #ffffff;
+  cursor: pointer;
+  display: grid;
+  height: 36px;
+  place-items: center;
+  position: relative;
+  width: 36px;
+
+  &[aria-checked='true'],
+  &[data-selected] {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+  }
+
+  &:focus-visible,
+  &:focus-within {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+  }
+}
+
+// The picker is the swatch: a rainbow ring, with the colour input stretched invisibly over it.
+.appearance-swatch-custom {
+  background: conic-gradient(#ff5d6c, #f5b82e, #84cc16, #10b981, #1cc0ff, #8b5cf6, #ff5d6c);
+  overflow: hidden;
+
+  input {
+    cursor: pointer;
+    height: 100%;
+    inset: 0;
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+  }
+}
+
+.appearance-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.appearance-choice {
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.35);
+  border-radius: 999px;
+  color: #cfe9f7;
+  cursor: pointer;
+  font-size: 0.78rem;
+  padding: 6px 14px;
+  transition: background-color 160ms ease, color 160ms ease;
+
+  &[data-selected] {
+    background: rgba(var(--ui-accent-rgb), 0.22);
+    border-color: var(--ui-accent-light);
+    color: #ffffff;
+  }
+
+  &:focus-within {
+    outline: 2px solid var(--ui-accent-light);
+    outline-offset: 2px;
+  }
+}
+
+.appearance-toggle {
+  align-items: center;
+  color: #cfe9f7;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.82rem;
+  gap: 8px;
+
+  input {
+    accent-color: var(--ui-accent-bright);
+  }
+}
+
+.appearance-actions {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+
+  .profile-secondary-button {
+    padding: 0 18px;
+    width: auto;
+  }
+}
+
+// Text colour swatches: the accent with a sample of the text on it.
+.appearance-swatch-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+}

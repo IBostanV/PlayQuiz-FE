@@ -46,8 +46,23 @@ const axiosRequest = (url, params = {}) => {
       break;
   }
 
-  return request.then((response) => (params.withHeaders) ? response : response.data || response)
+  // A body of 0 or false is still a body: only a missing one falls back to the whole response
+  // (which is what callers of endpoints with no content expect).
+  const unwrap = (response) => {
+    const { data } = response;
+    return (data === undefined || data === null || data === '') ? response : data;
+  };
+
+  return request.then((response) => (params.withHeaders) ? response : unwrap(response))
     .catch(({ response }) => {
+      // The session ended (signing out, or an expired token): requests already in flight, and
+      // any the page fires before it notices, come back 401/403. There is nothing to tell the
+      // user about that — they just signed out. A refusal while still signed in is a real
+      // error and still shows.
+      if (response && [401, 403].includes(response.status) && !hasCookie('authorization')) {
+        return undefined;
+      }
+
       const message = (error) => (
         <div>
           Status code:
@@ -68,7 +83,7 @@ const axiosRequest = (url, params = {}) => {
 };
 
 export default (url, requestOptions = {}) => {
-  if ([POST, PATCH, PUT].includes(requestOptions.method)) {
+  if ([POST, PATCH, PUT, DELETE].includes(requestOptions.method)) {
     return axiosRequest(CSRF_TOKEN_URL)
       .then((result) => axiosRequest(url, {
         ...requestOptions,

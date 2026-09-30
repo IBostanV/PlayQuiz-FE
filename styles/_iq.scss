@@ -1,0 +1,344 @@
+// ---- IQ test: one adaptive question at a time, then the score ---------------------------------
+// A question on screen is timed and every second of it counts, so the friends dock steps out of
+// the way until the test is over. Done from here rather than from the layout, which has no
+// business knowing what state a page is in.
+main:has(.iq-page[data-testing='true']) .friends-dock {
+  display: none;
+}
+
+
+.iq-page {
+  @include glass-slab(6);
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin: 20px auto;
+  max-width: 720px;
+  padding: 26px 24px 22px;
+  width: 100%;
+}
+
+.iq-hero {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+}
+
+.iq-hero-icon {
+  background: radial-gradient(circle at 35% 30%, var(--ui-accent-pale) 0%, var(--ui-accent-bright) 50%, var(--ui-accent-deep) 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 22px rgba(var(--ui-accent-rgb), 0.55);
+  color: var(--ui-on-accent, #03263a);
+  // Labels inside: _base paints every span, p and div white itself, so they need telling.
+  > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  display: grid;
+  font-size: 1.1rem;
+  height: 48px;
+  place-items: center;
+  width: 48px;
+}
+
+.iq-title {
+  color: #eaf6fd;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.iq-lead {
+  color: #b8cdd9;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  margin: 0;
+  text-align: center;
+}
+
+.iq-facts {
+  display: grid;
+  gap: 8px 20px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+
+  li {
+    border-left: 2px solid rgba(var(--ui-accent-rgb), 0.35);
+    color: #9fb6c4;
+    font-size: 0.82rem;
+    padding-left: 10px;
+  }
+
+  strong {
+    color: #eaf6fd;
+  }
+}
+
+.iq-previous {
+  color: #9fb6c4;
+  font-size: 0.82rem;
+  margin: 0;
+  text-align: center;
+}
+
+.iq-start {
+  @include chat-button;
+  height: 44px;
+  padding: 0 22px;
+  text-decoration: none;
+}
+
+.iq-note {
+  color: #7fa3b6;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 560px;
+  text-align: center;
+}
+
+// ---- The question on screen -------------------------------------------------------------------
+.iq-bar {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.iq-count {
+  color: #9fb6c4;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.iq-progress {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  flex: 1;
+  height: 5px;
+  overflow: hidden;
+}
+
+.iq-progress-fill {
+  background: linear-gradient(90deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+  display: block;
+  height: 100%;
+  transition: width 300ms ease;
+}
+
+// Counts down in step with the server's clock; red once there is little of it left.
+.iq-clock {
+  color: #9fb6c4;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &[data-low='true'] {
+    color: #ff9c6b;
+  }
+}
+
+.iq-item {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.iq-prompt {
+  color: #eaf6fd;
+  font-size: 0.92rem;
+  margin: 0;
+  text-align: center;
+}
+
+.iq-matrix {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 340px;
+  width: 100%;
+}
+
+.iq-analogy {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.iq-analogy-mark {
+  color: #5f88a0;
+  font-size: 1.1rem;
+}
+
+.iq-cell {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.2);
+  border-radius: 10px;
+  color: var(--ui-accent-light);
+  display: flex;
+  font-size: 1.3rem;
+  justify-content: center;
+  padding: 4px;
+
+  // The cell the rules point at.
+  &[data-missing] {
+    border-color: rgba(var(--ui-accent-rgb), 0.6);
+    border-style: dashed;
+    min-height: 64px;
+    min-width: 64px;
+  }
+}
+
+.iq-figure {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.iq-series {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.iq-term {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.2);
+  border-radius: 10px;
+  color: #eaf6fd;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  min-width: 54px;
+  padding: 10px 12px;
+  text-align: center;
+
+  &[data-missing] {
+    border-color: rgba(var(--ui-accent-rgb), 0.6);
+    border-style: dashed;
+    color: var(--ui-accent-light);
+  }
+}
+
+.iq-options {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 110px));
+  justify-content: center;
+  width: 100%;
+
+  // Numbers need width, not squares.
+  &[data-numeric] {
+    grid-template-columns: repeat(auto-fit, minmax(84px, 120px));
+  }
+}
+
+// Big enough to click without aiming, and lit while the answer is on its way to the server.
+.iq-option {
+  align-items: center;
+  aspect-ratio: 1;
+  background: rgba(var(--ui-accent-rgb), 0.06);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  padding: 6px;
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease,
+    transform 160ms ease;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.14);
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.35);
+    outline: none;
+    transform: translateY(-2px);
+  }
+
+  &[data-picked='true'] {
+    background: rgba(var(--ui-accent-rgb), 0.2);
+    border-color: var(--ui-accent-light);
+    box-shadow: 0 0 16px rgba(var(--ui-accent-rgb), 0.5);
+  }
+
+  &:disabled {
+    cursor: wait;
+  }
+}
+
+.iq-option-number {
+  color: #eaf6fd;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+// ---- The score --------------------------------------------------------------------------------
+.iq-result-label {
+  color: #7fa3b6;
+  font-size: 0.76rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.iq-score {
+  color: #ffffff;
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1;
+  text-shadow: 0 0 30px rgba(var(--ui-accent-rgb), 0.6);
+}
+
+.iq-range {
+  color: var(--ui-accent-mist);
+  font-size: 0.85rem;
+}
+
+.iq-breakdown {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin: 0;
+  width: 100%;
+
+  > div {
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.2);
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+
+  dt {
+    color: #7fa3b6;
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  dd {
+    color: #eaf6fd;
+    font-size: 0.88rem;
+    margin: 4px 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .iq-option,
+    .iq-progress-fill {
+      transition: none;
+    }
+  }
+}

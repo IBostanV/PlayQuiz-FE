@@ -1,0 +1,307 @@
+// Map question (components/map/map-choice): dark ocean, faint grid, quiet land; the answer
+// options glow cyan and carry A, B, C… badges; the chosen one fills with the cyan gradient.
+.map-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 18px;
+  // Wider than the quiz column, up to 1400px; the stage centres it, so it overflows the column
+  // evenly on both sides. Its height is set by MapChoice to fit the screen.
+  width: min(1400px, calc(100vw - 48px));
+}
+
+.map-frame {
+  // Until MapChoice measures the screen and sets a height.
+  aspect-ratio: 16 / 9;
+  background: #030b11;
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+  border-radius: 18px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 18px 40px rgba(0, 0, 0, 0.55), inset 0 0 60px rgba(var(--ui-accent-rgb), 0.08);
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+
+  &[data-zoomed='true'] .map-svg {
+    cursor: grab;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+}
+
+.map-svg {
+  display: block;
+  height: 100%;
+  touch-action: none;
+  user-select: none;
+  width: 100%;
+}
+
+.map-loading {
+  animation: kb-shimmer 1.4s ease-in-out infinite;
+  background:
+    linear-gradient(100deg, rgba(255, 255, 255, 0) 30%, rgba(var(--ui-accent-rgb), 0.08) 50%, rgba(255, 255, 255, 0) 70%) 0 0 / 200% 100%,
+    radial-gradient(circle at 50% 40%, #0b2a3c, #030b11 75%);
+  color: #7fa3b6;
+  display: grid;
+  height: 100%;
+  place-items: center;
+}
+
+.map-sphere {
+  fill: url(#map-ocean);
+  stroke: rgba(var(--ui-accent-rgb), 0.35);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.map-graticule {
+  fill: none;
+  stroke: rgba(var(--ui-accent-rgb), 0.08);
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
+}
+
+// Everything that is not an option: present for orientation, deliberately quiet.
+.map-land {
+  fill: #12303f;
+  stroke: #04121a;
+  stroke-width: 0.5;
+  vector-effect: non-scaling-stroke;
+}
+
+// ---- Options: regions (countries, continents) ----------------------------------------------
+
+.map-region {
+  cursor: pointer;
+  fill: rgba(var(--ui-accent-rgb), 0.28);
+  filter: drop-shadow(0 0 6px rgba(var(--ui-accent-rgb), 0.55));
+  outline: none;
+  stroke: var(--ui-accent-light);
+  stroke-width: 1.2;
+  transition: fill 160ms ease, stroke 160ms ease, filter 160ms ease;
+  vector-effect: non-scaling-stroke;
+
+  &:hover,
+  &:focus-visible {
+    fill: rgba(var(--ui-accent-rgb), 0.5);
+    filter: drop-shadow(0 0 10px rgba(var(--ui-accent-rgb), 0.9));
+    stroke: #ffffff;
+  }
+
+  &[data-state='selected'] {
+    fill: url(#map-pick);
+    filter: drop-shadow(0 0 14px rgba(var(--ui-accent-rgb), 1));
+    stroke: #ffffff;
+    stroke-width: 2;
+  }
+}
+
+// A, B, C… on each option. Ignores the pointer, so clicks reach the region beneath.
+.map-badge {
+  pointer-events: none;
+
+  circle {
+    fill: #06141e;
+    stroke: var(--ui-accent-light);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+  }
+
+  &[data-state='selected'] circle {
+    fill: #ffffff;
+    stroke: var(--ui-accent);
+  }
+
+  &[data-state='selected'] .map-badge-text {
+    fill: #03324a;
+  }
+}
+
+.map-badge-text {
+  fill: #eaf6fd;
+  font-family: 'Montserrat-Medium', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  pointer-events: none;
+  text-anchor: middle;
+}
+
+// ---- Options: cities (glowing markers) --------------------------------------------------------
+
+.map-city {
+  cursor: pointer;
+  outline: none;
+
+  .map-city-hit {
+    fill: transparent;
+  }
+
+  .map-city-dot {
+    fill: var(--ui-accent-light);
+    filter: drop-shadow(0 0 6px rgba(var(--ui-accent-rgb), 0.9));
+    stroke: #ffffff;
+    stroke-width: 1.5;
+    transition: r 160ms ease, fill 160ms ease;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .map-city-pulse {
+    animation: map-pulse 2.2s ease-out infinite;
+    fill: none;
+    stroke: rgba(var(--ui-accent-rgb), 0.7);
+    stroke-width: 1.5;
+    transform-box: fill-box;
+    transform-origin: center;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .map-badge-text {
+    paint-order: stroke;
+    stroke: #030b11;
+    stroke-width: 3px;
+  }
+
+  &:hover .map-city-dot,
+  &:focus-visible .map-city-dot {
+    fill: #ffffff;
+    r: 8;
+  }
+
+  &[data-state='selected'] .map-city-dot {
+    fill: #ffffff;
+    r: 9;
+    stroke: var(--ui-accent);
+    stroke-width: 3;
+  }
+}
+
+// ---- Controls, hint, option buttons, confirm ----------------------------------------------
+
+.map-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+
+  button {
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    background: rgba(6, 20, 30, 0.8);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.4);
+    border-radius: 10px;
+    color: #cfe9f7;
+    display: grid;
+    height: 34px;
+    place-items: center;
+    transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    width: 34px;
+
+    svg {
+      height: 0.8em;
+      width: 0.8em;
+    }
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+      background: rgba(var(--ui-accent-rgb), 0.25);
+      border-color: var(--ui-accent);
+      color: #ffffff;
+      outline: none;
+    }
+
+    &:disabled {
+      opacity: 0.35;
+    }
+  }
+}
+
+.map-hint {
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  background: rgba(6, 20, 30, 0.8);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+  border-radius: 999px;
+  bottom: 12px;
+  color: #9fb6c4;
+  font-size: 0.72rem;
+  left: 50%;
+  padding: 4px 12px;
+  pointer-events: none;
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.map-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.map-option {
+  background: rgba(var(--ui-accent-rgb), 0.08);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.4);
+  border-radius: 50%;
+  color: #cfe9f7;
+  font-weight: 700;
+  height: 42px;
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease;
+  width: 42px;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 12px rgba(var(--ui-accent-rgb), 0.45);
+    color: #ffffff;
+    outline: none;
+  }
+
+  &[aria-checked='true'] {
+    background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(var(--ui-accent-rgb), 0.5);
+    color: var(--ui-on-accent, #ffffff);
+    // Labels inside: _base paints every span, p and div white itself, so they need telling.
+    > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  }
+}
+
+.map-confirm {
+  @include chat-button;
+  align-self: center;
+  height: 48px;
+  min-width: 260px;
+  padding: 0 28px;
+}
+
+@keyframes map-pulse {
+  from {
+    opacity: 0.9;
+    transform: scale(0.5);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .map-region,
+    .map-city .map-city-dot,
+    .map-controls button,
+    .map-option {
+      transition: none;
+    }
+
+    .map-city .map-city-pulse,
+    .map-loading {
+      animation: none;
+    }
+  }
+}

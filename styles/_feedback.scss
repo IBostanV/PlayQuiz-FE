@@ -1,0 +1,574 @@
+// ---- Feedback: the footer button, its dialog, the admins' badge and list -------------------
+
+// Beside Back to top, in the same gradient-edged glass, with a label; pushes both to the row's end.
+.site-footer-feedback {
+  align-items: center;
+  background:
+    linear-gradient(180deg, rgba(10, 32, 48, 0.95), rgba(4, 14, 22, 0.95)) padding-box,
+    linear-gradient(135deg, var(--ui-accent-soft) 0%, rgba(var(--ui-accent-rgb), 0.25) 50%, var(--ui-accent-dark) 100%) border-box;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: #cfe9f7;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  gap: 8px;
+  height: 32px;
+  letter-spacing: 0.12em;
+  margin-left: auto;
+  padding: 0 14px;
+  text-transform: uppercase;
+  transition: box-shadow 180ms ease, color 180ms ease;
+
+  svg {
+    color: var(--ui-text-accent, var(--ui-accent-light));
+    height: 1em;
+    width: 1em;
+  }
+
+  &:hover,
+  &:focus-visible {
+    box-shadow: 0 0 18px rgba(var(--ui-accent-rgb), 0.5);
+    color: #ffffff;
+    outline: none;
+  }
+}
+
+.popup .feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.feedback-types {
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+// Pills like the quiz-type filter's; the radio stays for keyboard and screen readers.
+.feedback-type {
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+  border-radius: 999px;
+  color: #9fb6c4;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 0;
+  padding: 6px 14px;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+
+  input {
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+  }
+
+  &:hover {
+    border-color: rgba(var(--ui-accent-rgb), 0.7);
+    color: #eaf6fd;
+  }
+
+  &:has(input:focus-visible) {
+    box-shadow: 0 0 0 2px rgba(var(--ui-accent-rgb), 0.5);
+  }
+
+  &:has(input:checked) {
+    background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+    border-color: transparent;
+    color: var(--ui-on-accent, #ffffff);
+    // Labels inside: _base paints every span, p and div white itself, so they need telling.
+    > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  }
+}
+
+.feedback-message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+
+  textarea {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+    border-radius: 12px;
+    color: #eaf6fd;
+    line-height: 1.45;
+    min-height: 120px;
+    padding: 10px 14px;
+    resize: vertical;
+    width: 100%;
+
+    &:focus {
+      border-color: var(--ui-accent);
+      box-shadow: 0 0 0 1px var(--ui-accent), 0 0 14px rgba(var(--ui-accent-rgb), 0.3);
+      outline: none;
+    }
+  }
+}
+
+.feedback-count {
+  align-self: flex-end;
+  color: #6f8fa1;
+  font-size: 0.72rem;
+}
+
+// "Report a problem" under a quiz question: quiet, so it never competes with the answers.
+// The quiet actions under a question: report it, or send it to a chat.
+.quiz-report,
+.quiz-send {
+  align-items: center;
+  align-self: center;
+  background: none;
+  border: 0;
+  color: #6f8fa1;
+  display: inline-flex;
+  font-size: 0.78rem;
+  gap: 7px;
+  padding: 4px 8px;
+  transition: color 160ms ease;
+
+  svg {
+    height: 0.9em;
+    width: 0.9em;
+  }
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    text-decoration: underline;
+  }
+}
+
+.quiz-report:hover,
+.quiz-report:focus-visible {
+  color: #ff8a95;
+}
+
+.quiz-send:hover,
+.quiz-send:focus-visible {
+  color: var(--ui-accent-pale);
+}
+
+// Under a question on the result page the actions sit with the text, not centred under the stage.
+.result-answer .quiz-send {
+  align-self: flex-start;
+  margin-left: -8px;
+}
+
+// ---- A question sent into a chat ------------------------------------------------------------
+
+.chat-quiz {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: min(260px, 60vw);
+
+  .mini-quiz-icon {
+    height: 26px;
+    width: 26px;
+  }
+}
+
+.chat-quiz-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.chat-quiz-label {
+  color: var(--ui-accent-haze);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.chat-quiz-question {
+  color: #eaf6fd;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.chat-quiz-locked {
+  color: #7fa3b6;
+  font-size: 0.8rem;
+  font-style: italic;
+  margin: 0;
+}
+
+// The answer someone gave, as its own message in the thread.
+.chat-quiz-result {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin: 0;
+
+  &[data-correct='true'] .chat-quiz-result-mark {
+    background: rgba(61, 220, 151, 0.18);
+    color: #3ddc97;
+  }
+
+  &[data-correct='false'] .chat-quiz-result-mark {
+    background: rgba(255, 93, 108, 0.18);
+    color: #ff8a95;
+  }
+
+  // Held back until the reader has answered that question themselves.
+  &[data-covered='true'] {
+    color: #7fa3b6;
+    font-size: 0.8rem;
+    font-style: italic;
+
+    .chat-quiz-result-mark {
+      background: rgba(255, 255, 255, 0.07);
+      color: #7fa3b6;
+    }
+  }
+}
+
+.chat-quiz-result-mark {
+  border-radius: 50%;
+  display: grid;
+  flex: none;
+  height: 22px;
+  place-items: center;
+  width: 22px;
+
+  svg {
+    height: 0.7rem;
+    width: 0.7rem;
+  }
+}
+
+.chat-quiz-result-verdict {
+  color: #7fa3b6;
+  font-size: 0.75rem;
+}
+
+// ---- Picking the chat to send a question to -------------------------------------------------
+
+.send-question-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.send-question-group {
+  align-items: center;
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  color: #e6f3fa;
+  display: flex;
+  gap: 10px;
+  padding: 6px 8px;
+  text-align: left;
+  transition: background 150ms ease;
+  width: 100%;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.16);
+    outline: none;
+  }
+}
+
+.send-question-empty {
+  color: #7fa3b6;
+  margin: 0;
+}
+
+.send-question-text {
+  border-left: 2px solid rgba(var(--ui-accent-rgb), 0.5);
+  color: #cfe9f7;
+  font-style: italic;
+  margin: 0;
+  padding-left: 10px;
+}
+
+// The question being reported, quoted at the top of the report.
+.report-question-text {
+  border-left: 2px solid rgba(var(--ui-accent-rgb), 0.5);
+  color: #cfe9f7;
+  font-style: italic;
+  margin: 0;
+  padding-left: 10px;
+}
+
+.report-skip {
+  align-items: center;
+  color: #cfe9f7;
+  cursor: pointer;
+  display: flex;
+  font-size: 0.85rem;
+  gap: 8px;
+  margin: 0;
+
+  input {
+    accent-color: var(--ui-accent);
+    height: 16px;
+    width: 16px;
+  }
+}
+
+.admin-feedback-question {
+  color: #7fa3b6;
+  font-size: 0.8rem;
+  font-style: italic;
+  margin-top: 6px;
+}
+
+// Picking a screenshot for a report, and the picture once picked.
+.feedback-screenshot {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.feedback-screenshot-pick {
+  align-items: center;
+  border: 1px dashed rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 12px;
+  color: var(--ui-accent-light);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 1;
+  font-size: 0.78rem;
+  font-weight: 600;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  padding: 8px 12px;
+  transition: background-color 160ms ease, border-color 160ms ease;
+
+  // Sized here, not by FontAwesome's injected CSS, so it never flashes full-size on load.
+  svg {
+    flex: none;
+    height: 0.85em;
+    width: 0.85em;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &:hover,
+  &:focus-within {
+    background: rgba(var(--ui-accent-rgb), 0.1);
+    border-color: var(--ui-accent);
+  }
+}
+
+.feedback-screenshot-preview {
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+  border-radius: 12px;
+  max-height: 180px;
+  object-fit: contain;
+  width: 100%;
+}
+
+// The admins' list: a link to the picture, and the picture itself in the popup.
+// A framed thumbnail rather than a text link: the icon sits in its own lit tile, so a row with a
+// screenshot is spotted down the table at a glance.
+.admin-feedback-screenshot {
+  align-items: center;
+  background: linear-gradient(160deg, rgba(var(--ui-accent-rgb), 0.16) 0%, rgba(var(--ui-accent-rgb), 0.04) 100%);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  color: var(--ui-accent-light);
+  display: inline-flex;
+  font-size: 0.78rem;
+  gap: 8px;
+  padding: 5px 10px 5px 6px;
+  transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+
+  // The icon's own tile inside the frame.
+  svg {
+    background: rgba(var(--ui-accent-rgb), 0.2);
+    border-radius: 7px;
+    box-sizing: content-box;
+    height: 0.95rem;
+    padding: 5px;
+    width: 0.95rem;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: linear-gradient(160deg, rgba(var(--ui-accent-rgb), 0.3) 0%, rgba(var(--ui-accent-rgb), 0.1) 100%);
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.45);
+    color: #ffffff;
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+// The screenshot itself, framed to match.
+.admin-feedback-screenshot-full {
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 12px;
+  box-shadow: 0 0 22px rgba(var(--ui-accent-rgb), 0.25), 0 10px 30px rgba(0, 0, 0, 0.45);
+  margin-bottom: 14px;
+  max-height: 70vh;
+  object-fit: contain;
+  width: 100%;
+}
+
+// A guest's optional reply address.
+.feedback-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+
+  input {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+    border-radius: 12px;
+    color: #eaf6fd;
+    height: 42px;
+    padding: 0 14px;
+    width: 100%;
+
+    &:focus {
+      border-color: var(--ui-accent);
+      box-shadow: 0 0 0 1px var(--ui-accent), 0 0 14px rgba(var(--ui-accent-rgb), 0.3);
+      outline: none;
+    }
+  }
+}
+
+.feedback-contact-label {
+  color: #7fa3b6;
+  font-size: 0.75rem;
+}
+
+.admin-feedback-guest {
+  color: #9fb6c4;
+  font-style: italic;
+}
+
+// The open-feedback count, on the corner of the admin's identity link (which sets the
+// position: relative it hangs off).
+.nav-user-badge {
+  background: #ff5d6c;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px #06141e;
+  color: #ffffff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 16px;
+  min-width: 16px;
+  padding: 0 4px;
+  position: absolute;
+  right: -3px;
+  text-align: center;
+  top: -3px;
+}
+
+.admin-feedback-summary {
+  color: #9fb6c4;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+.admin-feedback-table {
+  // Resolved ones stay listed but step back.
+  tr[data-resolved='true'] td {
+    opacity: 0.55;
+  }
+
+  .admin-feedback-message {
+    max-width: 480px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+}
+
+.admin-feedback-type {
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 3px 10px;
+  text-transform: uppercase;
+  white-space: nowrap;
+
+  &[data-type='BUG'] {
+    background: rgba(255, 93, 108, 0.16);
+    color: #ff8a95;
+  }
+
+  &[data-type='QUESTION'] {
+    background: rgba(var(--ui-accent-rgb), 0.16);
+    color: var(--ui-accent-soft);
+  }
+
+  &[data-type='SUGGESTION'] {
+    background: rgba(74, 222, 128, 0.14);
+    color: #6ee7a0;
+  }
+
+  &[data-type='OTHER'] {
+    background: rgba(159, 182, 196, 0.14);
+    color: #b9cad4;
+  }
+}
+
+.admin-feedback-toggle {
+  align-items: center;
+  background: none;
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 999px;
+  color: #cfe9f7;
+  display: inline-flex;
+  font-size: 0.75rem;
+  font-weight: 600;
+  gap: 6px;
+  padding: 4px 12px;
+  white-space: nowrap;
+
+  svg {
+    height: 0.9em;
+    width: 0.9em;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.14);
+    border-color: var(--ui-accent);
+    color: #ffffff;
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .site-footer-feedback,
+    .feedback-type,
+    .feedback-screenshot-pick {
+      transition: none;
+    }
+  }
+}

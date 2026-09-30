@@ -1,0 +1,170 @@
+// ---- Profile: the quiz history and what it adds up to -----------------------------------------
+
+// Spans both columns of .profile-page, under the card and the form.
+.profile-history {
+  @include glass-slab(6);
+  grid-column: 1 / -1;
+  padding: 28px 28px 24px;
+}
+
+// Quizzes played, questions, right, accuracy, best, time.
+.profile-stats {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  margin: 0 0 22px;
+}
+
+.profile-stat {
+  background: rgba(0, 0, 0, 0.24);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.18);
+  border-radius: 12px;
+  padding: 10px 12px;
+
+  dt {
+    color: #9fb6c4;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+
+  dd {
+    color: #eaf6fd;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+    margin: 0;
+  }
+}
+
+.profile-stat-unit {
+  color: #9fb6c4;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-left: 2px;
+}
+
+.profile-runs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.profile-run {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.16);
+  border-radius: 12px;
+  overflow: hidden;
+
+  &[data-open='true'] {
+    border-color: rgba(var(--ui-accent-rgb), 0.4);
+  }
+
+  // The answers of an open run, inside the row rather than on their own page.
+  .result-answers {
+    border-top: 1px solid rgba(var(--ui-accent-rgb), 0.16);
+    margin: 0;
+    padding: 14px;
+  }
+}
+
+// The whole row is the toggle, so the date and score are part of the target.
+.profile-run-head {
+  align-items: center;
+  background: none;
+  border: 0;
+  color: inherit;
+  display: flex;
+  font: inherit;
+  gap: 12px;
+  padding: 12px 14px;
+  text-align: left;
+  width: 100%;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.1);
+    outline: none;
+  }
+}
+
+.profile-run-title {
+  align-items: center;
+  color: #eaf6fd;
+  display: flex;
+  flex: 1 1 auto;
+  font-weight: 600;
+  gap: 8px;
+  min-width: 0;
+}
+
+.profile-run-type {
+  color: #9fb6c4;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.profile-run-custom {
+  color: #f5b82e;
+
+  svg {
+    height: 0.85em;
+    width: 0.85em;
+  }
+}
+
+.profile-run-date {
+  color: #9fb6c4;
+  flex: none;
+  font-size: 0.78rem;
+  white-space: nowrap;
+
+  @media (max-width: 600px) {
+    display: none;
+  }
+}
+
+.profile-run-score {
+  align-items: baseline;
+  color: #eaf6fd;
+  display: flex;
+  flex: none;
+  font-weight: 700;
+  gap: 6px;
+  white-space: nowrap;
+
+  &[data-band='high'] { color: #6ee7a0; }
+  &[data-band='mid'] { color: #f5b82e; }
+  &[data-band='low'] { color: #ff8a95; }
+  &[data-band='none'] { color: #6f8fa1; }
+}
+
+.profile-run-percent {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.profile-run-chevron {
+  color: #6f8fa1;
+  flex: none;
+  height: 0.8em;
+  transition: transform 0.2s ease;
+  width: 0.8em;
+
+  .profile-run[data-open='true'] & {
+    transform: rotate(180deg);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      transition: none;
+    }
+  }
+}

@@ -1,0 +1,56 @@
+// Moving between pages (components/layout). The page on its way out fades and sinks back a
+// little; the next one swings down into place, hinged at its own top edge and tilted back in
+// depth, rather than sliding in from the top of the screen.
+//
+// The wrapper passes main's column flex straight through, so a page that asks for flex: 1 to fill
+// the screen still gets main's height. The transform ends at none, so once the page has landed
+// nothing inside it has a transformed ancestor (position: fixed behaves as it always did).
+.page-transition {
+  animation: page-enter 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
+  transform-origin: 50% 0;
+
+  &[data-leaving] {
+    animation: none;
+    opacity: 0;
+    transform: perspective(1400px) translateZ(-40px);
+    transition: opacity 200ms ease, transform 200ms ease;
+  }
+
+  // Without motion the old page stays as it is until the new one replaces it: fading it out with
+  // no fade is only a blank screen while the next page loads, which reads as lag.
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      animation: none;
+
+      &[data-leaving] {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
+  }
+
+  :root[data-motion='off'] &[data-leaving] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: perspective(1400px) translateY(-28px) rotateX(-22deg);
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

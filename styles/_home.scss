@@ -1,0 +1,1215 @@
+// Home page friends: glass card with an add row and one line per friend.
+// Under the carousel: "Did you know?" and, when signed in, friends, side by side (stacked
+// on narrow screens).
+// How it works: a band the full width of the window. main pads the page by 20px, so the section
+// pulls back by exactly that rather than using 100vw, which a scrollbar would make too wide.
+.home-how {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(var(--ui-accent-rgb), 0.16) 0%, rgba(var(--ui-accent-rgb), 0) 60%),
+    linear-gradient(180deg, rgba(6, 20, 30, 0.95) 0%, rgba(4, 14, 22, 0.95) 100%);
+  border-bottom: 1px solid rgba(var(--ui-accent-rgb), 0.18);
+  border-top: 1px solid rgba(var(--ui-accent-rgb), 0.18);
+  margin: 16px -20px 0;
+  padding: 13px 20px 14px;
+
+  // Above the carousel for a logged-out visitor: flush with the top of the page, with the
+  // gap moved below it instead.
+  &[data-top='true'] {
+    margin: -20px -20px 16px;
+  }
+}
+
+// The steps, and the quote beside them.
+.home-how-inner {
+  display: grid;
+  gap: 12px 20px;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 1fr);
+  margin: 0 auto;
+  max-width: 1200px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.home-steps {
+  display: grid;
+  gap: 9px 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+
+  // Two by two once four across would squeeze them, then one under another.
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (max-width: 575.98px) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.home-step {
+  align-items: flex-start;
+  display: flex;
+  gap: 8px;
+}
+
+// The step's icon, with its number on the corner.
+.home-step-badge {
+  background: rgba(var(--ui-accent-rgb), 0.12);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(var(--ui-accent-rgb), 0.45);
+  color: var(--ui-accent-light);
+  display: grid;
+  flex: none;
+  font-size: 0.7rem;
+  height: 28px;
+  place-items: center;
+  position: relative;
+  width: 28px;
+
+  svg {
+    height: 1em;
+    width: 1em;
+  }
+}
+
+.home-step-number {
+  background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+  border-radius: 50%;
+  color: var(--ui-on-accent, #04121c);
+  // Labels inside: _base paints every span, p and div white itself, so they need telling.
+  > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  font-size: 0.6rem;
+  font-weight: 700;
+  height: 16px;
+  line-height: 16px;
+  position: absolute;
+  right: -2px;
+  text-align: center;
+  top: -2px;
+  width: 16px;
+}
+
+.home-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.home-step-title {
+  color: #eaf6fd;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.home-step-text {
+  color: #9fb6c4;
+  font-size: 0.71rem;
+  line-height: 1.3;
+}
+
+// The quote: its own block, level with the steps.
+.home-quote {
+  @include glass-slab(4);
+  align-content: center;
+  display: grid;
+  gap: 6px;
+  justify-items: start;
+  margin: 0 0 4px;
+  padding: 11px 13px;
+}
+
+.home-quote-mark {
+  color: var(--ui-accent);
+  height: 1rem;
+  opacity: 0.6;
+  width: 1rem;
+}
+
+.home-quote-text {
+  color: #eaf6fd;
+  font-family: 'Montserrat-Medium', sans-serif;
+  font-size: 0.84rem;
+  font-style: italic;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.home-quote-author {
+  color: #9fb6c4;
+  font-size: 0.78rem;
+}
+
+// One centred row of cards — the quick question beside today's tasks, then the fact on a row of
+// its own — each dropping under the last when there is no width for two.
+.home-row {
+  align-items: stretch;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+// The friends dock: the friends panel in the bottom left corner of the screen, shut to its own
+// header until that header is clicked. Left, because the toasts come up on the right.
+//
+// A zero-height sticky anchor at the end of main with the panel hanging off it, rather than a
+// fixed box held clear of the footer by measuring it: sticky already stops at the end of its
+// container, and the end of main is exactly where the footer begins. Nothing to compute, nothing
+// to keep in step from page to page, and the panel's own height never lengthens the page.
+.friends-dock {
+  align-self: flex-start;
+  bottom: 20px;
+  height: 0;
+  // Pushed to the foot of main whatever the page holds: sticky only ever pulls an element up
+  // into view, so on a short page (the knowledge base, a dashboard) an anchor left where the
+  // content happens to end would simply stay there, halfway up the screen.
+  margin-top: auto;
+  position: sticky;
+  // The width of the dashboards' side rail, which is a Bootstrap col-sm-3 col-xl-2: the same
+  // fractions of the same container, with a floor so a phone does not get a sliver.
+  width: clamp(200px, 25%, 320px);
+
+  @media (min-width: 1200px) {
+    width: clamp(200px, 16.6667%, 320px);
+  }
+  // Under the sticky header, which the panel can reach up to on a short window.
+  z-index: 9;
+
+  .friends-panel {
+    bottom: 0;
+    left: 0;
+    // The window is the limit; a longer friends list scrolls inside the panel.
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
+    position: absolute;
+    width: 100%;
+  }
+}
+
+.did-you-know {
+  @include glass-slab(6);
+  display: flex;
+  flex: 1 1 420px;
+  flex-direction: column;
+  gap: 7px;
+  // As wide as the quick question and today's tasks side by side: their two caps plus the gap
+  // between them, so the row below lines up with the row above.
+  max-width: calc(460px + 380px + 28px);
+  padding: 10px 12px 9px;
+
+  // Logged out it stands where today's tasks would, next to the quick question: same size.
+  &[data-compact='true'] {
+    flex: 1 1 280px;
+    max-width: 380px;
+
+    .did-you-know-more {
+      margin-top: auto;
+    }
+  }
+}
+
+.did-you-know-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.did-you-know-icon {
+  background: radial-gradient(circle at 35% 30%, #ffe27a 0%, #f5b82e 55%, #b97a07 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 18px rgba(245, 184, 46, 0.55);
+  color: #3a2600;
+  display: grid;
+  flex: none;
+  font-size: 0.7rem;
+  height: 26px;
+  place-items: center;
+  width: 26px;
+
+  svg {
+    height: 0.7rem;
+    width: 0.7rem;
+  }
+}
+
+.did-you-know-title {
+  color: #eaf6fd;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.did-you-know-date {
+  color: #7fa3b6;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+}
+
+.did-you-know-body {
+  display: flex;
+  gap: 10px;
+}
+
+.did-you-know-image {
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+  border-radius: 10px;
+  flex: none;
+  height: 52px;
+  object-fit: cover;
+  width: 52px;
+}
+
+.did-you-know-record {
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin: 0 0 2px;
+}
+
+// At most three lines; the full text is one "Read more" away.
+.did-you-know-text {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: #b8cdd9;
+  display: -webkit-box;
+  font-size: 0.8rem;
+  line-clamp: 2;
+  line-height: 1.5;
+  margin: 0;
+  overflow: hidden;
+}
+
+// Compact pill, right-aligned: a gradient hairline border and a soft glow, with the arrow in
+// its own small circle that fills and slides on hover. 38px tall, so still easy to hit.
+.did-you-know-more {
+  align-items: center;
+  align-self: flex-end;
+  background:
+    linear-gradient(180deg, rgba(10, 32, 48, 0.95), rgba(4, 14, 22, 0.95)) padding-box,
+    linear-gradient(135deg, var(--ui-accent-soft) 0%, rgba(var(--ui-accent-rgb), 0.25) 50%, var(--ui-accent-dark) 100%) border-box;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 0 12px rgba(var(--ui-accent-rgb), 0.18);
+  color: #cfe9f7;
+  display: inline-flex;
+  font-size: 0.7rem;
+  font-weight: 600;
+  gap: 7px;
+  height: 28px;
+  letter-spacing: 0.1em;
+  padding: 0 4px 0 11px;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
+
+  &:hover,
+  &:focus-visible {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), 0 0 18px rgba(var(--ui-accent-rgb), 0.45);
+    color: #ffffff;
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px #04121a, 0 0 0 4px var(--ui-accent-light);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.did-you-know-more-arrow {
+  background: rgba(var(--ui-accent-rgb), 0.15);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 50%;
+  color: var(--ui-accent-light);
+  display: grid;
+  font-size: 0.58rem;
+  height: 20px;
+  place-items: center;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+  width: 20px;
+
+  svg {
+    transition: transform 180ms ease;
+  }
+
+  .did-you-know-more:hover &,
+  .did-you-know-more:focus-visible & {
+    background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+    border-color: transparent;
+    color: var(--ui-on-accent, #ffffff);
+    // Labels inside: _base paints every span, p and div white itself, so they need telling.
+    > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+
+    svg {
+      transform: translateX(2px);
+    }
+  }
+}
+
+@media (max-width: 575.98px) {
+  .did-you-know-image {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .did-you-know-more,
+    .did-you-know-more-arrow,
+    .did-you-know-more-arrow svg {
+      transition: none;
+    }
+  }
+}
+
+// Home page daily tasks: a few goals that start over each day, each with a bar and what it pays.
+.daily-tasks {
+  @include glass-slab(6);
+  display: flex;
+  flex: 1 1 280px;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 380px;
+  padding: 12px 14px 10px;
+}
+
+.daily-tasks-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.daily-tasks-icon {
+  background: radial-gradient(circle at 35% 30%, #a6ffcf 0%, #2fd07a 55%, #0b7a42 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 18px rgba(47, 208, 122, 0.5);
+  color: #04291a;
+  display: grid;
+  flex: none;
+  font-size: 0.72rem;
+  height: 28px;
+  place-items: center;
+  width: 28px;
+}
+
+.daily-tasks-title {
+  color: #eaf6fd;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.daily-tasks-count {
+  color: #7fa3b6;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+.daily-tasks-list {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.daily-task {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+// The tick is there all along, lit only once the task is done: nothing moves when it is.
+.daily-task-mark {
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.35);
+  border-radius: 50%;
+  color: transparent;
+  display: grid;
+  flex: none;
+  font-size: 0.58rem;
+  height: 20px;
+  place-items: center;
+  width: 20px;
+
+  .daily-task[data-done='true'] & {
+    background: linear-gradient(135deg, #48e08d 0%, #0f9d58 100%);
+    border-color: transparent;
+    color: #04291a;
+  }
+}
+
+.daily-task-body {
+  display: grid;
+  flex: 1;
+  gap: 4px;
+  min-width: 0;
+}
+
+.daily-task-name {
+  color: #cfe9f7;
+  font-size: 0.78rem;
+  line-height: 1.25;
+
+  .daily-task[data-done='true'] & {
+    color: #8fb3c6;
+  }
+}
+
+.daily-task-bar {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  display: block;
+  height: 5px;
+  overflow: hidden;
+}
+
+.daily-task-fill {
+  background: linear-gradient(90deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+  border-radius: 999px;
+  display: block;
+  height: 100%;
+
+  .daily-task[data-done='true'] & {
+    background: linear-gradient(90deg, #48e08d 0%, #0f9d58 100%);
+  }
+}
+
+.daily-task-reward {
+  display: grid;
+  flex: none;
+  gap: 2px;
+  justify-items: end;
+  text-align: right;
+}
+
+.daily-task-progress {
+  color: #eaf6fd;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily-task-experience {
+  color: #7fa3b6;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+}
+
+// Home page mini game: a question with lettered options that light up right (green) or
+// wrong (red) on the spot, a streak counter, and next/skip.
+.mini-quiz {
+  @include glass-slab(6);
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 460px;
+  padding: 12px 14px 10px;
+}
+
+.mini-quiz-header {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+
+  > div {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.mini-quiz-icon {
+  background: radial-gradient(circle at 35% 30%, var(--ui-accent-pale) 0%, var(--ui-accent-bright) 50%, var(--ui-accent-deep) 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 18px rgba(var(--ui-accent-rgb), 0.55);
+  color: var(--ui-on-accent, #03263a);
+  // Labels inside: _base paints every span, p and div white itself, so they need telling.
+  > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  display: grid;
+  flex: none;
+  font-size: 0.85rem;
+  height: 32px;
+  place-items: center;
+  width: 32px;
+}
+
+.mini-quiz-title {
+  color: #eaf6fd;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.mini-quiz-category {
+  color: #7fa3b6;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+}
+
+.mini-quiz-streak {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  color: #9fb6c4;
+  display: inline-flex;
+  font-size: 0.68rem;
+  font-weight: 700;
+  gap: 5px;
+  padding: 3px 8px;
+  transition: color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+
+  &[data-hot='true'] {
+    border-color: rgba(255, 150, 50, 0.6);
+    box-shadow: 0 0 12px rgba(255, 130, 30, 0.45);
+    color: #ffb45c;
+  }
+}
+
+.mini-quiz-play {
+  animation: quiz-enter 300ms ease both;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mini-quiz-question {
+  color: #ffffff;
+  font-size: 0.86rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.mini-quiz-options {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mini-quiz-option {
+  align-items: center;
+  background: rgba(var(--ui-accent-rgb), 0.06);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+  border-radius: 10px;
+  color: #dcecf5;
+  display: flex;
+  font-size: 0.8rem;
+  gap: 6px;
+  line-height: 1.2;
+  // Kept at a comfortable 34px however tight the rest gets: this is what people click.
+  min-height: 34px;
+  padding: 3px 8px 3px 3px;
+  text-align: left;
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, opacity 200ms ease,
+    transform 160ms ease;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.14);
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 12px rgba(var(--ui-accent-rgb), 0.35);
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &[data-state='checking'] {
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 12px rgba(var(--ui-accent-rgb), 0.45);
+  }
+
+  &[data-state='right'] {
+    background: rgba(46, 204, 113, 0.16);
+    border-color: #2ecc71;
+    box-shadow: 0 0 14px rgba(46, 204, 113, 0.45);
+
+    .mini-quiz-letter {
+      background: #2ecc71;
+      border-color: transparent;
+      color: #04220f;
+    }
+  }
+
+  &[data-state='wrong'] {
+    animation: mini-quiz-shake 360ms ease;
+    background: rgba(231, 76, 60, 0.14);
+    border-color: #e74c3c;
+
+    .mini-quiz-letter {
+      background: #e74c3c;
+      border-color: transparent;
+      color: #ffffff;
+    }
+  }
+
+  &[data-state='faded'] {
+    opacity: 0.45;
+  }
+}
+
+.mini-quiz-letter {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 7px;
+  color: var(--ui-accent-light);
+  display: grid;
+  flex: none;
+  font-size: 0.68rem;
+  font-weight: 700;
+  height: 24px;
+  place-items: center;
+  width: 24px;
+}
+
+.mini-quiz-verdict {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+
+  &[data-correct='true'] {
+    color: #2ecc71;
+  }
+
+  &[data-correct='false'] {
+    color: #ff7b6b;
+  }
+}
+
+// Compact pill with the icon in its own circle. Before answering it is a quiet "Skip"; once
+// answered it fills with the cyan gradient and glows, as the obvious next step.
+.mini-quiz-next {
+  align-items: center;
+  background:
+    linear-gradient(180deg, rgba(10, 32, 48, 0.95), rgba(4, 14, 22, 0.95)) padding-box,
+    linear-gradient(135deg, color-mix(in srgb, var(--ui-accent-soft) 70%, transparent) 0%, rgba(var(--ui-accent-rgb), 0.2) 50%, color-mix(in srgb, var(--ui-accent-dark) 70%, transparent) 100%) border-box;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: #9fb6c4;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 600;
+  gap: 8px;
+  height: 34px;
+  letter-spacing: 0.14em;
+  padding: 0 4px 0 14px;
+  text-transform: uppercase;
+  transition: box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.4);
+    color: #ffffff;
+    outline: none;
+    transform: translateY(-1px);
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px #04121a, 0 0 0 4px var(--ui-accent-light);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+
+  // "Skip" is secondary: a size smaller than "Next".
+  &[data-ready='false'] {
+    font-size: 0.64rem;
+    gap: 6px;
+    height: 28px;
+    padding: 0 3px 0 11px;
+
+    .mini-quiz-next-icon {
+      font-size: 0.34rem;
+      height: 16px;
+      width: 16px;
+    }
+  }
+
+  &[data-ready='true'] {
+    background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
+    box-shadow: 0 4px 14px rgba(var(--ui-accent-rgb), 0.45);
+    color: var(--ui-on-accent, #ffffff);
+    // Labels inside: _base paints every span, p and div white itself, so they need telling.
+    > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+
+    .mini-quiz-next-icon {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.45);
+      color: var(--ui-on-accent, #ffffff);
+      // Labels inside: _base paints every span, p and div white itself, so they need telling.
+      > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+    }
+
+    &:hover:not(:disabled) {
+      box-shadow: 0 6px 18px rgba(var(--ui-accent-rgb), 0.65);
+    }
+  }
+}
+
+.mini-quiz-next-icon {
+  background: rgba(var(--ui-accent-rgb), 0.15);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 50%;
+  color: var(--ui-accent-light);
+  display: grid;
+  font-size: 0.62rem;
+  height: 26px;
+  place-items: center;
+  transition: transform 180ms ease;
+  width: 26px;
+
+  .mini-quiz-next:hover:not(:disabled) & {
+    transform: translateX(2px);
+  }
+}
+
+.mini-quiz-loading {
+  animation: kb-shimmer 1.4s ease-in-out infinite;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 30%, rgba(var(--ui-accent-rgb), 0.08) 50%, rgba(255, 255, 255, 0) 70%) 0 0 / 200% 100%;
+  border-radius: 12px;
+  height: 120px;
+}
+
+@keyframes mini-quiz-shake {
+  25% {
+    transform: translateX(-4px);
+  }
+
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .mini-quiz-play,
+    .mini-quiz-loading,
+    .mini-quiz-option[data-state='wrong'] {
+      animation: none;
+    }
+
+    .mini-quiz-option,
+    .mini-quiz-streak,
+    .mini-quiz-next,
+    .mini-quiz-next-icon {
+      transition: none;
+    }
+  }
+}
+
+// Signed in, the page opens on the player: face, level, streak, and one thing to do next. A band
+// straight under the header, edge to edge: it pulls back through main's 20px padding the way How
+// it works does for a guest, so it is the band's look and not a floating slab's.
+// Its content keeps to the width of the rows under it, in the middle. A percentage in padding is
+// of main's content width, which the band overshoots by 20px a side, hence the + 20px.
+.home-welcome {
+  align-items: center;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(var(--ui-accent-rgb), 0.14) 0%, rgba(var(--ui-accent-rgb), 0) 70%),
+    linear-gradient(180deg, rgba(6, 20, 30, 0.95) 0%, rgba(4, 14, 22, 0.95) 100%);
+  border-bottom: 1px solid rgba(var(--ui-accent-rgb), 0.18);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 20px;
+  margin: -20px -20px 20px;
+  padding: 16px max(20px, calc((100% - (460px + 380px + 28px)) / 2 + 20px));
+}
+
+.home-welcome-avatar {
+  flex-basis: 64px;
+  font-size: 1.3rem;
+  height: 64px;
+  width: 64px;
+}
+
+.home-welcome-body {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.home-welcome-title {
+  color: #eaf6fd;
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+// Capped, or on a wide screen the bar runs half a metre and no longer reads as progress.
+.home-welcome-level {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  max-width: 520px;
+}
+
+.home-welcome-badge {
+  background: linear-gradient(135deg, var(--ui-accent-bright), var(--ui-accent-deep));
+  border-radius: 999px;
+  color: var(--ui-on-accent, #03202e);
+  // Labels inside: _base paints every span, p and div white itself, so they need telling.
+  > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  flex: none;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 9px;
+}
+
+.home-welcome-bar {
+  flex: 1 1 auto;
+  height: 7px;
+}
+
+.home-welcome-xp {
+  color: #7fa3b6;
+  flex: none;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.home-welcome-streak {
+  align-items: center;
+  color: #ffb45c;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 600;
+  gap: 6px;
+  margin: 0;
+
+  // An unsized FontAwesome svg draws at its own size, far bigger than the text beside it.
+  svg {
+    height: 0.9em;
+    width: 0.9em;
+  }
+}
+
+.home-welcome-play {
+  @include chat-button;
+  flex: none;
+  gap: 8px;
+  height: 44px;
+  padding: 0 22px;
+  text-decoration: none;
+}
+
+// The smaller home cards (Conquest, next trophy): the same slab, header and sizes as the quick
+// question and today's tasks, so the row lines up with the one above it.
+.home-card {
+  @include glass-slab(6);
+  display: flex;
+  flex: 1 1 320px;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 460px;
+  padding: 12px 14px 10px;
+
+  + .home-card {
+    flex: 1 1 280px;
+    max-width: 380px;
+  }
+
+  // A row to itself, as wide as the two-card rows.
+  &[data-wide='true'] {
+    flex-basis: 100%;
+    max-width: calc(460px + 380px + 28px);
+  }
+}
+
+// A row whose cards had nothing to show takes no room, gap included.
+.home-row:empty {
+  display: none;
+}
+
+// Straight under the welcome band, which already leaves its gap.
+.home-row-top {
+  margin: 0 0 20px;
+}
+
+.home-card-header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.home-card-icon {
+  background: radial-gradient(circle at 35% 30%, var(--ui-accent-pale) 0%, var(--ui-accent-bright) 55%, var(--ui-accent-deep) 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 18px rgba(var(--ui-accent-rgb), 0.5);
+  color: var(--ui-on-accent, #03202e);
+  // Labels inside: _base paints every span, p and div white itself, so they need telling.
+  > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  display: grid;
+  flex: none;
+  font-size: 0.72rem;
+  height: 28px;
+  place-items: center;
+  width: 28px;
+
+  &[data-tone='gold'] {
+    background: radial-gradient(circle at 35% 30%, #ffe27a 0%, #f5b82e 55%, #b97a07 100%);
+    box-shadow: 0 0 18px rgba(245, 184, 46, 0.45);
+    color: #3a2600;
+  }
+
+  &[data-tone='amber'] {
+    background: radial-gradient(circle at 35% 30%, #ffd199 0%, #ff9f43 55%, #b35c00 100%);
+    box-shadow: 0 0 18px rgba(255, 159, 67, 0.45);
+    color: #3a1d00;
+  }
+
+  &[data-tone='pink'] {
+    background: radial-gradient(circle at 35% 30%, #ffd1ea 0%, #f472b6 55%, #a3195f 100%);
+    box-shadow: 0 0 18px rgba(244, 114, 182, 0.45);
+    color: #3b0a24;
+  }
+}
+
+.home-card-title {
+  color: #eaf6fd;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.home-card-sub {
+  color: #7fa3b6;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  margin: 0;
+
+  // Open reads cyan and live, as on the conquest page; shut stays quiet.
+  &[data-open='true'] {
+    color: var(--ui-accent-light);
+  }
+}
+
+.home-card-numbers {
+  display: grid;
+  gap: 8px;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  margin: 0;
+
+  > div {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.15);
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+
+  dt {
+    color: #7fa3b6;
+    font-size: 0.66rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  dd {
+    color: #eaf6fd;
+    font-size: 1.2rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.home-card-more {
+  margin-top: auto;
+}
+
+.home-trophy {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.home-trophy-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.home-trophy-name {
+  color: #eaf6fd;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.home-trophy-what {
+  color: #9fb8c6;
+  font-size: 0.72rem;
+}
+
+// ---- Rows inside a home card: invitations and recent runs -------------------------------------
+
+.home-card-rows {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.home-card-row {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.12);
+  border-radius: 12px;
+  display: flex;
+  gap: 10px;
+  padding: 7px 8px 7px 10px;
+}
+
+.home-card-row-avatar {
+  flex-basis: 32px;
+  font-size: 0.7rem;
+  height: 32px;
+  width: 32px;
+}
+
+.home-card-row-body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.home-card-row-title {
+  color: #eaf6fd;
+  font-size: 0.84rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-card-row-meta {
+  color: #7fa3b6;
+  font-size: 0.7rem;
+}
+
+// Play: the accent pill. Quiet: an outlined round icon, for a row where playing is secondary.
+.home-card-play {
+  @include chat-button;
+  border-radius: 999px;
+  flex: none;
+  font-size: 0.68rem;
+  gap: 6px;
+  height: 30px;
+  padding: 0 14px;
+  text-decoration: none;
+
+  &[data-quiet='true'] {
+    background: rgba(var(--ui-accent-rgb), 0.1);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.4);
+    box-shadow: none;
+    color: var(--ui-text-accent, var(--ui-accent-light));
+    padding: 0;
+    width: 30px;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba(var(--ui-accent-rgb), 0.2);
+      color: var(--ui-text-accent, var(--ui-accent-light));
+    }
+  }
+}
+
+// A run's score as a ring filled to its share of right answers, coloured by how it went.
+.home-score-ring {
+  --ring: var(--ui-accent-light);
+  background:
+    radial-gradient(closest-side, #071824 78%, transparent 80% 100%),
+    conic-gradient(var(--ring) var(--score), rgba(255, 255, 255, 0.08) 0);
+  border-radius: 50%;
+  color: #eaf6fd;
+  display: grid;
+  flex: none;
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  height: 38px;
+  place-items: center;
+  width: 38px;
+
+  &[data-grade='good'] {
+    --ring: #2fd07a;
+  }
+
+  &[data-grade='fair'] {
+    --ring: #ffb45c;
+  }
+
+  &[data-grade='poor'] {
+    --ring: #ff5d6c;
+  }
+}
+
+// ---- Weak spot --------------------------------------------------------------------------------
+
+.home-weak {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.home-weak-name {
+  color: #eaf6fd;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.home-weak-figure {
+  align-items: baseline;
+  color: #7fa3b6;
+  display: flex;
+  font-size: 0.72rem;
+  gap: 6px;
+}
+
+.home-weak-percent {
+  color: #ffb45c;
+  font-size: 1.4rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.home-weak-bar .daily-task-fill {
+  background: linear-gradient(90deg, #ff9f43 0%, #ffb45c 100%);
+}
+
+.home-weak-play {
+  align-self: flex-start;
+  margin-top: auto;
+}

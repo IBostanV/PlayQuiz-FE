@@ -1,0 +1,103 @@
+// A picture in an avatar's place fills its circle, whoever it belongs to.
+img.chat-avatar {
+  object-fit: cover;
+}
+
+// The header's picture doubles as the way to change it: a camera on its corner.
+.chat-header-photo {
+  cursor: pointer;
+  display: inline-grid;
+  flex: none;
+  margin: 0;
+  position: relative;
+
+  // .chat-avatar sizes itself with flex-basis, which means nothing inside this grid: both the
+  // initials and a picture get their size here instead, so the circle stays a circle.
+  .chat-avatar {
+    height: 40px;
+    width: 40px;
+  }
+
+  &:hover .chat-header-photo-mark,
+  &:focus-within .chat-header-photo-mark {
+    background: var(--ui-accent);
+    color: var(--ui-on-accent, #04121c);
+    // Labels inside: _base paints every span, p and div white itself, so they need telling.
+    > :is(span, p, div) { color: var(--ui-on-accent, #FFF); }
+  }
+
+  &:focus-within {
+    outline: 1px solid rgba(var(--ui-accent-rgb), 0.6);
+    outline-offset: 3px;
+  }
+}
+
+.chat-header-photo-mark {
+  align-items: center;
+  background: rgba(4, 14, 22, 0.9);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.55);
+  border-radius: 50%;
+  bottom: -2px;
+  color: var(--ui-accent-light);
+  display: grid;
+  font-size: 0.55rem;
+  height: 18px;
+  place-items: center;
+  position: absolute;
+  right: -2px;
+  transition: background-color 160ms ease, color 160ms ease;
+  width: 18px;
+
+  svg {
+    height: 1em;
+    width: 1em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .chat-header-photo-mark {
+      transition: none;
+    }
+  }
+}
+
+// Takes the group's picture off again, back to its initials.
+.chat-header-photo-remove {
+  align-items: center;
+  align-self: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  color: #7fa3b6;
+  display: grid;
+  flex: none;
+  height: 26px;
+  margin-left: -4px;
+  place-items: center;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  width: 26px;
+
+  svg {
+    height: 0.8em;
+    width: 0.8em;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: rgba(255, 90, 90, 0.12);
+    border-color: rgba(255, 90, 90, 0.45);
+    color: #ff8a8a;
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root:not([data-motion='on']) & {
+      transition: none;
+    }
+  }
+}

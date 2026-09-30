@@ -21,5 +21,25 @@ export const USER_PATH = API + '/user';
 
 export const KNOWLEDGE_BASE_PATH = API + '/knowledge-base';
 
+export const FEEDBACK_PATH = API + '/feedback';
+
+export const CONQUEST_PATH = API + '/conquest';
+
+export const DAILY_TASK_PATH = API + '/daily-task';
+
+export const IQ_PATH = API + '/iq';
+
+export const TROPHY_PATH = API + '/trophy';
+
+export const STATISTICS_PATH = API + '/statistics';
+
+export const FEED_PATH = API + '/feed';
+
+export const SOCIAL_PATH = API + '/social';
+
+export const LIVE_PATH = API + '/live';
+
+export const LEADERBOARD_PATH = API + '/leaderboard';
+
 export const CHANGE_PASSWORD_URL = `${USER_PATH}/change-password`;
 export const VERIFY_OLD_PASSWORD_URL = `${USER_PATH}/verify-password`;
