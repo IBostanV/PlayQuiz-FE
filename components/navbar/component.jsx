@@ -13,7 +13,7 @@ import {Image} from "react-bootstrap";
 import {getCurrentUser} from "../../api/user";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {
-  faBolt, faBookOpen, faBrain, faComments, faEarthAmericas, faEnvelopeOpenText, faFire, faGaugeHigh,
+  faBolt, faBookOpen, faCoins, faBrain, faComments, faEarthAmericas, faEnvelopeOpenText, faFire, faGaugeHigh,
   faGear, faNewspaper, faPalette, faPuzzlePiece, faRightFromBracket, faTrophy, faWandMagicSparkles, faPeopleGroup} from "@fortawesome/free-solid-svg-icons";
 import {useUserContext} from "../../context/user-context";
 import {ConfirmDialog} from "../common/popup";
@@ -21,6 +21,7 @@ import {Avatar} from "../common/avatar";
 import {TrophyBadge} from "../trophy/trophy-badge";
 import {FEEDBACK_CHANGED, getOpenFeedbackCount} from "../../api/feedback";
 import {EXPERIENCE_CHANGED} from "../../api/quiz/save";
+import {COINS_CHANGED} from "../../api/coin";
 import {NotificationBell} from "./notification-bell";
 
 // Main sections, shown to everyone, in the order a player works through them: the two ways to
@@ -119,11 +120,15 @@ function Navbar({ isLoggedIn }) {
       return undefined;
     }
     // Re-read on EXPERIENCE_CHANGED as well: finishing a quiz pays experience, and the level bar
-    // below would otherwise stay where it was until the next full reload.
+    // below would otherwise stay where it was until the next full reload. Coins likewise.
     const reload = () => getCurrentUser().then(setUser);
     reload();
     window.addEventListener(EXPERIENCE_CHANGED, reload);
-    return () => window.removeEventListener(EXPERIENCE_CHANGED, reload);
+    window.addEventListener(COINS_CHANGED, reload);
+    return () => {
+      window.removeEventListener(EXPERIENCE_CHANGED, reload);
+      window.removeEventListener(COINS_CHANGED, reload);
+    };
   }, [isLoggedIn]);
 
   // The sign-out icon only opens the confirm popup; its confirm button does the logout.
@@ -196,6 +201,10 @@ function Navbar({ isLoggedIn }) {
               <FontAwesomeIcon icon={faFire}/> {user.loginStreak}
             </span>
         )}
+        <Link href={'/shop'} className={'nav-user-coins'}
+              data-tooltip={t('coins_tooltip', '{{coins}} coins — open the shop', {coins: user.coins ?? 0})}>
+          <FontAwesomeIcon icon={faCoins}/> {user.coins ?? 0}
+        </Link>
       </span>
   );
 
@@ -283,36 +292,19 @@ function Navbar({ isLoggedIn }) {
             {/* The block renders without the user too, so a failed fetch never hides the language picker. */}
             {/* Admins get a golden border instead of a badge. */}
             <span className={'nav-user'} data-admin={isAdmin || undefined}>
-              {user && (isAdmin
-                  // For an admin the face and name are the way into the admin dashboard, with the
-                  // open-message count on them; for everyone else they are only who is signed in.
-                  ? (
-                      <Link href={openFeedback ? '/admin?tab=feedback' : '/admin'}
-                            className={'nav-user-identity'}
-                            data-tooltip={openFeedback
-                                ? t('open_feedback', '{{count}} open feedback', {count: openFeedback})
-                                : t('admin_dashboard', 'Admin dashboard')}
-                            data-tooltip-placement={'bottom'}
-                            aria-current={router.pathname.startsWith('/admin') ? 'page' : undefined}>
-                        {identity}
-                        <span className={'visually-hidden'}>
-                          {openFeedback
-                              ? t('admin_dashboard_feedback', '{{name}}, {{count}} open feedback',
-                                  {name: t('admin_dashboard', 'Admin dashboard'), count: openFeedback})
-                              : t('admin_dashboard', 'Admin dashboard')}
-                        </span>
-                        {openFeedback > 0 && (
-                            <span className={'nav-user-badge'} aria-hidden>{openFeedback > 99 ? '99+' : openFeedback}</span>
-                        )}
-                      </Link>
-                  )
-                  : <span className={'nav-user-identity'}>{identity}</span>
+              {/* The face and name are the way into the profile settings, for everyone. */}
+              {user && (
+                  <Link href={'/profile'} className={'nav-user-identity'}
+                        data-tooltip={t('profile')} data-tooltip-placement={'bottom'}
+                        aria-current={router.pathname.startsWith('/profile') ? 'page' : undefined}>
+                    {identity}
+                    <span className={'visually-hidden'}>{t('profile')}</span>
+                  </Link>
               )}
               {user && <span className={'nav-user-divider'} aria-hidden/>}
               {changeLang('nav-user-lang')}
               <span className={'nav-user-divider'} aria-hidden/>
-              {/* The quiz content: categories, glossaries, questions, knowledge base. The admin
-                  dashboard is not here — for admins it is the name and face to the left. */}
+              {/* The quiz content: categories, glossaries, questions, knowledge base. */}
               {isContentEditor && (
                   <Link href={'/content'} className={'nav-user-action'}
                         aria-label={t('content_dashboard', 'Content dashboard')}
@@ -339,11 +331,24 @@ function Navbar({ isLoggedIn }) {
                     aria-current={router.pathname.startsWith('/appearance') ? 'page' : undefined}>
                 <FontAwesomeIcon icon={faPalette}/>
               </Link>
-              <Link href={'/profile'} className={'nav-user-action'} aria-label={t('profile')}
-                    data-tooltip={t('profile')} data-tooltip-placement={'bottom'}
-                    aria-current={router.pathname.startsWith('/profile') ? 'page' : undefined}>
-                <FontAwesomeIcon icon={faGear}/>
-              </Link>
+              {/* Admins only: the admin dashboard, with the open-feedback count on the gear. */}
+              {isAdmin && (
+                  <Link href={openFeedback ? '/admin?tab=feedback' : '/admin'} className={'nav-user-action'}
+                        aria-label={openFeedback
+                            ? t('admin_dashboard_feedback', '{{name}}, {{count}} open feedback',
+                                {name: t('admin_dashboard', 'Admin dashboard'), count: openFeedback})
+                            : t('admin_dashboard', 'Admin dashboard')}
+                        data-tooltip={openFeedback
+                            ? t('open_feedback', '{{count}} open feedback', {count: openFeedback})
+                            : t('admin_dashboard', 'Admin dashboard')}
+                        data-tooltip-placement={'bottom'}
+                        aria-current={router.pathname.startsWith('/admin') ? 'page' : undefined}>
+                    <FontAwesomeIcon icon={faGear}/>
+                    {openFeedback > 0 && (
+                        <span className={'nav-user-badge'} aria-hidden>{openFeedback > 99 ? '99+' : openFeedback}</span>
+                    )}
+                  </Link>
+              )}
               <button type={'button'} className={'nav-user-action'} onClick={() => setConfirmingSignOut(true)}
                       aria-label={t('sign_out')} data-tooltip={t('sign_out')} data-tooltip-placement={'bottom'}
                       aria-haspopup={'dialog'}>

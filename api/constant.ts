@@ -5,6 +5,7 @@ export const LOGOUT_URL = '/logout';
 export const LOGIN_URL = `${AUTH_PATH}/login`;
 export const REGISTER_URL = `${AUTH_PATH}/register`;
 export const CSRF_TOKEN_URL = `${AUTH_PATH}/create-token`;
+export const SOCIAL_PROVIDERS_URL = `${AUTH_PATH}/social-providers`;
 
 export const QUIZ_PATH = API + '/quiz';
 
@@ -23,9 +24,15 @@ export const KNOWLEDGE_BASE_PATH = API + '/knowledge-base';
 
 export const FEEDBACK_PATH = API + '/feedback';
 
+export const CLIENT_ERROR_PATH = API + '/client-error';
+
+export const DONATION_PATH = API + '/donation';
+
 export const CONQUEST_PATH = API + '/conquest';
 
 export const DAILY_TASK_PATH = API + '/daily-task';
+
+export const COIN_PATH = API + '/coin';
 
 export const IQ_PATH = API + '/iq';
 

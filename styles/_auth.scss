@@ -254,3 +254,101 @@
     transform: translateY(16px);
   }
 }
+
+// ---- "Continue with" providers, under the submit button ---------------------------------------
+.auth-social {
+  margin-top: 22px;
+}
+
+// A line either side of the words.
+.auth-social-divider {
+  align-items: center;
+  color: #9fb6c4;
+  display: flex;
+  font-size: 0.8rem;
+  gap: 12px;
+
+  &::before,
+  &::after {
+    border-top: 1px solid rgba(var(--ui-accent-rgb), 0.25);
+    content: '';
+    flex: 1;
+  }
+}
+
+.auth-social-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.auth-social-button {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.35);
+  border-radius: 12px;
+  color: #eaf6fd;
+  display: flex;
+  font-size: 1.25rem;
+  height: 46px;
+  justify-content: center;
+  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  width: 58px;
+
+  // Sized outright: the card's own rules for its field icons would otherwise stretch these.
+  svg {
+    height: 1.3rem;
+    width: 1.3rem;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.12);
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.35);
+    outline: none;
+  }
+
+  // Each in its own colour: the logos are what people look for.
+  &[data-provider='google'] { color: #ea4335; }
+  &[data-provider='facebook'] { color: #1877f2; }
+  &[data-provider='reddit'] { color: #ff4500; }
+}
+
+// ---- Password strength, under the password on the registration page --------------------------
+.password-strength {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: -6px;
+  text-align: left;
+
+  // One colour per level, used by the lit bars and the words.
+  --strength: #e5484d;
+  &[data-level='2'] { --strength: #f5a524; }
+  &[data-level='3'] { --strength: #7ccf52; }
+  &[data-level='4'] { --strength: #2fd07c; }
+}
+
+.password-strength-bars {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(4, 1fr);
+
+  span {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 2px;
+    height: 4px;
+    transition: background-color 200ms ease;
+
+    &[data-on='true'] {
+      background: var(--strength);
+    }
+  }
+}
+
+.password-strength-label {
+  color: var(--strength);
+  font-size: 0.78rem;
+}

@@ -10,6 +10,7 @@ import getQuestionPage from '../../../api/question/get-page';
 import { Pagination, PAGE_SIZE } from '../../../components/admin/pagination';
 import { EmptyRow, TableSearch } from '../../../components/admin/search';
 import { SortHeader } from '../../../components/admin/sort';
+import { formatDate } from '../../../utils/toDate';
 import { RowActions } from '../../../components/admin/row-actions';
 import { ConfirmDialog, Popup } from '../../../components/common/popup';
 import { deleteQuestion, updateQuestion } from '../../../api/question/manage';
@@ -482,6 +483,7 @@ export default function Question({
             <SortHeader column="content" sort={questionSort} onSort={toggleQuestionSort}>Content</SortHeader>
             <SortHeader column="category" sort={questionSort} onSort={toggleQuestionSort}>Category</SortHeader>
             <th>Attributes</th>
+            <SortHeader column="createdDate" sort={questionSort} onSort={toggleQuestionSort}>Created</SortHeader>
             <SortHeader column="isActive" sort={questionSort} onSort={toggleQuestionSort}>Is Active</SortHeader>
             <th className="text-center"><span className="visually-hidden">Actions</span></th>
           </tr>
@@ -499,6 +501,7 @@ export default function Question({
                 <div key={attribute}>{attribute}</div>
               ))}
               </td>
+              <td>{formatDate(question.createdDate, undefined, { dateStyle: 'medium' })}</td>
               <td>
                 <Form.Switch
                   disabled
@@ -512,7 +515,7 @@ export default function Question({
                           busy={deleting && pendingDelete?.id === question.id}/>
             </tr>
           ))}
-            <EmptyRow show={!questions.length} columns={9} query={debouncedQuestionSearch.trim()} what="questions"/>
+            <EmptyRow show={!questions.length} columns={10} query={debouncedQuestionSearch.trim()} what="questions"/>
           </tbody>
         </Table>
         <Pagination page={questionPage}

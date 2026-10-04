@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Calendar} from 'primereact/calendar';
 import {MultiSelect} from 'primereact/multiselect';
 import {InputText} from 'primereact/inputtext';
-import {saveProfileInfo} from '../../api/profile';
+import {getOccupationQuizzes, saveProfileInfo, setOccupationQuizzes} from '../../api/profile';
 import {toast} from 'react-toastify';
 import moment from 'moment';
 import {setWIthPreview} from '../../utils/fileUtils';
@@ -37,6 +37,15 @@ function Profile() {
     } = useProfile();
 
     const [changingPassword, setChangingPassword] = useState(false);
+    // Saved as soon as it is flipped, apart from the form's Save.
+    const [occupationQuizzes, setOccupationQuizzesState] = useState(true);
+    useEffect(() => {
+        getOccupationQuizzes().then(setOccupationQuizzesState).catch(() => {});
+    }, []);
+    const toggleOccupationQuizzes = (enabled: boolean) => {
+        setOccupationQuizzesState(enabled);
+        setOccupationQuizzes(enabled).catch(() => setOccupationQuizzesState(!enabled));
+    };
     const [saving, setSaving] = useState(false);
 
     const handleChange = (event, field: string) =>
@@ -134,7 +143,7 @@ function Profile() {
                        icon={faKey}
                        title={t('change_password')}
                        onClose={() => setChangingPassword(false)}>
-                    <ChangePasswordForm onCancel={() => setChangingPassword(false)}/>
+                    <ChangePasswordForm email={user.email} onCancel={() => setChangingPassword(false)}/>
                 </Popup>
             </aside>
 
@@ -174,6 +183,15 @@ function Profile() {
                                      options={userOccupations}
                                      optionLabel="name"
                                      virtualScrollerOptions={{itemSize: 40}}/>
+                        <span className='profile-switch'>
+                            <input type='checkbox'
+                                   id='profile-occupation-quizzes'
+                                   checked={occupationQuizzes}
+                                   onChange={(event) => toggleOccupationQuizzes(event.target.checked)}/>
+                            <label htmlFor='profile-occupation-quizzes'>
+                                {t('occupation_quizzes', 'Lean express quizzes to my occupation')}
+                            </label>
+                        </span>
                     </Field>
                     <Field id='profile-categories' label={t('favorite_categories')} wide>
                         <MultiSelect inputId='profile-categories'

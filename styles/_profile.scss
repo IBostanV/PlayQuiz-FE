@@ -246,6 +246,18 @@
   }
 }
 
+.profile-switch {
+  align-items: center;
+  color: #7fa3b6;
+  display: flex;
+  font-size: 0.8rem;
+  gap: 8px;
+
+  > input {
+    accent-color: var(--ui-accent);
+  }
+}
+
 .profile-field {
   display: flex;
   flex-direction: column;

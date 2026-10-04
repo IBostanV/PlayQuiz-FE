@@ -722,6 +722,13 @@
     }
   }
 
+  // A donation wallet's remove button, centred on the inputs beside it: the row lines up at the
+  // bottom, so it sits up by the field's margin (16px) plus half of what the 44px input has over
+  // the 30px button.
+  .admin-wallet-remove {
+    margin-bottom: calc(16px + (44px - 30px) / 2);
+  }
+
   .admin-answer-or {
     align-self: center;
     color: #6f8fa1;

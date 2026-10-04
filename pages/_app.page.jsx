@@ -12,6 +12,7 @@ import {UserProvider} from "../context/user-context";
 import {ChatNotificationsProvider} from "../context/chat-notifications";
 import {TooltipLayer} from "../components/common/tooltip";
 import {AppearanceProvider, useAppearance} from "../context/appearance";
+import {reportError} from "../utils/report-error";
 
 // The toasts come up in the bottom corner the friends dock is not in.
 function Toasts() {
@@ -37,6 +38,18 @@ function Application({ Component, pageProps }) {
             i18n.changeLanguage(userLanguage).then(() => null);
         }
     }, [isLoggedIn]);
+
+  // Anything thrown outside a request — a handler, a timer, a promise nobody caught.
+  useEffect(() => {
+    const onError = (event) => reportError('Uncaught error', event.error ?? event.message);
+    const onRejection = (event) => reportError('Unhandled promise rejection', event.reason);
+    window.addEventListener('error', onError);
+    window.addEventListener('unhandledrejection', onRejection);
+    return () => {
+      window.removeEventListener('error', onError);
+      window.removeEventListener('unhandledrejection', onRejection);
+    };
+  }, []);
 
   return (
       <UserProvider isLoggedIn={isLoggedIn}>

@@ -63,15 +63,21 @@ const toLoopSlides = (categories) => {
 // Quote of the day from zenquotes.io: the same one for everyone, a new one each day. Fetched
 // server side (the API sends no CORS headers) and kept until the date rolls over, so the site
 // makes one call a day. Only a successful fetch is cached, a failure falls back to our own quote.
+// The page waits on this, so a slow or hung API is cut off rather than holding up /home, and after
+// a failure it is left alone for a few minutes instead of making every visit wait on it again.
 let quoteOfTheDay = {date: '', quote: null};
+let retryQuoteAt = 0;
 
 const getDailyQuote = async () => {
     const date = new Date().toISOString().slice(0, 10);
     if (quoteOfTheDay.date === date) return quoteOfTheDay.quote;
+    if (Date.now() < retryQuoteAt) return null;
     try {
-        const [{q, a}] = await fetch('https://zenquotes.io/api/today').then(response => response.json());
+        const [{q, a}] = await fetch('https://zenquotes.io/api/today', {signal: AbortSignal.timeout(1500)})
+            .then(response => response.json());
         quoteOfTheDay = {date, quote: {text: q, author: a}};
     } catch {
+        retryQuoteAt = Date.now() + 5 * 60 * 1000;
         return null;
     }
     return quoteOfTheDay.quote;

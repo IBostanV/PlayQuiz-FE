@@ -182,7 +182,8 @@ function Quiz() {
             </Link>
         );
 
-    const typeOptions = [{id: '0', name: 'All'}, ...(types ?? []).map(type => ({...type, id: String(type.id)}))];
+    // The server filters by a type's bit value (Q_QUIZ_TYPE.BIT_VALUE), not its id.
+    const typeOptions = [{id: '0', name: 'All'}, ...(types ?? []).map(type => ({...type, id: String(type.bitValue)}))];
 
     return (
         <div className={'quiz-page'}>

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {useRouter} from 'next/router';
 import {useTranslation} from 'react-i18next';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCalendarDay, faEarthAmericas, faHouse, faRankingStar, faRotateRight} from '@fortawesome/free-solid-svg-icons';
+import {faCalendarDay, faCoins, faEarthAmericas, faHouse, faRankingStar, faRotateRight} from '@fortawesome/free-solid-svg-icons';
 import {getUserHistoryQuiz} from '../../../api/quiz';
 import {AnswerList, isRight} from '../../../components/quiz/answer-list';
 import {getChallenges, getDailyChallenge} from '../../../api/social';
@@ -87,6 +87,13 @@ function QuizResult() {
                             <dt>{t('time_spent', 'Time')}</dt>
                             <dd>{history.spentTime ?? 0}<span className={'result-stat-of'}>s</span></dd>
                         </div>
+                        {/* Absent for a custom quiz, which never pays; 0 for a replay, which already did. */}
+                        {history.coinsEarned != null && (
+                            <div className={'result-stat'} data-kind={'coins'}>
+                                <dt>{t('coins_earned', 'Coins')}</dt>
+                                <dd><FontAwesomeIcon icon={faCoins}/> +{history.coinsEarned}</dd>
+                            </div>
+                        )}
                     </dl>
                 </div>
             </header>

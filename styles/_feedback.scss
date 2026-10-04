@@ -500,6 +500,24 @@
     white-space: pre-wrap;
     word-break: break-word;
   }
+
+  // An error's browser and stack, folded away until asked for.
+  .admin-error-details {
+    margin-top: 6px;
+
+    summary {
+      cursor: pointer;
+      font-size: 0.85em;
+    }
+
+    pre {
+      color: inherit;
+      font-size: 0.75em;
+      max-height: 300px;
+      overflow: auto;
+      white-space: pre;
+    }
+  }
 }
 
 .admin-feedback-type {

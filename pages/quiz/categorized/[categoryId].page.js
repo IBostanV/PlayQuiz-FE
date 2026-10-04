@@ -10,19 +10,20 @@ import { useTranslation } from 'react-i18next';
 import formatTime from '../../../utils/formatTime';
 import {SingleOption} from "../../../components/quiz/single-option";
 import {MultipleOption} from "../../../components/quiz/multiple-option";
+import {InputOption} from "../../../components/quiz/input-option";
+import {OrderOption} from "../../../components/quiz/order-option";
+import {RangeOption} from "../../../components/quiz/range-option";
+import {DragOption} from "../../../components/quiz/drag-option";
 import dynamic from 'next/dynamic';
 import { ConfirmDialog } from '../../../components/common/popup';
 import { ReportQuestion } from '../../../components/feedback/report-question';
 import { mapLevelOf, placeOptions } from '../../../components/map/geo';
+import { HintButton, withoutOptions } from '../../../components/quiz/coin-actions';
 
 // The map pulls in d3 and the world atlas, so it loads only when a map question shows up.
 const MapChoice = dynamic(() => import('../../../components/map/map-choice'), { ssr: false });
 
-const QUIZ_TYPE = {
-  SINGLE_OPTION: 1,
-  MULTIPLE_OPTION: 2,
-  INPUT: 4
-};
+const byTermId = (answer) => answer.termId;
 
 function Quiz() {
   const { t } = useTranslation();
@@ -162,8 +163,8 @@ function Quiz() {
       });
   };
 
-  // Both renderers funnel in here: single option submits one termId, multiple option
-  // submits the array of termIds the user confirmed.
+  // Every renderer funnels in here with what the server marks: a termId, an array of termIds
+  // (multiple choice, in order), typed text (input) or a {from, to} range (values range).
   const recordAnswer = (answer) => {
     const now = Date.now();
     setUserAnswers((values) => [...values, {
@@ -202,8 +203,9 @@ function Quiz() {
     }
   };
 
-  // 'All' (0), a missing param and any unknown type fall back to single option — the
-  // payload carries no per-question type to switch on, only the one picked for the quiz.
+  // Played the way the quiz's type says (it comes with the quiz, so a challenge replays its own).
+  // No type ('All') and single choice are one pick among the options. The server has already
+  // shaped the options for the type: two for one from two, none for input, keys for in order.
   const handleQuizType = () => {
     // A map question is recognised per question, by its answers' glossary type ("map:…").
     const mapLevel = mapLevelOf(currentQuestion?.answers?.[0]?.mapLevel);
@@ -211,13 +213,38 @@ function Quiz() {
       return (<MapChoice options={currentQuestion.answers} level={mapLevel} onConfirm={recordAnswer} />);
     }
 
-    switch (parseInt(quizType, 10)) {
-      case QUIZ_TYPE.MULTIPLE_OPTION:
+    switch (quiz.quizType?.name) {
+      case 'MULTIPLE_CHOICE':
         return (<MultipleOption currentQuestion={currentQuestion} handleMultipleAnswer={recordAnswer} />)
-      case QUIZ_TYPE.INPUT:
-        return <div>Input</div>
+      case 'INPUT':
+        return <InputOption onConfirm={recordAnswer} />;
+      case 'IN_ORDER':
+        return (
+          <>
+            <p className="quiz-type-hint">{t('in_order_hint', 'Put them in order, smallest first.')}</p>
+            <OrderOption items={currentQuestion.answers} pickKey={byTermId} onConfirm={recordAnswer} />
+          </>
+        );
+      case 'VALUES_RANGE':
+        return <RangeOption answers={currentQuestion.answers} onConfirm={recordAnswer} />;
+      case 'DRAG_AND_DROP':
+        return <DragOption currentQuestion={currentQuestion} onConfirm={recordAnswer} />;
+      // No 50/50 here: on two options it would leave only the answer.
+      case 'ONE_FROM_TWO':
+        return <SingleOption currentQuestion={currentQuestion} handleAnswer={recordAnswer} />;
       default:
-        return (<SingleOption currentQuestion={currentQuestion} handleAnswer={recordAnswer} />)
+        return (
+          <>
+            <SingleOption currentQuestion={currentQuestion} handleAnswer={recordAnswer} />
+            {/* Not where runs are compared: a bought hint would be a bought score. */}
+            {!conquest && !challenge && !daily && (
+              <div className="quiz-coin-actions">
+                <HintButton question={currentQuestion}
+                            onRemove={(termIds) => setCurrentQuestion(question => withoutOptions(question, termIds))} />
+              </div>
+            )}
+          </>
+        );
     }
   }
 

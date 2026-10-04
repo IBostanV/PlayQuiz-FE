@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import formatTime from '../../../utils/formatTime';
 import {SingleOption} from "../../../components/quiz/single-option";
 import {ReportQuestion} from "../../../components/feedback/report-question";
+import {ExtraTimeButton, HintButton, withoutOptions} from "../../../components/quiz/coin-actions";
 
 // Remaining seconds at which the countdown turns red.
 const LOW_TIME = 10;
@@ -27,6 +28,8 @@ function ExpressQuiz() {
   // The question on screen, read when a report comes back (see skipQuestion). Cleared once the
   // quiz is over, which the overall timer can do while a report is open.
   const shownQuestionId = useRef(null);
+  // When the quiz runs out; a ref so bought extra time can push it back under the running timer.
+  const deadline = useRef(null);
   const [quiz, setQuiz] = useState({
     quizTime: null,
     questionIds: []
@@ -46,11 +49,10 @@ function ExpressQuiz() {
           setCurrentQuestionTime(Date.now());
           setQuestions(Array.from(questionList ?? []));
 
-          const time = moment()
-            .clone()
+          deadline.current = moment()
             .add(expressQuiz.quizTime + 1, 'seconds');
           timer = setInterval(() => {
-            const remainingTime = moment(time)
+            const remainingTime = moment(deadline.current)
               .diff(moment(), 'seconds');
             if (remainingTime !== 0 && remainingTime > -1) {
               setOverallTime(remainingTime);
@@ -149,7 +151,7 @@ function ExpressQuiz() {
                 points="10.5,1 131,1 131,35.5 120.5,45 1,45 1,10.5"
                 pathLength="100"
                 strokeDasharray="100"
-                strokeDashoffset={100 - (overallTime / quiz.quizTime) * 100}
+                strokeDashoffset={100 - Math.min(overallTime / quiz.quizTime, 1) * 100}
               />
             </svg>
           )}
@@ -164,6 +166,13 @@ function ExpressQuiz() {
         <section className="quiz-stage" key={currentQuestion.id}>
           <h2 className="quiz-question">{currentQuestion.content}</h2>
           <SingleOption currentQuestion={currentQuestion} handleAnswer={handleAnswer} />
+          <div className="quiz-coin-actions">
+            <HintButton question={currentQuestion}
+                        onRemove={(termIds) => setCurrentQuestion(question => withoutOptions(question, termIds))} />
+            {!completed && (
+              <ExtraTimeButton onAdd={(seconds) => deadline.current?.add(seconds, 'seconds')} />
+            )}
+          </div>
         </section>
       ) : (
         <div className="quiz-loading" aria-label={t('loading', 'Loading')} />
