@@ -86,10 +86,12 @@
 
 .popup-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
 
   button {
-    flex: 1;
+    // Side by side while both labels fit; a long translation on a phone stacks them.
+    flex: 1 1 120px;
     height: 44px;
   }
 }
@@ -182,4 +184,9 @@
   from {
     opacity: 0;
   }
+}
+
+// Announcements keep the line breaks the admin typed (components/announcement).
+.announcement-text {
+  white-space: pre-line;
 }

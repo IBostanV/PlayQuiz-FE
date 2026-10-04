@@ -1,5 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {useRouter} from 'next/router';
+import {fadeToHome} from '../../utils/fade-to-home';
 import {authenticate} from '../../api/authentication';
 import {REGISTER_URL} from '../../api/constant';
 import {toast} from 'react-toastify';
@@ -59,11 +60,15 @@ function Register({isLoggedIn}) {
           localStorage.setItem('langId', parseInt(response.data.language.langId));
           localStorage.setItem('userId', parseInt(response.data.id));
 
-          toast.success('Your account has been successfully created.');
-          router.push('/home');
+          toast.success(t('account_created', 'Your account has been successfully created.'));
+          // Stays busy on the way out: settling back first made the button dip and rise
+          // just before the fade.
+          fadeToHome(router);
+        } else {
+          setBusy(false);
         }
       })
-      .finally(() => setBusy(false));
+      .catch(() => setBusy(false));
   };
 
   return (
@@ -77,11 +82,11 @@ function Register({isLoggedIn}) {
                                   linkText={t('login')}/>}>
       <AuthField icon={faEnvelope} label={t('email')} type='email' inputRef={email} autoComplete='email'
                  onInput={(event) => setTypedEmail(event.target.value)}/>
-      <AuthField icon={faLock} label={t('password')} type='password' inputRef={password}
+      <AuthField icon={faLock} label={t('password', 'Password')} type='password' inputRef={password}
                  autoComplete='new-password' minLength={8} invalid={tried && weak}
                  onInput={(event) => setTyped(event.target.value)}/>
       <PasswordStrength password={typed} email={typedEmail}/>
-      <AuthField icon={faShieldHalved} label={t('repass')} type='password' inputRef={repass}
+      <AuthField icon={faShieldHalved} label={t('repass', 'Repeat password')} type='password' inputRef={repass}
                  autoComplete='new-password'/>
     </AuthCard>
   );

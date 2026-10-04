@@ -4,16 +4,18 @@ import saveUserQuiz from '../../../api/quiz/save';
 import { useRouter } from 'next/router';
 import moment from 'moment';
 import { useTranslation } from 'react-i18next';
+import { questionText } from '../../../utils/translated';
 import formatTime from '../../../utils/formatTime';
 import {SingleOption} from "../../../components/quiz/single-option";
 import {ReportQuestion} from "../../../components/feedback/report-question";
 import {ExtraTimeButton, HintButton, withoutOptions} from "../../../components/quiz/coin-actions";
+import {useQuizInProgress} from '../../../utils/quiz-in-progress';
 
 // Remaining seconds at which the countdown turns red.
 const LOW_TIME = 10;
 
 function ExpressQuiz() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
 
   const [overallTime, setOverallTime] = useState(0);
@@ -21,6 +23,8 @@ function ExpressQuiz() {
   // The quiz arrives with its questions, options and all; they are asked in the order given.
   const [questions, setQuestions] = useState([]);
   const [completed, setCompleted] = useState(false);
+  // From arrival on: the page is the quiz, and announcements wait until it is done.
+  useQuizInProgress(!completed);
   const [currentQuestion, setCurrentQuestion] = useState({});
   const [currentQuestionTime, setCurrentQuestionTime] = useState(0);
   // Questions skipped after reporting them; they count towards progress like answered ones.
@@ -89,7 +93,7 @@ function ExpressQuiz() {
     saveResult()
       .then(result => {
         if (result) {
-          router.push('/quiz/result?historyId=' + result.data.historyId)
+          router.push('/quiz/result?express=1&historyId=' + result.data.historyId)
             .then(pushEvent => console.log(pushEvent));
         }
       });
@@ -164,7 +168,7 @@ function ExpressQuiz() {
       {currentQuestion?.id ? (
         // Keyed by question so each new one replays the entrance animation.
         <section className="quiz-stage" key={currentQuestion.id}>
-          <h2 className="quiz-question">{currentQuestion.content}</h2>
+          <h2 className="quiz-question">{questionText(currentQuestion, i18n.language)}</h2>
           <SingleOption currentQuestion={currentQuestion} handleAnswer={handleAnswer} />
           <div className="quiz-coin-actions">
             <HintButton question={currentQuestion}

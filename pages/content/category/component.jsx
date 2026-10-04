@@ -6,6 +6,7 @@ import { RowActions } from '../../../components/admin/row-actions';
 import Form from 'react-bootstrap/Form';
 import { Image, Table } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import base64Util from '../../../utils/base64Util';
 import { CoverImage, Field, readPreview, SaveButton } from '../../../components/admin/form-kit';
 import { Pagination, PAGE_SIZE, usePagination } from '../../../components/admin/pagination';
@@ -16,6 +17,7 @@ import { formatDate, toDate } from '../../../utils/toDate';
 // Edit popup body: name, parent (never itself), visibility, and the image, which is only
 // replaced when a new one is picked.
 const CategoryEditForm = ({ category, categories, onCancel, onSaved }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState(category.name ?? '');
   const [parentId, setParentId] = useState(category.parentId ?? '');
   const [visible, setVisible] = useState(Boolean(category.visible));
@@ -35,7 +37,7 @@ const CategoryEditForm = ({ category, categories, onCancel, onSaved }) => {
         visible,
       }, attachment);
       if (response) {
-        toast.success('Category updated');
+        toast.success(t('content_category_updated', 'Category updated'));
         const parentName = categories.find(item => String(item.catId) === String(parentId))?.name;
         onSaved({ ...category, ...response.data, parentName });
       }
@@ -46,29 +48,31 @@ const CategoryEditForm = ({ category, categories, onCancel, onSaved }) => {
 
   return (
     <Form className="admin-form admin-popup-form" onSubmit={submit} noValidate>
-      <Field label="Name" htmlFor="category-edit-name" error={!name.trim() && 'Give the category a name'}>
+      <Field label={t('content_name', 'Name')} htmlFor="category-edit-name"
+             error={!name.trim() && t('content_category_name_error', 'Give the category a name')}>
         <Form.Control id="category-edit-name" value={name} isInvalid={!name.trim()}
                       onChange={(event) => setName(event.target.value)}/>
       </Field>
-      <Field label="Parent" htmlFor="category-edit-parent">
+      <Field label={t('content_parent', 'Parent')} htmlFor="category-edit-parent">
         <Form.Select id="category-edit-parent" value={parentId} onChange={(event) => setParentId(event.target.value)}>
-          <option value="">No parent (top level)</option>
+          <option value="">{t('content_no_parent_top_level', 'No parent (top level)')}</option>
           {categories?.filter(item => item.catId !== category.catId).map(item =>
             (<option value={item.catId} key={item.catId}>{item.name}</option>))}
         </Form.Select>
       </Field>
-      <Field label="Image" hint="Pick a new image to replace it; otherwise the current one stays.">
+      <Field label={t('content_image', 'Image')}
+             hint={t('content_image_replace_hint', 'Pick a new image to replace it; otherwise the current one stays.')}>
         <CoverImage preview={preview}
                     onFile={(file) => {
                       setAttachment(file);
                       readPreview(file, setPreview);
                     }}/>
       </Field>
-      <Form.Switch id="category-edit-visible" className="admin-switch" label="Visible to players"
+      <Form.Switch id="category-edit-visible" className="admin-switch" label={t('content_visible_to_players', 'Visible to players')}
                    checked={visible} onChange={(event) => setVisible(event.target.checked)}/>
       <div className="popup-actions">
-        <button type="button" className="popup-cancel" onClick={onCancel} disabled={saving}>Cancel</button>
-        <SaveButton saving={saving} className="popup-confirm">Save changes</SaveButton>
+        <button type="button" className="popup-cancel" onClick={onCancel} disabled={saving}>{t('cancel', 'Cancel')}</button>
+        <SaveButton saving={saving} className="popup-confirm">{t('content_save_changes', 'Save changes')}</SaveButton>
       </div>
     </Form>
   );
@@ -78,6 +82,7 @@ const Category = ({
   categories,
   setCategories
 }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [avatar, setAvatar] = useState(null);
   const [previewAvatar, setPreviewAvatar] = useState(null);
@@ -108,7 +113,7 @@ const Category = ({
         .then(response => {
           if (!response) return;
           setCategories(categories.filter(item => item.catId !== category.catId));
-          toast.success('Category deleted');
+          toast.success(t('content_category_deleted', 'Category deleted'));
         })
         .finally(() => {
           setDeleting(false);
@@ -134,7 +139,7 @@ const Category = ({
       }, avatar);
 
       if (response) {
-        toast.success('Category successfully saved');
+        toast.success(t('content_category_saved', 'Category successfully saved'));
 
         const index = parent.current.selectedIndex;
         const parentName = index > 0 ? parent.current.options[index]?.textContent : undefined;
@@ -157,20 +162,21 @@ const Category = ({
   return (
     <div className="d-flex justify-content-around">
       <div className={'col-6 shadowed'}>
-        <h4 className={'text-center'}>Categories</h4>
+        <h4 className={'text-center'}>{t('content_categories', 'Categories')}</h4>
         <hr/>
         <TableSearch value={categorySearch.query} onChange={categorySearch.setQuery}
-                     placeholder="Search by name or parent…" count={categorySearch.results.length}
-                     label="Search categories"/>
-        <Table striped bordered variant="dark">
+                     placeholder={t('content_category_search_placeholder', 'Search by name or parent…')}
+                     count={categorySearch.results.length}
+                     label={t('content_search_categories', 'Search categories')}/>
+        <Table responsive striped bordered variant="dark">
               <thead>
               <tr>
-                <SortHeader column="name" sort={categorySort.sort} onSort={categorySort.toggle} className="col-4">Name</SortHeader>
-                <SortHeader column="parent" sort={categorySort.sort} onSort={categorySort.toggle} className="col-3">Parent</SortHeader>
-                <th className="col-3">Attachment</th>
-                <SortHeader column="created" sort={categorySort.sort} onSort={categorySort.toggle}>Created</SortHeader>
-                <SortHeader column="visible" sort={categorySort.sort} onSort={categorySort.toggle} className="text-center col-2">Visible</SortHeader>
-                <th className="text-center"><span className="visually-hidden">Actions</span></th>
+                <SortHeader column="name" sort={categorySort.sort} onSort={categorySort.toggle} className="col-4">{t('content_name', 'Name')}</SortHeader>
+                <SortHeader column="parent" sort={categorySort.sort} onSort={categorySort.toggle} className="col-3">{t('content_parent', 'Parent')}</SortHeader>
+                <th className="col-3">{t('content_attachment', 'Attachment')}</th>
+                <SortHeader column="created" sort={categorySort.sort} onSort={categorySort.toggle}>{t('content_created', 'Created')}</SortHeader>
+                <SortHeader column="visible" sort={categorySort.sort} onSort={categorySort.toggle} className="text-center col-2">{t('content_visible', 'Visible')}</SortHeader>
+                <th className="text-center"><span className="visually-hidden">{t('content_actions', 'Actions')}</span></th>
               </tr>
               </thead>
               <tbody>
@@ -202,24 +208,24 @@ const Category = ({
                           busy={deleting && pendingDelete?.catId === item.catId}/>
             </tr>
           ))}
-            <EmptyRow show={!categorySearch.results.length} columns={6} query={categorySearch.query} what="categories"/>
+            <EmptyRow show={!categorySearch.results.length} columns={6} query={categorySearch.query} what={t('content_empty_categories', 'categories')}/>
           </tbody>
         </Table>
-        <Pagination {...categoryPages} onChange={categoryPages.setPage} label="Categories pages"/>
+        <Pagination {...categoryPages} onChange={categoryPages.setPage} label={t('content_categories_pages', 'Categories pages')}/>
         {/* Categories still used by questions, glossaries or subcategories are refused by the
             database; the request helper toasts that error and the row stays. */}
         <ConfirmDialog open={Boolean(pendingDelete)}
                        danger
                        busy={deleting}
-                       title="Delete category?"
+                       title={t('content_delete_category_title', 'Delete category?')}
                        message={pendingDelete && <>
-                         <strong>{pendingDelete.name}</strong> will be permanently deleted. This can’t be undone,
-                         and it only works once no questions, glossaries or subcategories use it.
+                         <strong>{pendingDelete.name}</strong> {t('content_delete_category_confirm',
+                           'will be permanently deleted. This can’t be undone, and it only works once no questions, glossaries or subcategories use it.')}
                        </>}
-                       confirmLabel="Delete"
+                       confirmLabel={t('delete', 'Delete')}
                        onConfirm={confirmDelete}
                        onCancel={() => setPendingDelete(null)}/>
-        <Popup open={Boolean(editing)} icon={faPen} title="Edit category" onClose={() => setEditing(null)}>
+        <Popup open={Boolean(editing)} icon={faPen} title={t('content_edit_category', 'Edit category')} onClose={() => setEditing(null)}>
           {editing && (
             <CategoryEditForm category={editing}
                               categories={categories}
@@ -232,27 +238,30 @@ const Category = ({
         </Popup>
       </div>
       <Form className={'col-5 shadowed admin-form'} onSubmit={submit} noValidate>
-        <h4>New category</h4>
+        <h4>{t('content_new_category', 'New category')}</h4>
         <hr/>
 
-        <Field label="Name" htmlFor="category-name" error={touched && !name.trim() && 'Give the category a name'}>
+        <Field label={t('content_name', 'Name')} htmlFor="category-name"
+               error={touched && !name.trim() && t('content_category_name_error', 'Give the category a name')}>
           <Form.Control id="category-name"
                         value={name}
                         isInvalid={touched && !name.trim()}
-                        placeholder="e.g. Geography"
+                        placeholder={t('content_category_name_placeholder', 'e.g. Geography')}
                         onChange={handleName}/>
         </Field>
 
-        <Field label="Parent" htmlFor="category-parent" hint="Leave empty for a top-level category.">
+        <Field label={t('content_parent', 'Parent')} htmlFor="category-parent"
+               hint={t('content_category_parent_hint', 'Leave empty for a top-level category.')}>
           <Form.Select id="category-parent" ref={parent}>
-            <option value="">No parent (top level)</option>
+            <option value="">{t('content_no_parent_top_level', 'No parent (top level)')}</option>
             {categories?.map(item =>
               (<option value={item.catId} key={item.catId}>{item.name}</option>)
             )}
           </Form.Select>
         </Field>
 
-        <Field label="Image" hint="Shown on the category card and behind the quiz list.">
+        <Field label={t('content_image', 'Image')}
+               hint={t('content_category_image_hint', 'Shown on the category card and behind the quiz list.')}>
           <CoverImage preview={previewAvatar}
                       onFile={(file) => {
                         setAvatar(file);
@@ -264,10 +273,10 @@ const Category = ({
                       }}/>
         </Field>
 
-        <Form.Switch id="category-visible" className="admin-switch" ref={visible} label="Visible to players"/>
+        <Form.Switch id="category-visible" className="admin-switch" ref={visible} label={t('content_visible_to_players', 'Visible to players')}/>
 
         <div className="admin-form-actions">
-          <SaveButton saving={saving}>Save category</SaveButton>
+          <SaveButton saving={saving}>{t('content_save_category', 'Save category')}</SaveButton>
         </div>
       </Form>
     </div>

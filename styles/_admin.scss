@@ -125,11 +125,27 @@
     text-align: center;
   }
 
-  // Phones: the rail sits above the content, not pinned beside it.
-  @media (max-width: 575px) {
+  // Phones and small tablets: the rail sits above the content, not pinned beside it, and its
+  // entries wrap as a row of chips instead of a tall column pushing the tables off screen.
+  @media (max-width: 767.98px) {
     .admin-nav {
       margin-bottom: 20px;
       position: static;
+    }
+
+    .admin-menu {
+      padding: 14px 10px 10px;
+    }
+
+    // Over Bootstrap's .flex-column, which is !important.
+    .admin-menu .nav-pills {
+      flex-direction: row !important;
+      flex-wrap: wrap;
+    }
+
+    .admin-menu .nav-link {
+      gap: 8px;
+      padding: 8px 10px;
     }
   }
 
@@ -142,6 +158,11 @@
       linear-gradient(180deg, rgba(10, 32, 48, 0.9) 0%, rgba(4, 14, 22, 0.9) 100%);
     padding: 22px 20px 20px;
     position: relative;
+
+    // Phones: the frame's padding is width the tables need.
+    @media (max-width: 575.98px) {
+      padding: 18px 12px 14px;
+    }
 
     &::before {
       background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0) 0%, var(--ui-accent) 50%, rgba(var(--ui-accent-rgb), 0) 100%);
@@ -739,9 +760,11 @@
     text-transform: uppercase;
   }
 
-  .admin-answer-error {
+  .admin-answer-remove {
     grid-column: 1 / -1;
-    margin: 0 0 12px;
+    justify-self: end;
+    margin: -4px 0 8px;
+    padding: 0;
   }
 
   // Translations: one tinted panel, a field per language with the language as a tag.

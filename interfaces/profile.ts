@@ -7,6 +7,11 @@ export interface UserProfile {
     occupations: string;
     surname: string;
     username: string;
+    // Who sees their activity on their profile; set through its own endpoint, not the form.
+    profileVisibility?: string;
+    // What they wear (cosmetics): the frame's code, and their name's colour ready to use.
+    equippedFrame?: string;
+    nameColor?: string;
 }
 
 export default {

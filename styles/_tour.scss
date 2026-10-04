@@ -1,0 +1,105 @@
+// Site tour (components/tour/site-tour): the page dimmed but for one lit element, and a card
+// beside it. The spotlight's own shadow is the dimming, so the hole follows it for free.
+.tour {
+  inset: 0;
+  position: fixed;
+  z-index: 2000;
+}
+
+.tour-blocker {
+  inset: 0;
+  position: absolute;
+}
+
+.tour-dim {
+  background: rgba(2, 8, 14, 0.72);
+  inset: 0;
+  position: absolute;
+}
+
+.tour-spotlight {
+  border: 2px solid rgba(var(--ui-accent-rgb), 0.85);
+  border-radius: 14px;
+  box-shadow: 0 0 0 9999px rgba(2, 8, 14, 0.72), 0 0 24px rgba(var(--ui-accent-rgb), 0.55);
+  pointer-events: none;
+  position: fixed;
+  transition: top 260ms ease, left 260ms ease, width 260ms ease, height 260ms ease;
+}
+
+.tour-card {
+  @include glass-slab(6);
+  animation: dialog-in 240ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  padding: 18px 18px 16px;
+  position: fixed;
+}
+
+.tour-step {
+  color: var(--ui-accent-light);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  margin: 0 0 6px;
+}
+
+.tour-title {
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+}
+
+.tour-text {
+  color: #cfe9f7;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin: 0 0 14px;
+}
+
+.tour-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+
+  button {
+    height: 36px;
+    padding: 0 14px;
+  }
+}
+
+.tour-skip {
+  background: transparent;
+  border: 0;
+  color: #9fb6c4;
+  font-size: 0.8rem;
+  margin-right: auto;
+
+  &:hover,
+  &:focus-visible {
+    color: #ffffff;
+  }
+}
+
+.tour-back {
+  background: transparent;
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 12px;
+  color: #cfe9f7;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.tour-next {
+  @include chat-button;
+  font-size: 0.75rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-spotlight,
+  .tour-card {
+    animation: none;
+    transition: none;
+  }
+}

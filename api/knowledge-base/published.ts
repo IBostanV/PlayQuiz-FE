@@ -16,3 +16,9 @@ export const voteArticle = (id: number | string, helpful: boolean) =>
 // Home page "Did you know": today's record (the same for everyone all day). Nothing published
 // answers 204, which resolves to the bare response, so check for an id.
 export const getDailyRecord = () => request(`${KNOWLEDGE_BASE_PATH}/records/daily`);
+
+// The result page's "learn why": the most helpful article for each category asked about that has
+// one. Resolves to { [categoryId]: { id, title } }.
+export const getBestArticles = (categoryIds: number[]) => categoryIds.length
+  ? request(`${KNOWLEDGE_BASE_PATH}/records/for-categories`, { params: { ids: categoryIds.join(',') } })
+  : Promise.resolve({});

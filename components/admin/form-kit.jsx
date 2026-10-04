@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import Form from 'react-bootstrap/Form';
 import { Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -22,7 +23,8 @@ export const Field = ({ label, htmlFor, error, hint, wide = false, children }) =
 
 // Image picker: the whole zone is the file input, and an image can be dropped on it.
 // Every picked image is scaled down first (shrinkToCover), so the forms only ever see the small one.
-export const CoverImage = ({ preview, onFile, onClear, label = 'Drop an image or click to choose' }) => {
+export const CoverImage = ({ preview, onFile, onClear, label }) => {
+  const { t } = useTranslation();
   const [dragging, setDragging] = useState(false);
   const pick = (file) => shrinkToCover(file).then(onFile);
 
@@ -48,16 +50,16 @@ export const CoverImage = ({ preview, onFile, onClear, label = 'Drop an image or
           : (
             <span className="kb-cover-empty">
               <FontAwesomeIcon icon={faImage}/>
-              <span>{label}</span>
+              <span>{label ?? t('content_drop_image', 'Drop an image or click to choose')}</span>
             </span>
           )}
         <input type="file" accept="image/*" className="visually-hidden"
                onChange={(event) => event.target.files?.[0] && pick(event.target.files[0])}/>
       </label>
       {preview && onClear && (
-        <button type="button" className="kb-cover-remove" onClick={onClear} data-tooltip="Remove image">
+        <button type="button" className="kb-cover-remove" onClick={onClear} data-tooltip={t('content_remove_image', 'Remove image')}>
           <FontAwesomeIcon icon={faXmark}/>
-          <span className="visually-hidden">Remove image</span>
+          <span className="visually-hidden">{t('content_remove_image', 'Remove image')}</span>
         </button>
       )}
     </div>

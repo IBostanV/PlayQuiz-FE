@@ -58,7 +58,7 @@
   gap: 16px;
   margin: 20px auto;
   max-width: 760px;
-  padding: 24px 22px 20px;
+  padding: clamp(16px, 4vw, 24px) clamp(14px, 4vw, 22px) 20px;
   width: 100%;
 }
 
@@ -75,6 +75,9 @@
   display: flex;
   gap: 12px;
   justify-content: space-between;
+  // As tall as the Reset button (.appearance-reset) before it appears, so a setting with no
+  // hint does not drop its control a few px when it is changed.
+  min-height: 28px;
 }
 
 .appearance-setting-title {
@@ -216,4 +219,166 @@
 .appearance-swatch-text {
   font-size: 0.8rem;
   font-weight: 700;
+}
+
+// Backgrounds: small 16:9 previews of each, the logo first and an upload tile last.
+.appearance-backgrounds {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+}
+
+.appearance-background {
+  aspect-ratio: 16 / 9;
+  background: #000000;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  cursor: pointer;
+  display: grid;
+  overflow: hidden;
+  padding: 0;
+  place-items: center;
+  position: relative;
+  width: 100%;
+
+  img {
+    height: 100%;
+    inset: 0;
+    object-fit: cover;
+    position: absolute;
+    width: 100%;
+  }
+
+  &[aria-checked='true'] {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+  }
+
+  &:focus-visible,
+  &:focus-within {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+  }
+}
+
+// The site's own: the logo small in the middle, as it is behind the pages.
+.appearance-background .appearance-background-logo {
+  height: 40%;
+  inset: auto;
+  object-fit: contain;
+  position: static;
+  width: auto;
+}
+
+.appearance-background-check {
+  background: var(--ui-accent);
+  border-radius: 50%;
+  color: var(--ui-on-accent, #ffffff);
+  display: grid;
+  font-size: 0.7rem;
+  height: 22px;
+  place-items: center;
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 22px;
+}
+
+// The player's own picture, with its delete button on its corner.
+.appearance-background-own {
+  position: relative;
+}
+
+.appearance-background-remove {
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  bottom: 6px;
+  color: #ffffff;
+  display: grid;
+  font-size: 0.7rem;
+  height: 24px;
+  left: 6px;
+  place-items: center;
+  position: absolute;
+  width: 24px;
+
+  &:hover,
+  &:focus-visible {
+    background: #b3261e;
+  }
+}
+
+// The upload tile: the accent's glow on a dashed frame, the round accent badge the home cards
+// use, and a label under it. Lights up on hover; spins while the picture goes up.
+.appearance-background-upload {
+  // Centred, not stretched: a stretched column item takes the tile's whole width, icon included.
+  align-items: center;
+  background: radial-gradient(circle at 50% 35%, rgba(var(--ui-accent-rgb), 0.18) 0%, rgba(var(--ui-accent-rgb), 0.04) 70%);
+  border: 2px dashed rgba(var(--ui-accent-rgb), 0.55);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+  padding: 0 8px;
+  text-align: center;
+  transition: background-color 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+
+  &:hover {
+    background-color: rgba(var(--ui-accent-rgb), 0.12);
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 16px rgba(var(--ui-accent-rgb), 0.35);
+
+    .appearance-background-upload-icon {
+      transform: translateY(-2px);
+    }
+  }
+
+  &[data-busy] {
+    cursor: progress;
+    pointer-events: none;
+  }
+}
+
+.appearance-background-upload-icon {
+  background: radial-gradient(circle at 35% 30%, var(--ui-accent-pale) 0%, var(--ui-accent-bright) 55%, var(--ui-accent-deep) 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.5);
+  color: var(--ui-on-accent, #03202e);
+  display: grid;
+  flex: none;
+  height: 30px;
+  place-items: center;
+  transition: transform 200ms ease;
+  width: 30px;
+
+  svg {
+    height: 0.85rem;
+    width: 0.85rem;
+  }
+}
+
+// Labels inside the frame: _base paints every span white itself, so this one needs telling.
+.appearance-background-upload-label {
+  color: #d8eaf3;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) .appearance-background-upload-icon {
+    transition: none;
+  }
+}
+
+:root[data-motion='off'] .appearance-background-upload-icon {
+  transition: none;
+}
+
+// The language field: as wide as a name needs, not the whole row.
+.appearance-language {
+  max-width: 320px;
 }

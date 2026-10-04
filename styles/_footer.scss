@@ -24,11 +24,20 @@
   align-items: center;
   display: flex;
   flex-wrap: wrap;
-  gap: 16px 40px;
+  gap: 16px 32px;
   margin: 0 auto;
   max-width: 1200px;
   padding-bottom: 14px;
   position: relative;
+
+  // Wide enough: one row, whatever the language, as a grid. The links' column is sized first, to
+  // the whole of their one row; the tagline beside them has what is left, down to 150px; only
+  // past that do the links wrap among themselves. The outer columns share the rest equally, which
+  // keeps the links in the middle.
+  @media (min-width: 900px) {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) auto minmax(max-content, 1fr);
+  }
 }
 
 .site-footer-brand {
@@ -47,14 +56,16 @@
   margin: 8px 0 0;
 }
 
-// One row, wrapping only when the screen is too narrow for it.
+// One row of links. A longer translation narrows the tagline beside them first; only when that
+// is as narrow as it goes do the links wrap among themselves (never pushing the buttons on).
 .site-footer-links {
-  flex: 1 1 auto;
+  flex: 1 1 320px;
+  min-width: 0;
 
   ul {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px 24px;
+    gap: 6px 16px;
     justify-content: center;
     list-style: none;
     margin: 0;
@@ -103,8 +114,10 @@
   margin: -4px 0;
   padding: 3px 12px;
 
+  // A size up from the other links' icons, so the heart reads at a glance.
   svg {
     color: #ff8fab;
+    width: 0.7onem;
   }
 
   &:hover,
@@ -114,6 +127,43 @@
 
     svg {
       color: #ffb3c6;
+    }
+  }
+}
+
+// Send feedback and back to top: one block at the end of the row, never split.
+.site-footer-actions {
+  align-items: center;
+  display: flex;
+  flex: none;
+  gap: 12px;
+  justify-self: end;
+  margin-left: auto;
+}
+
+
+
+// Short of room (a footer row is a tight fit in the longer languages), the links are their words
+// alone and Send feedback is its envelope alone, round like back to top beside it (its words stay
+// for screen readers and the tooltip): the links keep their one row.
+// From 1300 up the footer is at its full width, where every language fits with room to spare.
+@media (max-width: 1299px) {
+  .site-footer-link:not([data-highlight='true']) svg {
+    display: none;
+  }
+
+  .site-footer-actions .site-footer-feedback {
+    justify-content: center;
+    padding: 0;
+    width: 32px;
+
+    span {
+      clip: rect(0 0 0 0);
+      height: 1px;
+      overflow: hidden;
+      position: absolute;
+      white-space: nowrap;
+      width: 1px;
     }
   }
 }

@@ -1,6 +1,8 @@
 import React from 'react';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCheck, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {useTranslation} from 'react-i18next';
+import {answerText} from './answer-card';
 
 // Glossary options are told apart by termId, the others by answer id.
 export const keyOf = (option) => option.termId ?? option.id;
@@ -10,6 +12,7 @@ const letter = (index) => String.fromCharCode(65 + index);
 // crossed out, the rest faded. Shared by the home mini game and the card a chat question shows,
 // so both check and display an answer the same way.
 export const QuestionOptions = ({answers = [], picked, result, onPick, disabled = false}) => {
+    const {i18n} = useTranslation();
     const rightKey = result && (result.termId ?? result.answerId);
     const stateOf = (option) => {
         const key = keyOf(option);
@@ -29,7 +32,7 @@ export const QuestionOptions = ({answers = [], picked, result, onPick, disabled 
                             : stateOf(option) === 'wrong' ? <FontAwesomeIcon icon={faXmark}/>
                                 : letter(index)}
                     </span>
-                    <span>{option.content}</span>
+                    <span>{answerText(option, i18n.language)}</span>
                 </button>
             ))}
         </div>

@@ -243,6 +243,25 @@
     }
   }
 
+  // Three cards across a phone leaves each about 100px: smaller type so a name fits its card,
+  // and Play only on the centre one, where there is room for it.
+  @media (max-width: 575.98px) {
+    .category-card-body {
+      gap: 4px;
+      padding: 8px;
+    }
+
+    .category-card-name {
+      font-size: 0.72rem;
+      letter-spacing: 0.03em;
+      overflow-wrap: anywhere;
+    }
+
+    .swiper-slide:not(.swiper-slide-active) .category-card-play {
+      display: none;
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     :root:not([data-motion='on']) & {
       .swiper-slide .category-card {

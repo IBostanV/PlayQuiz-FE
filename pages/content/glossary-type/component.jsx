@@ -3,6 +3,7 @@ import Form from 'react-bootstrap/Form';
 import { Table } from 'react-bootstrap';
 import saveGlossaryType from '../../../api/glossary/save-type';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import { Field, SaveButton } from '../../../components/admin/form-kit';
 import { Pagination, PAGE_SIZE, usePagination } from '../../../components/admin/pagination';
 import { EmptyRow, TableSearch, useSearch } from '../../../components/admin/search';
@@ -13,6 +14,7 @@ import { deleteGlossaryType, updateGlossaryType } from '../../../api/glossary/ma
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 
 const GlossaryTypeEditForm = ({ type, onCancel, onSaved }) => {
+  const { t } = useTranslation();
   const [name, setName] = useState(type.name ?? '');
   const [options, setOptions] = useState(type.options ?? '');
   const [isActive, setIsActive] = useState(Boolean(type.isActive));
@@ -26,7 +28,7 @@ const GlossaryTypeEditForm = ({ type, onCancel, onSaved }) => {
     try {
       const response = await updateGlossaryType(type.id, { name: name.trim(), options, isActive });
       if (response) {
-        toast.success('Glossary type updated');
+        toast.success(t('content_glossary_type_updated', 'Glossary type updated'));
         onSaved({ ...type, ...response.data });
       }
     } finally {
@@ -36,28 +38,31 @@ const GlossaryTypeEditForm = ({ type, onCancel, onSaved }) => {
 
   return (
     <Form className="admin-form admin-popup-form" onSubmit={submit} noValidate>
-      <Field label="Name" htmlFor="glossary-type-edit-name" error={!name.trim() && 'Give the type a name'}>
+      <Field label={t('content_name', 'Name')} htmlFor="glossary-type-edit-name"
+             error={!name.trim() && t('content_glossary_type_name_error', 'Give the type a name')}>
         <Form.Control id="glossary-type-edit-name" value={name} isInvalid={!name.trim()}
                       onChange={(event) => setName(event.target.value)}/>
       </Field>
-      <Field label="Options" htmlFor="glossary-type-edit-options" hint="Optional. map:country, map:continent or map:city turns its terms into map answers.">
+      <Field label={t('content_options', 'Options')} htmlFor="glossary-type-edit-options"
+             hint={t('content_glossary_type_options_hint', 'Optional. map:country, map:continent or map:city turns its terms into map answers.')}>
         <Form.Control id="glossary-type-edit-options" value={options}
                       onChange={(event) => setOptions(event.target.value)}/>
       </Field>
-      <Form.Switch id="glossary-type-edit-active" className="admin-switch" label="Active"
+      <Form.Switch id="glossary-type-edit-active" className="admin-switch" label={t('content_active', 'Active')}
                    checked={isActive} onChange={(event) => setIsActive(event.target.checked)}/>
       <div className="popup-actions">
-        <button type="button" className="popup-cancel" onClick={onCancel} disabled={saving}>Cancel</button>
-        <SaveButton saving={saving} className="popup-confirm">Save changes</SaveButton>
+        <button type="button" className="popup-cancel" onClick={onCancel} disabled={saving}>{t('cancel', 'Cancel')}</button>
+        <SaveButton saving={saving} className="popup-confirm">{t('content_save_changes', 'Save changes')}</SaveButton>
       </div>
     </Form>
   );
-};  ``
+};
 
 function GlossaryType({
   glossaryTypes,
   setGlossaryTypes
 }) {
+  const { t } = useTranslation();
   const [options, setOptions] = useState('');
   const [name, setName] = useState('');
   const [isActive, setIsActive] = useState(true);
@@ -85,7 +90,7 @@ function GlossaryType({
       .then(response => {
         if (!response) return;
         setGlossaryTypes(glossaryTypes.filter(item => item.id !== type.id));
-        toast.success('Glossary type deleted');
+        toast.success(t('content_glossary_type_deleted', 'Glossary type deleted'));
       })
       .finally(() => {
         setDeleting(false);
@@ -106,7 +111,7 @@ function GlossaryType({
         isActive
       });
       if (response) {
-        toast.success('Glossary type successfully saved');
+        toast.success(t('content_glossary_type_saved', 'Glossary type successfully saved'));
 
         setName('');
         setOptions('');
@@ -121,18 +126,19 @@ function GlossaryType({
   return (
     <div className={'d-flex justify-content-around'}>
       <div className={'col-6 shadowed'}>
-        <h4 className={'text-center'}>Glossary types</h4>
+        <h4 className={'text-center'}>{t('content_glossary_types', 'Glossary types')}</h4>
         <hr/>
         <TableSearch value={typeSearch.query} onChange={typeSearch.setQuery}
-                     placeholder="Search by name or options…" count={typeSearch.results.length}
-                     label="Search glossary types"/>
-        <Table striped bordered variant="dark">
+                     placeholder={t('content_glossary_type_search_placeholder', 'Search by name or options…')}
+                     count={typeSearch.results.length}
+                     label={t('content_search_glossary_types', 'Search glossary types')}/>
+        <Table responsive striped bordered variant="dark">
           <thead>
           <tr>
-            <SortHeader column="name" sort={typeSort.sort} onSort={typeSort.toggle}>Name</SortHeader>
-            <SortHeader column="options" sort={typeSort.sort} onSort={typeSort.toggle}>Options</SortHeader>
-            <SortHeader column="active" sort={typeSort.sort} onSort={typeSort.toggle} className="text-center">Active</SortHeader>
-            <th className="text-center"><span className="visually-hidden">Actions</span></th>
+            <SortHeader column="name" sort={typeSort.sort} onSort={typeSort.toggle}>{t('content_name', 'Name')}</SortHeader>
+            <SortHeader column="options" sort={typeSort.sort} onSort={typeSort.toggle}>{t('content_options', 'Options')}</SortHeader>
+            <SortHeader column="active" sort={typeSort.sort} onSort={typeSort.toggle} className="text-center">{t('content_active', 'Active')}</SortHeader>
+            <th className="text-center"><span className="visually-hidden">{t('content_actions', 'Actions')}</span></th>
           </tr>
           </thead>
           <tbody>
@@ -154,24 +160,24 @@ function GlossaryType({
                           busy={deleting && pendingDelete?.id === item.id}/>
             </tr>
           ))}
-            <EmptyRow show={!typeSearch.results.length} columns={4} query={typeSearch.query} what="glossary types"/>
+            <EmptyRow show={!typeSearch.results.length} columns={4} query={typeSearch.query} what={t('content_empty_glossary_types', 'glossary types')}/>
           </tbody>
         </Table>
-        <Pagination {...typePages} onChange={typePages.setPage} label="Glossary types pages"/>
+        <Pagination {...typePages} onChange={typePages.setPage} label={t('content_glossary_types_pages', 'Glossary types pages')}/>
 
         {/* A type still used by glossaries is refused by the server with a message saying so. */}
         <ConfirmDialog open={Boolean(pendingDelete)}
                        danger
                        busy={deleting}
-                       title="Delete glossary type?"
+                       title={t('content_delete_glossary_type_title', 'Delete glossary type?')}
                        message={pendingDelete && <>
-                         <strong>{pendingDelete.name}</strong> will be permanently deleted. It only works once
-                         no glossaries use this type.
+                         <strong>{pendingDelete.name}</strong> {t('content_delete_glossary_type_confirm',
+                           'will be permanently deleted. It only works once no glossaries use this type.')}
                        </>}
-                       confirmLabel="Delete"
+                       confirmLabel={t('delete', 'Delete')}
                        onConfirm={confirmDelete}
                        onCancel={() => setPendingDelete(null)}/>
-        <Popup open={Boolean(editing)} icon={faPen} title="Edit glossary type" onClose={() => setEditing(null)}>
+        <Popup open={Boolean(editing)} icon={faPen} title={t('content_edit_glossary_type', 'Edit glossary type')} onClose={() => setEditing(null)}>
           {editing && (
             <GlossaryTypeEditForm type={editing}
                                   onCancel={() => setEditing(null)}
@@ -183,29 +189,31 @@ function GlossaryType({
         </Popup>
       </div>
       <Form className={'col-5 shadowed admin-form'} onSubmit={save} noValidate>
-        <h4>New glossary type</h4>
+        <h4>{t('content_new_glossary_type', 'New glossary type')}</h4>
         <hr/>
 
-        <Field label="Name" htmlFor="glossary-type-name" error={touched && !name.trim() && 'Give the type a name'}>
+        <Field label={t('content_name', 'Name')} htmlFor="glossary-type-name"
+               error={touched && !name.trim() && t('content_glossary_type_name_error', 'Give the type a name')}>
           <Form.Control id="glossary-type-name"
                         value={name}
                         isInvalid={touched && !name.trim()}
-                        placeholder="e.g. Capital city"
+                        placeholder={t('content_glossary_type_name_placeholder', 'e.g. Capital city')}
                         onChange={handleName}/>
         </Field>
 
-        <Field label="Options" htmlFor="glossary-type-options" hint="Optional. map:country, map:continent or map:city turns its terms into map answers.">
+        <Field label={t('content_options', 'Options')} htmlFor="glossary-type-options"
+               hint={t('content_glossary_type_options_hint', 'Optional. map:country, map:continent or map:city turns its terms into map answers.')}>
           <Form.Control id="glossary-type-options"
                         value={options}
-                        placeholder="Options"
+                        placeholder={t('content_options', 'Options')}
                         onChange={handleOptions}/>
         </Field>
 
-        <Form.Switch id="glossary-type-active" className="admin-switch" label="Active"
+        <Form.Switch id="glossary-type-active" className="admin-switch" label={t('content_active', 'Active')}
                      checked={isActive} onChange={handleIsActive}/>
 
         <div className="admin-form-actions">
-          <SaveButton saving={saving}>Save type</SaveButton>
+          <SaveButton saving={saving}>{t('content_save_type', 'Save type')}</SaveButton>
         </div>
       </Form>
     </div>

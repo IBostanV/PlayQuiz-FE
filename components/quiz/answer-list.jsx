@@ -1,7 +1,8 @@
 import React from 'react';
+import Link from 'next/link';
 import {useTranslation} from 'react-i18next';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCheck, faStopwatch, faXmark} from '@fortawesome/free-solid-svg-icons';
+import {faBookOpen, faCheck, faStopwatch, faXmark} from '@fortawesome/free-solid-svg-icons';
 import {SendQuestion} from '../chat/send-question';
 
 // A right answer comes back with no right answer to show: there was nothing to correct.
@@ -13,7 +14,9 @@ const seconds = (millis) => millis ? `${(millis / 1000).toFixed(1)}s` : '—';
 // Every question of a finished run with what was answered and, where it was wrong, what it
 // should have been. Shared by the result page and the history on the profile, so a run reads the
 // same wherever it is opened.
-export const AnswerList = ({answers = [], sendable = true}) => {
+// `articles`: the best article per category ({categoryId: {id, title}}), for "learn why" under
+// a wrong answer; left out where there are none to offer.
+export const AnswerList = ({answers = [], sendable = true, articles = {}}) => {
     const {t} = useTranslation();
 
     return (
@@ -41,6 +44,13 @@ export const AnswerList = ({answers = [], sendable = true}) => {
                                 <span className={'result-answer-label'}>{t('right_answer', 'Right answer')}</span>
                                 {answer.rightAnswer}
                             </p>
+                        )}
+
+                        {!isRight(answer) && articles[answer.categoryId] && (
+                            <Link href={`/knowledge-base/${articles[answer.categoryId].id}`} className='result-learn'>
+                                <FontAwesomeIcon icon={faBookOpen}/>
+                                {t('learn_why', 'Learn why: {{title}}', {title: articles[answer.categoryId].title})}
+                            </Link>
                         )}
 
                         {/* Only when the history carries the question's id: without one there is

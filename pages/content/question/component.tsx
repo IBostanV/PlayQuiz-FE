@@ -16,14 +16,19 @@ import { ConfirmDialog, Popup } from '../../../components/common/popup';
 import { deleteQuestion, updateQuestion } from '../../../api/question/manage';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import { useDebounce } from 'primereact/hooks';
 import {getQuizTypes} from "../../../api/quiz";
 import {MultiSelect} from "primereact/multiselect";
 import {Category} from "../../../interfaces/question";
 
+// A new answer row: nothing typed, no term picked, no translations ({langId: text}).
+const EMPTY_ANSWER = { content: '', termId: undefined, translations: {} };
+
 // Edit popup body: the question's own fields. Answers and translations are not edited here
 // (the server keeps them as they are).
 const QuestionEditForm = ({ question, categories, types, attributesSet, onCancel, onSaved }) => {
+  const { t } = useTranslation();
   const [content, setContent] = useState(question.content ?? '');
   const [topic, setTopic] = useState(question.topic ?? '');
   const [type, setType] = useState(question.type ?? '');
@@ -34,9 +39,9 @@ const QuestionEditForm = ({ question, categories, types, attributesSet, onCancel
   const [saving, setSaving] = useState(false);
 
   const errors = {
-    content: !content.trim() && 'Write the question',
-    type: !type && 'Choose a type',
-    complexityLevel: !complexityLevel && 'Set a complexity level',
+    content: !content.trim() && t('question_content_error', 'Write the question'),
+    type: !type && t('content_choose_type_error', 'Choose a type'),
+    complexityLevel: !complexityLevel && t('content_complexity_error', 'Set a complexity level'),
   };
 
   const submit = async (event) => {
@@ -56,7 +61,7 @@ const QuestionEditForm = ({ question, categories, types, attributesSet, onCancel
         attributes: attribute ? [attribute] : [],
       });
       if (response) {
-        toast.success('Question updated');
+        toast.success(t('content_question_updated', 'Question updated'));
         onSaved();
       }
     } finally {
@@ -66,44 +71,44 @@ const QuestionEditForm = ({ question, categories, types, attributesSet, onCancel
 
   return (
     <Form className="admin-form admin-popup-form" onSubmit={submit} noValidate>
-      <Field label="Question" htmlFor="question-edit-content" error={errors.content}>
+      <Field label={t('question', 'Question')} htmlFor="question-edit-content" error={errors.content}>
         <Form.Control id="question-edit-content" as="textarea" rows={2} value={content}
                       isInvalid={Boolean(errors.content)} onChange={(event) => setContent(event.target.value)}/>
       </Field>
       <div className="admin-form-grid">
-        <Field label="Topic" htmlFor="question-edit-topic">
+        <Field label={t('content_topic', 'Topic')} htmlFor="question-edit-topic">
           <Form.Control id="question-edit-topic" value={topic} onChange={(event) => setTopic(event.target.value)}/>
         </Field>
-        <Field label="Complexity level" htmlFor="question-edit-complexity" error={errors.complexityLevel}>
+        <Field label={t('content_complexity_level', 'Complexity level')} htmlFor="question-edit-complexity" error={errors.complexityLevel}>
           <Form.Control id="question-edit-complexity" type="number" min={1} max={10} value={complexityLevel}
                         isInvalid={Boolean(errors.complexityLevel)}
                         onChange={(event) => setComplexityLevel(event.target.value)}/>
         </Field>
-        <Field label="Type" htmlFor="question-edit-type" error={errors.type}>
+        <Field label={t('content_type', 'Type')} htmlFor="question-edit-type" error={errors.type}>
           <Form.Select id="question-edit-type" value={type} isInvalid={Boolean(errors.type)}
                        onChange={(event) => setType(event.target.value)}>
-            <option value="">Choose a type…</option>
+            <option value="">{t('content_choose_type', 'Choose a type…')}</option>
             {types?.map(item => (<option value={item} key={item}>{item}</option>))}
           </Form.Select>
         </Field>
-        <Field label="Category" htmlFor="question-edit-category">
+        <Field label={t('content_category', 'Category')} htmlFor="question-edit-category">
           <Form.Select id="question-edit-category" value={categoryId} onChange={(event) => setCategoryId(event.target.value)}>
             {categories?.map(item => (<option value={item.catId} key={item.catId}>{item.name}</option>))}
           </Form.Select>
         </Field>
-        <Field label="Attributes" htmlFor="question-edit-attributes" wide>
+        <Field label={t('content_attributes', 'Attributes')} htmlFor="question-edit-attributes" wide>
           <Form.Select id="question-edit-attributes" value={attribute} onChange={(event) => setAttribute(event.target.value)}>
-            <option value="">None</option>
+            <option value="">{t('content_none', 'None')}</option>
             {attributesSet?.map(item => (<option value={item} key={item}>{item}</option>))}
           </Form.Select>
         </Field>
       </div>
-      <Form.Switch id="question-edit-active" className="admin-switch" label="Active"
+      <Form.Switch id="question-edit-active" className="admin-switch" label={t('content_active', 'Active')}
                    checked={isActive} onChange={(event) => setIsActive(event.target.checked)}/>
-      <p className="admin-field-hint">Answers and translations stay as they are.</p>
+      <p className="admin-field-hint">{t('content_question_edit_hint', 'Answers and translations stay as they are.')}</p>
       <div className="popup-actions">
-        <button type="button" className="popup-cancel" onClick={onCancel} disabled={saving}>Cancel</button>
-        <SaveButton saving={saving} className="popup-confirm">Save changes</SaveButton>
+        <button type="button" className="popup-cancel" onClick={onCancel} disabled={saving}>{t('cancel', 'Cancel')}</button>
+        <SaveButton saving={saving} className="popup-confirm">{t('content_save_changes', 'Save changes')}</SaveButton>
       </div>
     </Form>
   );
@@ -114,6 +119,7 @@ export default function Question({
   glossaries,
   setGlossaryFilter
 }) {
+  const { t } = useTranslation();
   const [types, setTypes] = useState([]);
   const [languages, setLanguages] = useState([]);
   const [questions, setQuestions] = useState([]);
@@ -122,10 +128,9 @@ export default function Question({
 
   const [type, setType] = useState('');
   const [topic, setTopic] = useState('');
-  const [answer, setAnswer] = useState('');
-  // Starts empty, as the select shows: it used to hold the first glossary unseen, so every
-  // question silently got that term attached.
-  const [glossary, setGlossary] = useState(undefined);
+  // One row per right answer, each typed or a glossary term. The term starts empty, as the select
+  // shows: it used to hold the first glossary unseen, so every question silently got it attached.
+  const [answers, setAnswers] = useState([EMPTY_ANSWER]);
   const [priority, setPriority] = useState(1);
   const [attributes, setAttributes] = useState([]);
   const [excludeQuizTypes, setExcludeQuizTypes] = useState([]);
@@ -133,7 +138,6 @@ export default function Question({
   const [isActive, setIsActive] = useState(false);
   const [complexityLevel, setComplexityLevel] = useState(1);
   const [category, setCategory] = useState<Category>();
-  const [answerTranslations, setAnswerTranslations] = useState({});
   const [content, debouncedContent, setContent] = useDebounce('', 500);
 
   useEffect(() => {
@@ -178,7 +182,7 @@ export default function Question({
     deleteQuestion(question.id)
       .then(response => {
         if (!response) return;
-        toast.success('Question deleted');
+        toast.success(t('content_question_deleted', 'Question deleted'));
         setReloadQuestions(value => value + 1);
       })
       .finally(() => {
@@ -233,9 +237,8 @@ export default function Question({
     setCategory(item);
   };
 
-  const handleAnswer = (event) => setAnswer(event.target.value);
-
-  const handleGlossary = (event) => setGlossary(event.target.value ? { termId: event.target.value } : undefined);
+  const changeAnswer = (index, change) =>
+    setAnswers(list => list.map((item, at) => (at === index ? { ...item, ...change } : item)));
 
   const handleAttributes = (event) => {
     const value = event.target.value;
@@ -244,13 +247,6 @@ export default function Question({
 
   const handleTranslation = (event, langId) => {
     setTranslations(values => ({
-      ...values,
-      [langId]: event.target.value
-    }));
-  };
-
-  const handleAnswerTranslation = (event, langId) => {
-    setAnswerTranslations(values => ({
       ...values,
       [langId]: event.target.value
     }));
@@ -265,11 +261,12 @@ export default function Question({
   const [touched, setTouched] = useState(false);
 
   const errors = {
-    content: !content && 'Write the question',
-    answer: !answer && !glossary?.termId && 'Type an answer or pick one from the glossary',
-    category: !category?.catId && 'Choose a category',
-    type: !type && 'Choose a type',
-    complexityLevel: !complexityLevel && 'Set a complexity level',
+    content: !content && t('question_content_error', 'Write the question'),
+    answer: answers.some(item => !item.content && !item.termId)
+      && t('content_answer_error', 'Type each answer or pick it from the glossary'),
+    category: !category?.catId && t('content_article_category_error', 'Choose a category'),
+    type: !type && t('content_choose_type_error', 'Choose a type'),
+    complexityLevel: !complexityLevel && t('content_complexity_error', 'Set a complexity level'),
   };
   const valid = !Object.values(errors).some(Boolean);
 
@@ -288,7 +285,6 @@ export default function Question({
 
   const saveCurrent = async () => {
     const translationEntries = Object.entries(translations);
-    const answerEntries = Object.entries(answerTranslations);
     const response = await saveQuestion(
       {
         type,
@@ -301,15 +297,14 @@ export default function Question({
         attributes: Array.isArray(attributes) ? attributes : [attributes],
         categoryId: category.catId,
         categoryName: category.name,
-        answers: [{
-          content: answer,
-          termId: glossary?.termId
-        }],
-        translations: translationEntries.map(e => ({
-          description: e[1],
-          language: { langId: e[0] }
+        // A picked term's text (and its translations) come from the glossary, on the server.
+        answers: answers.map(item => (item.termId ? { termId: item.termId } : {
+          content: item.content,
+          answerTranslations: Object.entries(item.translations)
+            .filter(([, description]) => description)
+            .map(([langId, description]) => ({ description, language: { langId } }))
         })),
-        answerTranslations: answerEntries.map(e => ({
+        translations: translationEntries.map(e => ({
           description: e[1],
           language: { langId: e[0] }
         }))
@@ -320,7 +315,7 @@ export default function Question({
       setQuestionSort({ key: null, direction: 'asc' });
       setQuestionPage(1);
       setReloadQuestions(value => value + 1);
-      toast.success('Question successfully saved');
+      toast.success(t('content_question_saved', 'Question successfully saved'));
       setTouched(false);
     }
   };
@@ -328,28 +323,28 @@ export default function Question({
   return (
     <div>
       <Form className={'shadowed admin-form'} onSubmit={save} noValidate>
-        <h4>New question</h4>
+        <h4>{t('content_new_question', 'New question')}</h4>
         <hr/>
 
         <div className="admin-form-grid">
-          <Field label="Question" htmlFor="question-content" wide error={touched && errors.content}>
+          <Field label={t('question', 'Question')} htmlFor="question-content" wide error={touched && errors.content}>
             <Form.Control id="question-content"
                           as="textarea"
                           rows={2}
                           value={content}
                           isInvalid={touched && Boolean(errors.content)}
-                          placeholder="e.g. What is the capital of Moldova?"
+                          placeholder={t('question_placeholder', 'e.g. What is the capital of Moldova?')}
                           onChange={handleContent}/>
           </Field>
 
-          <Field label="Topic" htmlFor="question-topic" hint="Optional.">
+          <Field label={t('content_topic', 'Topic')} htmlFor="question-topic" hint={t('content_optional', 'Optional.')}>
             <Form.Control id="question-topic"
                           value={topic}
-                          placeholder="Topic"
+                          placeholder={t('content_topic', 'Topic')}
                           onChange={handleTopic}/>
           </Field>
 
-          <Field label="Complexity level" htmlFor="question-complexity" hint="1 (easy) to 10 (hard)."
+          <Field label={t('content_complexity_level', 'Complexity level')} htmlFor="question-complexity" hint={t('content_complexity_hint', '1 (easy) to 10 (hard).')}
                  error={touched && errors.complexityLevel}>
             <Form.Control id="question-complexity"
                           min={1}
@@ -360,38 +355,39 @@ export default function Question({
                           onChange={handleComplexityLevel}/>
           </Field>
 
-          <Field label="Category" htmlFor="question-category" error={touched && errors.category}>
+          <Field label={t('content_category', 'Category')} htmlFor="question-category" error={touched && errors.category}>
             <Form.Select id="question-category"
                          isInvalid={touched && Boolean(errors.category)}
                          onChange={handleCategory}>
-              <option value="">Choose a category…</option>
+              <option value="">{t('content_choose_category', 'Choose a category…')}</option>
               {categories?.map((category, index) => (
                 <option value={index} key={category.catId}>{category.name}</option>
               ))}
             </Form.Select>
           </Field>
 
-          <Field label="Type" htmlFor="question-type" error={touched && errors.type}>
+          <Field label={t('content_type', 'Type')} htmlFor="question-type" error={touched && errors.type}>
             <Form.Select id="question-type"
                          isInvalid={touched && Boolean(errors.type)}
                          onChange={(event) => setType((event.target.value))}>
-              <option value="">Choose a type…</option>
+              <option value="">{t('content_choose_type', 'Choose a type…')}</option>
               {types?.map(item => (
                 <option value={item} key={item}>{item}</option>
               ))}
             </Form.Select>
           </Field>
 
-          <Field label="Attributes" htmlFor="question-attributes">
+          <Field label={t('content_attributes', 'Attributes')} htmlFor="question-attributes">
             <Form.Select id="question-attributes" onChange={handleAttributes}>
-              <option value="">None</option>
+              <option value="">{t('content_none', 'None')}</option>
               {attributesSet?.map(item => (
                 <option value={item} key={item}>{item}</option>
               ))}
             </Form.Select>
           </Field>
 
-          <Field label="Exclude quiz types" htmlFor="question-exclude" hint="The question never appears in these quiz types.">
+          <Field label={t('content_exclude_quiz_types', 'Exclude quiz types')} htmlFor="question-exclude"
+                 hint={t('content_exclude_quiz_types_hint', 'The question never appears in these quiz types. Multiple choice, drag and drop and in order are also excluded on save when the answers don\'t fit them.')}>
             <MultiSelect
                 inputId="question-exclude"
                 value={excludeQuizTypes}
@@ -399,93 +395,119 @@ export default function Question({
                 options={quizTypes}
                 optionLabel="label"
                 display="chip"
-                placeholder="None"
+                placeholder={t('content_none', 'None')}
                 focusOnHover={false}
                 className="w-100"/>
           </Field>
 
-          {/* Either a typed answer or a glossary term. */}
-          <div className="admin-answer" data-wide="true">
-            <Field label="Answer" htmlFor="question-answer">
-              <Form.Control id="question-answer"
-                            value={answer}
-                            isInvalid={touched && Boolean(errors.answer)}
-                            placeholder="Type the answer"
-                            onChange={handleAnswer}/>
-            </Field>
-            <span className="admin-answer-or" aria-hidden>or</span>
-            <Field label="From glossary" htmlFor="question-glossary">
-              <Form.Select id="question-glossary"
-                           isInvalid={touched && Boolean(errors.answer)}
-                           onChange={handleGlossary}>
-                <option value="">None</option>
-                {glossaries?.map(glossary => (
-                  <option value={glossary.termId}
-                          key={glossary.termId}>{handleAttributeChange(glossary)}</option>
-                ))}
-              </Form.Select>
-            </Field>
-            {touched && errors.answer && <div className="invalid-feedback d-block admin-answer-error">{errors.answer}</div>}
+          {/* Each right answer is either typed or a glossary term. */}
+          {answers.map((item, index) => (
+            <React.Fragment key={index}>
+            <div className="admin-answer" data-wide="true">
+              <Field label={answers.length > 1
+                ? t('content_answer_number', 'Answer {{number}}', { number: index + 1 })
+                : t('content_answer', 'Answer')} htmlFor={`question-answer-${index}`}>
+                <Form.Control id={`question-answer-${index}`}
+                              value={item.content}
+                              disabled={Boolean(item.termId)}
+                              isInvalid={touched && !item.content && !item.termId}
+                              placeholder={t('content_answer_placeholder', 'Type the answer')}
+                              onChange={(event) => changeAnswer(index, { content: event.target.value })}/>
+              </Field>
+              <span className="admin-answer-or" aria-hidden>{t('content_or', 'or')}</span>
+              <Field label={t('content_from_glossary', 'From glossary')} htmlFor={`question-glossary-${index}`}>
+                <Form.Select id={`question-glossary-${index}`}
+                             value={item.termId ?? ''}
+                             isInvalid={touched && !item.content && !item.termId}
+                             onChange={(event) => changeAnswer(index, { termId: event.target.value || undefined })}>
+                  <option value="">{t('content_none', 'None')}</option>
+                  {glossaries?.map(glossary => (
+                    <option value={glossary.termId}
+                            key={glossary.termId}>{handleAttributeChange(glossary)}</option>
+                  ))}
+                </Form.Select>
+              </Field>
+              {answers.length > 1 && (
+                <button type="button" className="btn btn-link admin-answer-remove"
+                        aria-label={t('content_remove_answer', 'Remove answer {{number}}', { number: index + 1 })}
+                        onClick={() => setAnswers(list => list.filter((_, at) => at !== index))}>
+                  {t('content_remove', 'Remove')}
+                </button>
+              )}
+            </div>
+            {item.content && !item.termId && languages?.length > 0 && (
+              <fieldset className="admin-translations" data-wide="true">
+                <legend className="form-label">{t('content_translations_of', 'Translations of "{{answer}}"', { answer: item.content, interpolation: { escapeValue: false } })}</legend>
+                <div className="admin-translations-grid">
+                  {languages.map(language => (
+                    <label key={language.name} className="admin-translation">
+                      <span className="admin-translation-lang">{language.name}</span>
+                      <Form.Control placeholder={t('content_answer_in', 'Answer in {{language}}', { language: language.name, interpolation: { escapeValue: false } })}
+                                    value={item.translations[language.langId] ?? ''}
+                                    onChange={(event) => changeAnswer(index, {
+                                      translations: { ...item.translations, [language.langId]: event.target.value }
+                                    })}/>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            )}
+            </React.Fragment>
+          ))}
+          <div data-wide="true">
+            <button type="button" className="btn btn-outline-secondary btn-sm"
+                    onClick={() => setAnswers(list => [...list, EMPTY_ANSWER])}>
+              {t('content_add_another_answer', 'Add another answer')}
+            </button>
+            <div className="form-text">
+              {t('content_answers_hint', 'Several answers make the question multiple choice. Terms are also paired key with value for drag and drop and, when the values are numbers, sorted for in order.')}
+            </div>
+            {touched && errors.answer && <div className="invalid-feedback d-block">{errors.answer}</div>}
           </div>
 
           {languages?.length > 0 && (
             <fieldset className="admin-translations" data-wide="true">
-              <legend className="form-label">Question translations</legend>
+              <legend className="form-label">{t('content_question_translations', 'Question translations')}</legend>
               <div className="admin-translations-grid">
                 {languages.map(item => (
                   <label key={item.name} className="admin-translation">
                     <span className="admin-translation-lang">{item.name}</span>
-                    <Form.Control placeholder={`Question in ${item.name}`}
+                    <Form.Control placeholder={t('content_question_in', 'Question in {{language}}', { language: item.name, interpolation: { escapeValue: false } })}
                                   onChange={(e) => handleTranslation(e, item.langId)}/>
                   </label>
                 ))}
               </div>
             </fieldset>
           )}
-
-          {answer && languages?.length > 0 && (
-            <fieldset className="admin-translations" data-wide="true">
-              <legend className="form-label">Answer translations</legend>
-              <div className="admin-translations-grid">
-                {languages.map(item => (
-                  <label key={item.name} className="admin-translation">
-                    <span className="admin-translation-lang">{item.name}</span>
-                    <Form.Control placeholder={`Answer in ${item.name}`}
-                                  onChange={(e) => handleAnswerTranslation(e, item.langId)}/>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
-          )}
         </div>
 
-        <Form.Switch id="question-active" className="admin-switch" label="Active"
+        <Form.Switch id="question-active" className="admin-switch" label={t('content_active', 'Active')}
                      checked={isActive} onChange={handleIsActive}/>
 
         <div className="admin-form-actions">
-          <SaveButton saving={saving}>Save question</SaveButton>
+          <SaveButton saving={saving}>{t('content_save_question', 'Save question')}</SaveButton>
         </div>
       </Form>
       <div className={'shadowed'}>
-        <h4 className={'text-center'}>Questions</h4>
+        <h4 className={'text-center'}>{t('content_questions', 'Questions')}</h4>
         <hr/>
         <TableSearch value={questionSearch} onChange={setQuestionSearch}
-                     placeholder="Search by question, topic or category…"
+                     placeholder={t('content_question_search_placeholder', 'Search by question, topic or category…')}
                      count={debouncedQuestionSearch.trim() ? questionTotals.total : undefined}
-                     label="Search questions"/>
-        <Table striped bordered variant="dark">
+                     label={t('content_search_questions', 'Search questions')}/>
+        <Table responsive striped bordered variant="dark">
           <thead>
           <tr>
-            <SortHeader column="topic" sort={questionSort} onSort={toggleQuestionSort}>Topic</SortHeader>
-            <SortHeader column="priority" sort={questionSort} onSort={toggleQuestionSort}>Priority</SortHeader>
-            <SortHeader column="type" sort={questionSort} onSort={toggleQuestionSort}>Type</SortHeader>
-            <SortHeader column="complexityLevel" sort={questionSort} onSort={toggleQuestionSort}>Complexity level</SortHeader>
-            <SortHeader column="content" sort={questionSort} onSort={toggleQuestionSort}>Content</SortHeader>
-            <SortHeader column="category" sort={questionSort} onSort={toggleQuestionSort}>Category</SortHeader>
-            <th>Attributes</th>
-            <SortHeader column="createdDate" sort={questionSort} onSort={toggleQuestionSort}>Created</SortHeader>
-            <SortHeader column="isActive" sort={questionSort} onSort={toggleQuestionSort}>Is Active</SortHeader>
-            <th className="text-center"><span className="visually-hidden">Actions</span></th>
+            <SortHeader column="topic" sort={questionSort} onSort={toggleQuestionSort}>{t('content_topic', 'Topic')}</SortHeader>
+            <SortHeader column="priority" sort={questionSort} onSort={toggleQuestionSort}>{t('content_priority', 'Priority')}</SortHeader>
+            <SortHeader column="type" sort={questionSort} onSort={toggleQuestionSort}>{t('content_type', 'Type')}</SortHeader>
+            <SortHeader column="complexityLevel" sort={questionSort} onSort={toggleQuestionSort}>{t('content_complexity_level', 'Complexity level')}</SortHeader>
+            <SortHeader column="content" sort={questionSort} onSort={toggleQuestionSort}>{t('content_content', 'Content')}</SortHeader>
+            <SortHeader column="category" sort={questionSort} onSort={toggleQuestionSort}>{t('content_category', 'Category')}</SortHeader>
+            <th>{t('content_attributes', 'Attributes')}</th>
+            <SortHeader column="createdDate" sort={questionSort} onSort={toggleQuestionSort}>{t('content_created', 'Created')}</SortHeader>
+            <SortHeader column="isActive" sort={questionSort} onSort={toggleQuestionSort}>{t('content_is_active', 'Is Active')}</SortHeader>
+            <th className="text-center"><span className="visually-hidden">{t('content_actions', 'Actions')}</span></th>
           </tr>
           </thead>
           <tbody>
@@ -515,27 +537,26 @@ export default function Question({
                           busy={deleting && pendingDelete?.id === question.id}/>
             </tr>
           ))}
-            <EmptyRow show={!questions.length} columns={10} query={debouncedQuestionSearch.trim()} what="questions"/>
+            <EmptyRow show={!questions.length} columns={10} query={debouncedQuestionSearch.trim()} what={t('content_empty_questions', 'questions')}/>
           </tbody>
         </Table>
         <Pagination page={questionPage}
                     pageCount={questionTotals.pageCount}
                     total={questionTotals.total}
                     onChange={setQuestionPage}
-                    label="Questions pages"/>
+                    label={t('content_questions_pages', 'Questions pages')}/>
 
         <ConfirmDialog open={Boolean(pendingDelete)}
                        danger
                        busy={deleting}
-                       title="Delete question?"
-                       message={pendingDelete && <>
-                         “{pendingDelete.content}” will be permanently deleted, with its answers and
-                         translations. This can’t be undone.
-                       </>}
-                       confirmLabel="Delete"
+                       title={t('content_delete_question_title', 'Delete question?')}
+                       message={pendingDelete && t('content_delete_question_confirm',
+                         '“{{question}}” will be permanently deleted, with its answers and translations. This can’t be undone.',
+                         { question: pendingDelete.content, interpolation: { escapeValue: false } })}
+                       confirmLabel={t('delete', 'Delete')}
                        onConfirm={confirmDelete}
                        onCancel={() => setPendingDelete(null)}/>
-        <Popup open={Boolean(editingQuestion)} icon={faPen} title="Edit question" onClose={() => setEditingQuestion(null)}>
+        <Popup open={Boolean(editingQuestion)} icon={faPen} title={t('content_edit_question', 'Edit question')} onClose={() => setEditingQuestion(null)}>
           {editingQuestion && (
             <QuestionEditForm question={editingQuestion}
                               categories={categories}

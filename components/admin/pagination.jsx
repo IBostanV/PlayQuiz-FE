@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 
@@ -39,20 +40,22 @@ export const usePagination = (items, pageSize = PAGE_SIZE, resetKey = undefined)
 
 // "Showing 11–20 of 57" on the left, the page buttons on the right. Renders nothing when
 // everything fits on one page.
-export const Pagination = ({ page, pageCount, total, pageSize = PAGE_SIZE, onChange, label = 'Pagination' }) => {
+export const Pagination = ({ page, pageCount, total, pageSize = PAGE_SIZE, onChange, label }) => {
+  const { t } = useTranslation();
   if (pageCount <= 1) return null;
 
   const from = (page - 1) * pageSize + 1;
   const to = Math.min(page * pageSize, total);
 
   return (
-    <nav className="admin-pagination" aria-label={label}>
+    <nav className="admin-pagination" aria-label={label ?? t('content_pagination', 'Pagination')}>
       <span className="admin-pagination-range">
-        {from}–{to} of {total}
+        {t('content_pagination_range', '{{from}}–{{to}} of {{total}}', { from, to, total })}
       </span>
       <div className="admin-pagination-pages">
         <button type="button" className="admin-page-button" onClick={() => onChange(page - 1)}
-                disabled={page === 1} aria-label="Previous page" data-tooltip="Previous page">
+                disabled={page === 1} aria-label={t('content_previous_page', 'Previous page')}
+                data-tooltip={t('content_previous_page', 'Previous page')}>
           <FontAwesomeIcon icon={faChevronLeft}/>
         </button>
         {pageList(page, pageCount).map((number, index) => number === 'gap'
@@ -60,13 +63,14 @@ export const Pagination = ({ page, pageCount, total, pageSize = PAGE_SIZE, onCha
           : (
             <button key={number} type="button" className="admin-page-button"
                     onClick={() => onChange(number)}
-                    aria-label={`Page ${number}`}
+                    aria-label={t('content_page_number', 'Page {{number}}', { number })}
                     aria-current={number === page ? 'page' : undefined}>
               {number}
             </button>
           ))}
         <button type="button" className="admin-page-button" onClick={() => onChange(page + 1)}
-                disabled={page === pageCount} aria-label="Next page" data-tooltip="Next page">
+                disabled={page === pageCount} aria-label={t('content_next_page', 'Next page')}
+                data-tooltip={t('content_next_page', 'Next page')}>
           <FontAwesomeIcon icon={faChevronRight}/>
         </button>
       </div>

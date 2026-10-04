@@ -54,3 +54,37 @@
     transform: none;
   }
 }
+
+// Signing in or out (utils/fade-to-home): the header, the picture behind the site and what is in
+// main fade out like a slide, main's own dark backdrop staying put, and home fades up in their
+// place without the usual swing. The header swaps between guest and player while it is out of
+// sight. Opacity only, so it runs under reduce-motion too; the .page-transition selectors outweigh
+// its reduce-motion rules above.
+:root[data-slide='out'] .header,
+:root[data-slide='out'] .background::before,
+:root[data-slide='out'] main > *,
+:root[data-slide='out'] main > .page-transition[data-leaving] {
+  // Signing out from the home just faded in: going from 'in' to 'out' would hand the page its
+  // swing back, and the browser would play it before the fade. Nor does it sink back as it leaves.
+  animation: none;
+  opacity: 0;
+  transform: none;
+  transition: opacity 600ms ease-in-out;
+}
+
+:root[data-slide='in'] .header,
+:root[data-slide='in'] .background::before,
+:root[data-slide='in'] main > *,
+:root[data-slide='in'] main > .page-transition {
+  animation: slide-fade-in 900ms ease-in-out both;
+}
+
+@keyframes slide-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

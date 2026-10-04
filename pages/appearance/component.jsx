@@ -3,9 +3,15 @@ import PropTypes from 'prop-types';
 import Link from 'next/link';
 import {useTranslation} from 'react-i18next';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCheck, faPalette, faRotateLeft} from '@fortawesome/free-solid-svg-icons';
+import {faCheck, faPalette, faRotateLeft, faSpinner, faTrash, faUpload} from '@fortawesome/free-solid-svg-icons';
+import {toast} from 'react-toastify';
 import {accentTextFor, APPEARANCE_DEFAULTS, DEFAULT_ACCENT, useAppearance} from '../../context/appearance';
 import {ConfirmDialog} from '../../components/common/popup';
+import {LanguageSelect} from '../../components/common/language-select';
+import {
+    customBackgroundUrl, presetBackgroundUrl, removeBackground, uploadBackground,
+} from '../../api/user/appearance';
+import {shrinkImage} from '../../utils/shrink-image';
 
 // A few accents to pick from, the site's own first; the picker beside them takes any other.
 const ACCENTS = [
@@ -24,6 +30,21 @@ const ACCENT_TEXTS = [
     ['#04121c', 'accent_text_dark', 'Dark'],
     ['#000000', 'accent_text_black', 'Black'],
 ];
+
+// The site's own backgrounds (public/backgrounds); the server keeps the same list.
+const BACKGROUNDS = [
+    ['aurora', 'background_aurora', 'Aurora'],
+    ['constellation', 'background_constellation', 'Constellation'],
+    ['topography', 'background_topography', 'Topography'],
+    ['waves', 'background_waves', 'Waves'],
+    ['hexagons', 'background_hexagons', 'Honeycomb'],
+    ['dunes', 'background_dunes', 'Dunes'],
+];
+
+// What a picked file may be before it is even opened: decoding a huge one would take the tab's
+// memory with it. It is scaled and compressed well under the server's limit after.
+const UPLOAD_TYPES = /^image\/(jpeg|png|webp)$/;
+const MAX_PICKED_BYTES = 30 * 1024 * 1024;
 
 const TEXT_SIZES = [
     [90, 'text_small', 'Small'],
@@ -103,12 +124,29 @@ Choices.propTypes = {
     onChange: PropTypes.func.isRequired,
 };
 
+// One background to pick: its picture, and its name for screen readers and the tooltip.
+const BackgroundChoice = ({label, selected, onPick, children}) => (
+    <button type='button' role='radio' aria-checked={selected} className='appearance-background'
+            aria-label={label} data-tooltip={label} onClick={onPick}>
+        {children}
+        {selected && <span className='appearance-background-check' aria-hidden><FontAwesomeIcon icon={faCheck}/></span>}
+    </button>
+);
+
+BackgroundChoice.propTypes = {
+    label: PropTypes.string.isRequired,
+    selected: PropTypes.bool,
+    onPick: PropTypes.func.isRequired,
+    children: PropTypes.node,
+};
+
 // How the site looks for this player alone: every change shows at once and is kept on their
 // account. Each setting can go back to how the site comes, or all of them at once.
 function Appearance({isLoggedIn}) {
     const {t} = useTranslation();
-    const {settings, preview, update} = useAppearance();
+    const {settings, preview, update, adopt} = useAppearance();
     const [confirmingReset, setConfirmingReset] = useState(false);
+    const [uploading, setUploading] = useState(false);
     // React's onChange on a colour input fires on every movement of the picker, not when it
     // closes: the colour shows at once and is saved once it has settled.
     const colourTimer = useRef(null);
@@ -127,9 +165,34 @@ function Appearance({isLoggedIn}) {
         );
     }
 
+    // Scaled and compressed here first: what goes up is a few hundred KB, whatever was picked.
+    const upload = async (event) => {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+        if (!file) return;
+        if (!UPLOAD_TYPES.test(file.type) || file.size > MAX_PICKED_BYTES) {
+            toast.error(t('background_bad_file', 'Pick a JPEG, PNG or WebP picture under 30 MB'));
+            return;
+        }
+        setUploading(true);
+        try {
+            const image = await shrinkImage(file);
+            if (!image) {
+                toast.error(t('background_too_big', 'That picture could not be made small enough'));
+                return;
+            }
+            adopt(await uploadBackground(image));
+        } catch {
+            toast.error(t('background_unreadable', 'That picture could not be read'));
+        } finally {
+            setUploading(false);
+        }
+    };
+
     const set = (key) => (value) => update({[key]: value});
     const reset = (key) => () => update({[key]: null});
-    const anyChanged = Object.values(settings).some(value => value != null);
+    // The uploaded picture is kept until it is deleted: having one is not a change in itself.
+    const anyChanged = Object.entries(settings).some(([key, value]) => key !== 'customBackground' && value != null);
     const accent = settings.accent ?? DEFAULT_ACCENT;
     const custom = settings.accent && !ACCENTS.some(([value]) => value === settings.accent);
     // What the text on the accent is right now, automatic included, for the swatches to show.
@@ -194,6 +257,55 @@ function Appearance({isLoggedIn}) {
                 </div>
             </Setting>
 
+            <Setting title={t('background', 'Background')}
+                     hint={t('background_hint', 'The picture behind the site. Your own is scaled down and compressed before it is uploaded.')}
+                     changed={settings.background != null} onReset={reset('background')}>
+                <div className='appearance-backgrounds' role='radiogroup' aria-label={t('background', 'Background')}>
+                    <BackgroundChoice label={t('background_logo', 'Logo (default)')} selected={!settings.background}
+                                      onPick={() => update({background: null})}>
+                        <img className='appearance-background-logo' src='/resources/favicon.png' alt=''/>
+                    </BackgroundChoice>
+                    {BACKGROUNDS.map(([name, key, fallback]) => (
+                        <BackgroundChoice key={name} label={t(key, fallback)} selected={settings.background === name}
+                                          onPick={() => update({background: name})}>
+                            <img src={presetBackgroundUrl(name)} alt='' loading='lazy' decoding='async'/>
+                        </BackgroundChoice>
+                    ))}
+                    {settings.customBackground && (
+                        <div className='appearance-background-own'>
+                            <BackgroundChoice label={t('background_custom', 'Your picture')}
+                                              selected={settings.background === 'custom'}
+                                              onPick={() => update({background: 'custom'})}>
+                                <img src={customBackgroundUrl(settings.customBackground)} alt='' loading='lazy' decoding='async'/>
+                            </BackgroundChoice>
+                            <button type='button' className='appearance-background-remove'
+                                    aria-label={t('background_remove', 'Delete your picture')}
+                                    data-tooltip={t('background_remove', 'Delete your picture')}
+                                    onClick={() => removeBackground().then(adopt)}>
+                                <FontAwesomeIcon icon={faTrash}/>
+                            </button>
+                        </div>
+                    )}
+                    <label className='appearance-background appearance-background-upload' data-busy={uploading || undefined}>
+                        <input type='file' accept='image/jpeg,image/png,image/webp' className='visually-hidden'
+                               disabled={uploading} onChange={upload}/>
+                        <span className='appearance-background-upload-icon' aria-hidden>
+                            <FontAwesomeIcon icon={uploading ? faSpinner : faUpload} spin={uploading}/>
+                        </span>
+                        <span className='appearance-background-upload-label'>
+                            {uploading ? t('background_uploading', 'Uploading…')
+                                : settings.customBackground ? t('background_replace', 'Replace your picture')
+                                    : t('background_upload', 'Upload a picture')}
+                        </span>
+                    </label>
+                </div>
+            </Setting>
+
+            <Setting title={t('language', 'Language')}
+                     hint={t('language_hint', 'For the whole site, and for what the server writes to you.')}>
+                <LanguageSelect isLoggedIn={isLoggedIn} field className='appearance-language'/>
+            </Setting>
+
             <Setting title={t('text_size', 'Text size')}
                      hint={t('text_size_hint', 'For all the text on the site.')}
                      changed={settings.textSize != null} onReset={reset('textSize')}>
@@ -212,6 +324,16 @@ function Appearance({isLoggedIn}) {
                     <input type='checkbox' checked={Boolean(settings.compactNav)}
                            onChange={event => update({compactNav: event.target.checked || null})}/>
                     {t('compact_nav', 'Icons only in the main menu')}
+                </label>
+            </Setting>
+
+            <Setting title={t('site_tour', 'Site tour')}
+                     hint={t('hide_tour_link_hint', 'With the compass hidden, the tour can still be opened at /home?tour.')}
+                     changed={settings.hideTourLink != null} onReset={reset('hideTourLink')}>
+                <label className='appearance-toggle'>
+                    <input type='checkbox' checked={Boolean(settings.hideTourLink)}
+                           onChange={event => update({hideTourLink: event.target.checked || null})}/>
+                    {t('hide_tour_link', 'Hide the site tour button in the menu')}
                 </label>
             </Setting>
 

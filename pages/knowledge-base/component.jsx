@@ -98,7 +98,7 @@ const KnowledgeBase = () => {
                            value={input}
                            onChange={(event) => setInput(event.target.value)}
                            placeholder={t('kb_search_placeholder', 'Search articles, topics or tags…')}
-                           aria-label={t('search')}/>
+                           aria-label={t('search', 'Search')}/>
                     {input && (
                         <button type='button' className='kb-search-clear' onClick={() => setInput('')}
                                 aria-label={t('clear_search', 'Clear search')} data-tooltip={t('clear_search', 'Clear search')}>

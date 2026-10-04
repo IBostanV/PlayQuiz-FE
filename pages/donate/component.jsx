@@ -58,7 +58,6 @@ function Donate() {
     }, []);
 
     const paypal = settings?.paypal;
-    const hasPaypal = Boolean(paypal?.link || paypal?.email);
     const wallets = settings?.crypto ?? [];
 
     return (
@@ -73,27 +72,25 @@ function Donate() {
                 </div>
             </header>
 
-            {settings && !hasPaypal && !wallets.length && (
-                <p className='donate-lead'>
-                    {t('donate_none', 'Donations are not set up yet. Thank you for thinking of it!')}
-                </p>
-            )}
-
-            {hasPaypal && (
-                <div className='donate-section'>
-                    <h2 className='donate-section-title'><FontAwesomeIcon icon={faPaypal}/> PayPal</h2>
-                    {paypal.link && (
-                        <a className='donate-paypal' href={paypal.link} target='_blank' rel='noopener noreferrer'>
-                            <FontAwesomeIcon icon={faPaypal}/> {t('donate_with_paypal', 'Donate with PayPal')}
-                        </a>
-                    )}
-                    {paypal.email && (
-                        <p className='donate-lead'>
-                            {t('donate_paypal_email', 'Or send to')} <code className='donate-wallet-address'>{paypal.email}</code>
-                        </p>
-                    )}
-                </div>
-            )}
+            {/* The code is PayPal's own, saved in public/resources, so it is there whatever the
+                admins set up. The link stays beside it: on a phone there is no second screen to
+                scan from. */}
+            <div className='donate-section'>
+                <h2 className='donate-section-title'><FontAwesomeIcon icon={faPaypal}/> PayPal</h2>
+                <p className='donate-lead'>{t('donate_paypal_scan', 'Scan the code with your phone to donate with PayPal.')}</p>
+                <img className='donate-paypal-qr' src='/resources/qrcode.png' width={260} height={260}
+                     alt={t('donate_paypal_qr', 'PayPal donation QR code')}/>
+                {paypal?.link && (
+                    <a className='donate-paypal' href={paypal.link} target='_blank' rel='noopener noreferrer'>
+                        <FontAwesomeIcon icon={faPaypal}/> {t('donate_with_paypal', 'Donate with PayPal')}
+                    </a>
+                )}
+                {paypal?.email && (
+                    <p className='donate-lead'>
+                        {t('donate_paypal_email', 'Or send to')} <code className='donate-wallet-address'>{paypal.email}</code>
+                    </p>
+                )}
+            </div>
 
             {wallets.length > 0 && (
                 <div className='donate-section'>

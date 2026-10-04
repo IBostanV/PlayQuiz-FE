@@ -55,7 +55,7 @@ const RIGHT_LISTS = {
         placeholder: ['answer_placeholder', 'e.g. Chisinau'],
     },
     many: {
-        label: ['right_answers', 'Right answers'],
+        label: ['right_answers_label', 'Right answers'],
         item: ['right_answer_number', 'Right answer {{number}}'],
         placeholder: ['answer_placeholder', 'e.g. Chisinau'],
         add: ['add_answer', 'Add another right answer'],
@@ -394,7 +394,7 @@ function CreateQuiz({isLoggedIn}) {
                                       filter
                                       placeholder={t('invite_a_group', 'Invite a group')}
                                       aria-label={t('invite_a_group', 'Invite a group')}
-                                      emptyMessage={t('no_groups', 'No groups')}
+                                      emptyMessage={t('no_groups_to_pick', 'No groups')}
                                       emptyFilterMessage={t('no_matches', 'No matches')}/>
                             <button type={'button'} className={'create-quiz-group-add'} onClick={inviteGroup}
                                     disabled={!group}>
@@ -434,7 +434,7 @@ function CreateQuiz({isLoggedIn}) {
                             ))}
                         </ul>
                     ) : (
-                        <p className={'quiz-empty'}>{t('no_people', 'No one to invite')}</p>
+                        <p className={'quiz-empty'}>{t('no_people_to_invite', 'No one to invite')}</p>
                     )}
                 </section>
 

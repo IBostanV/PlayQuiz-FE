@@ -17,6 +17,12 @@ main:has(.iq-page[data-testing='true']) .friends-dock {
   max-width: 720px;
   padding: 26px 24px 22px;
   width: 100%;
+
+  // Phones: the slab's padding is room the options need.
+  @media (max-width: 575.98px) {
+    margin: 8px auto;
+    padding: 18px 14px 16px;
+  }
 }
 
 .iq-hero {

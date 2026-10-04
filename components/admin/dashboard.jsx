@@ -1,5 +1,6 @@
 import React from 'react';
 import {useRouter} from 'next/router';
+import {useTranslation} from 'react-i18next';
 import {Col, Nav, Row, Tab} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 
@@ -10,6 +11,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
  * Tab.Panes, keyed by the same `key`. ?tab= opens one directly, as the navbar's links do.
  */
 export const AdminDashboard = ({title, sections, children}) => {
+    const {t} = useTranslation();
     const {query} = useRouter();
     const opened = sections.some(section => section.key === query.tab) ? query.tab : sections[0].key;
 
@@ -17,8 +19,8 @@ export const AdminDashboard = ({title, sections, children}) => {
         <Tab.Container id="admin-dashboard" defaultActiveKey={opened}>
             {/* Bootstrap's dark theme handles inputs/tables; .admin-page adds the cyan accents. */}
             <Row className="admin-page" data-bs-theme="dark">
-                <Col sm={3} xl={2} className="admin-nav">
-                    <nav className="admin-menu" aria-label="Admin sections">
+                <Col md={3} xl={2} className="admin-nav">
+                    <nav className="admin-menu" aria-label={t('content_admin_sections', 'Admin sections')}>
                         <h2 className="admin-menu-title">{title}</h2>
                         <Nav variant="pills" className="flex-column">
                             {sections.map(section => (
@@ -30,7 +32,7 @@ export const AdminDashboard = ({title, sections, children}) => {
                                         <span className="admin-menu-label">{section.label}</span>
                                         {section.badge > 0 && (
                                             <span className="admin-menu-badge"
-                                                  title={section.badgeTitle ?? `${section.badge} unresolved`}>
+                                                  title={section.badgeTitle ?? t('content_badge_unresolved', '{{count}} unresolved', {count: section.badge})}>
                                                 {section.badge > 99 ? '99+' : section.badge}
                                             </span>
                                         )}
@@ -40,7 +42,7 @@ export const AdminDashboard = ({title, sections, children}) => {
                         </Nav>
                     </nav>
                 </Col>
-                <Col sm={9} xl={10}>
+                <Col md={9} xl={10}>
                     <Tab.Content>{children}</Tab.Content>
                 </Col>
             </Row>

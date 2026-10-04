@@ -7,6 +7,7 @@ import {faArrowRight, faBrain, faClock, faRotateRight} from '@fortawesome/free-s
 import {answerIqTest, getLatestIqResult, startIqTest} from '../../api/iq';
 import {EXPERIENCE_CHANGED} from '../../api/quiz/save';
 import {IqItem} from '../../components/iq/item';
+import {useQuizInProgress} from '../../utils/quiz-in-progress';
 
 // The IQ test: the questions come one at a time, timed, and the test ends when the estimate is
 // firm enough rather than after a fixed number of them — which is why the counter says "of 30"
@@ -23,6 +24,7 @@ function IqTest({isLoggedIn}) {
     const [started, setStarted] = useState(false);
     // Read once at the start so the intro can say what they scored last time.
     const [previous, setPrevious] = useState(null);
+    useQuizInProgress(started && !result);
 
     // The timer is the server's; this is the copy on screen, and running out submits an answer
     // of "none" rather than waiting for the player to notice.

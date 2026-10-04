@@ -4,7 +4,7 @@
 .profile-history {
   @include glass-slab(6);
   grid-column: 1 / -1;
-  padding: 28px 28px 24px;
+  padding: clamp(16px, 4vw, 28px) clamp(14px, 4vw, 28px) 24px;
 }
 
 // Quizzes played, questions, right, accuracy, best, time.

@@ -18,11 +18,13 @@ export const hueFor = (name = '') => {
 
 // A picture where there is one (a player's photo, a group's), initials on a muted colour picked
 // from the name where there is not. Same circle either way, so nothing shifts when one is set.
-export const Avatar = ({name, photo, className = ''}) => photo
-    ? <img className={`chat-avatar ${className}`.trim()} src={base64Util(photo)} alt=''/>
+// `frame`: the cosmetic frame a player wears (its code), drawn round the circle by the stylesheet.
+export const Avatar = ({name, photo, className = '', frame}) => photo
+    ? <img className={`chat-avatar ${className}`.trim()} src={base64Util(photo)} alt='' data-frame={frame || undefined}/>
     : (
         <span className={`chat-avatar ${className}`.trim()}
               style={{'--avatar-hue': hueFor(name)}}
+              data-frame={frame || undefined}
               aria-hidden>
             {initials(name)}
         </span>
@@ -32,4 +34,5 @@ Avatar.propTypes = {
     name: PropTypes.string,
     photo: PropTypes.any,
     className: PropTypes.string,
+    frame: PropTypes.string,
 };

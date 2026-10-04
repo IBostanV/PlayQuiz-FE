@@ -4,6 +4,7 @@ import { deleteCookie, getCookie, hasCookie, setCookie } from 'cookies-next';
 import { toast } from 'react-toastify';
 import { CSRF_TOKEN_URL } from '../api/constant';
 import { reportError } from './report-error';
+import i18n from 'i18next';
 
 export const POST = 'post';
 export const GET = 'get';
@@ -59,6 +60,10 @@ const axiosRequest = (url, params = {}) => {
       headers: {
         ...params.headers,
         ...(hasCookie('authorization') ? { Authorization: `Bearer ${getCookie('authorization')}` } : undefined),
+        // The server writes its messages (errors, trophies, emails) in the player's language.
+        'Accept-Language': i18n.language || 'EN',
+        // The visit streak counts the player's own days, not the server's.
+        'X-Time-Zone': Intl.DateTimeFormat().resolvedOptions().timeZone,
         'X-XSRF-TOKEN': params.xsrfToken
       }
     },
@@ -106,7 +111,7 @@ const axiosRequest = (url, params = {}) => {
 
       const message = (error) => (
         <div>
-          Status code:
+          {i18n.t('status_code', 'Status code:')}{' '}
           {response.status}
           <hr/>
           {error}

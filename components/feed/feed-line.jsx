@@ -6,7 +6,7 @@ import {useTranslation} from 'react-i18next';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
     faAnglesUp, faBookOpen, faCircleQuestion, faCommentDots, faCrown, faEarthAmericas, faFlag, faHandFist,
-    faNewspaper, faScrewdriverWrench, faTrophy
+    faBolt, faComments, faNewspaper, faScrewdriverWrench, faTrophy, faUserPlus
 } from '@fortawesome/free-solid-svg-icons';
 import {toDate} from '../../utils/toDate';
 import {ConfirmDialog} from '../common/popup';
@@ -77,6 +77,45 @@ const TYPES = {
         text: (item, t) => item.own
             ? t('feed_own_post', 'You: {{title}}', {title: item.title})
             : t('feed_friend_post', '{{user}}: {{title}}', {user: item.user?.displayName, title: item.title}),
+    },
+    // Someone asks to join a private group the reader owns: opens the group, where it is answered.
+    GROUP_REQUEST: {
+        icon: faUserPlus,
+        href: (item) => `/groups/${item.refId}`,
+        text: (item, t) => t('feed_group_request', '{{user}} asks to join {{group}}',
+            {user: item.user?.displayName, group: item.name}),
+    },
+    // The owner of a private group let the reader in: opens the group.
+    GROUP_APPROVED: {
+        icon: faUserPlus,
+        href: (item) => `/groups/${item.refId}`,
+        text: (item, t) => t('feed_group_approved', 'You are in! {{user}} let you into {{group}}',
+            {user: item.user?.displayName, group: item.name}),
+    },
+    // Others commented on the reader's post in a group: opens the group.
+    GROUP_COMMENT: {
+        icon: faComments,
+        href: (item) => `/groups/${item.refId}`,
+        text: (item, t) => item.count > 0
+            ? t('feed_group_comments', '{{user}} and {{count}} others commented on your post in {{group}}: "{{post}}"',
+                {user: item.user?.displayName, count: item.count, group: item.name, post: item.text})
+            : t('feed_group_comment', '{{user}} commented on your post in {{group}}: "{{post}}"',
+                {user: item.user?.displayName, group: item.name, post: item.text}),
+    },
+    // A turn-based duel waits on the reader: opens the duels, where the round is played.
+    DUEL_TURN: {
+        icon: faBolt,
+        href: () => '/challenges#duels',
+        text: (item, t) => t('feed_duel_turn', 'Your turn against {{user}}: round {{round}}',
+            {user: item.user?.displayName, round: item.count}),
+    },
+    DUEL_DONE: {
+        icon: faBolt,
+        href: () => '/challenges#duels',
+        text: (item, t) => ({
+            WON: t('feed_duel_won', 'You won your duel with {{user}}', {user: item.user?.displayName}),
+            LOST: t('feed_duel_lost', '{{user}} won your duel', {user: item.user?.displayName}),
+        }[item.title] ?? t('feed_duel_draw', 'Your duel with {{user}} ended in a draw', {user: item.user?.displayName})),
     },
     // A friend's "beat my score": opens the Together page, where it is played.
     CHALLENGE: {
