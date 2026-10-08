@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import getCategories from '../../../api/category/get-all';
+import getCategories, {getCategoryIdsWithQuestions} from '../../../api/category/get-all';
 import Link from 'next/link';
 import {getQuizTypes} from "../../../api/quiz";
 import {useTranslation} from "react-i18next";
@@ -26,6 +26,17 @@ export const filterTree = (nodes, query) => {
         if (node.name?.toLowerCase().includes(needle)) return [node];
         const children = filterTree(node.children, query);
         return children.length ? [{...node, children}] : [];
+    });
+};
+
+// Keeps the categories a quiz can be played in: those with questions of their own (`withQuestions`,
+// a Set of ids) and the parents of any such, since a parent's quiz draws from its subcategories too.
+// null (not known yet) keeps everything.
+export const playableTree = (nodes, withQuestions) => {
+    if (!withQuestions) return nodes;
+    return nodes.flatMap(node => {
+        const children = playableTree(node.children, withQuestions);
+        return withQuestions.has(node.catId) || children.length ? [{...node, children}] : [];
     });
 };
 
@@ -82,6 +93,9 @@ function Quiz() {
     const [query, setQuery] = useState('');
 
     const [quizType, setQuizType] = useState('0');
+    // Which categories have questions for the chosen type and difficulty, per "type|difficulty" as
+    // each pair is first picked.
+    const [withQuestions, setWithQuestions] = useState({});
     // A difficulty band as "from-to" over Q_QUESTION.COMPLEXITY_LEVEL (1-10); '' is any.
     const [complexity, setComplexity] = useState('');
     const [length, setLength] = useState('');
@@ -111,8 +125,17 @@ function Quiz() {
         setLayers(previous => [...previous.filter(item => item !== backdrop).slice(-2), backdrop]);
     }, [backdrop]);
 
+    const filterKey = `${quizType}|${complexity}`;
+    useEffect(() => {
+        if (withQuestions[filterKey]) return;
+        getCategoryIdsWithQuestions(quizType, complexity).then(ids => Array.isArray(ids)
+            && setWithQuestions(known => ({...known, [filterKey]: new Set(ids)})));
+    }, [filterKey]);
+
     const searching = Boolean(query.trim());
-    const visible = useMemo(() => filterTree(categories, query), [categories, query]);
+    // Until the type's list arrives (or if it fails), every category shows, as before.
+    const visible = useMemo(() => filterTree(playableTree(categories, withQuestions[filterKey] ?? null), query),
+        [categories, query, filterKey, withQuestions]);
 
     // Hovering a branch swaps the backdrop too, so parents behave like any other tile.
     const hoverProps = (item) => ({
@@ -252,6 +275,11 @@ function Quiz() {
                         {searching && !visible.length && (
                             <p className={'quiz-empty'}>
                                 {t('no_categories_match', 'No categories match “{{query}}”.', {query: query.trim()})}
+                            </p>
+                        )}
+                        {!searching && !visible.length && categories.length > 0 && (
+                            <p className={'quiz-empty'}>
+                                {t('no_categories_for_filters', 'No category has questions for this quiz type and difficulty yet.')}
                             </p>
                         )}
                     </div>

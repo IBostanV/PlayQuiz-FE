@@ -12,6 +12,9 @@ import { FEED_PATH } from '../constant';
 // just earned, so one won by a quiz shows up here without opening the trophies page.
 export const getNotifications = () => request(`${FEED_PATH}/notifications`);
 
+// Fired when something new for the bell was pushed over the socket, so it reads the list at once.
+export const NOTIFICATIONS_CHANGED = 'notifications-changed';
+
 // Everything up to now counts as seen.
 export const markNotificationsRead = () => request(`${FEED_PATH}/notifications/read`, { method: POST });
 

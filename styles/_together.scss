@@ -421,6 +421,7 @@
 
 .live-modes {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -1507,5 +1508,106 @@
     .lb-tab {
       transition: none;
     }
+  }
+}
+
+// The pairs game's table (components/social/pairs-board.jsx). Face down a card is the accent's
+// glass; turned it shows its picture; taken it stays on the table, dimmed (green if it is yours).
+.pairs-board {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(var(--pairs-columns, 4), minmax(0, 1fr));
+  margin: 0 auto;
+  // About 100px of row per column, whatever the number of columns.
+  max-width: calc(var(--pairs-columns, 4) * 100px);
+  width: 100%;
+
+  @media (max-width: 575.98px) {
+    gap: 6px;
+    grid-template-columns: repeat(var(--pairs-columns-phone, 4), minmax(0, 1fr));
+  }
+}
+
+.pairs-card {
+  align-items: center;
+  // The card pictures' own shape (about 285 x 465).
+  aspect-ratio: 5 / 8;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(var(--ui-accent-rgb), 0.28) 0%, rgba(var(--ui-accent-rgb), 0.08) 100%);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.35);
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, opacity 200ms ease,
+    transform 200ms ease;
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 14px rgba(var(--ui-accent-rgb), 0.4);
+    outline: none;
+    transform: translateY(-2px);
+  }
+
+  &[data-state='up'],
+  &[data-state='miss'],
+  &[data-state='mine'],
+  &[data-state='taken'] {
+    animation: pairs-turn 260ms ease both;
+    background: transparent;
+    border-color: transparent;
+  }
+
+  &[data-state='up'] {
+    border-color: var(--ui-accent);
+    box-shadow: 0 0 16px rgba(var(--ui-accent-rgb), 0.45);
+  }
+
+  &[data-state='miss'] {
+    border-color: #e74c3c;
+    box-shadow: 0 0 16px rgba(231, 76, 60, 0.45);
+  }
+
+  &[data-state='mine'] {
+    box-shadow: 0 0 0 2px #2ecc71;
+    opacity: 0.55;
+  }
+
+  &[data-state='taken'] {
+    opacity: 0.3;
+  }
+}
+
+// The picture is the whole face, frame and all.
+.pairs-face {
+  display: block;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+// While it is not your turn the face-down cards stay where they are, just not inviting a click.
+.pairs-board:not([data-my-turn]) .pairs-card[data-state='down'] {
+  opacity: 0.8;
+}
+
+@keyframes pairs-turn {
+  from {
+    transform: rotateY(90deg);
+  }
+
+  to {
+    transform: rotateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pairs-card {
+    animation: none !important;
   }
 }

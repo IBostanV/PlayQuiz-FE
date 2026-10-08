@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {useRouter} from 'next/router';
 import {useTranslation} from 'react-i18next';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faBolt, faCheck, faDoorOpen, faRightToBracket, faUsers} from '@fortawesome/free-solid-svg-icons';
+import {faBolt, faCheck, faClone, faDoorOpen, faRightToBracket, faUsers} from '@fortawesome/free-solid-svg-icons';
 import getFriends from '../../api/user/get-friends';
 import getUserGroups from '../../api/user/getUserGroups';
 import {getOnlineFriends} from '../../api/social';
@@ -12,6 +12,12 @@ import {Avatar} from '../common/avatar';
 
 const QUESTION_COUNTS = [5, 10, 15];
 const SECONDS = [10, 15, 20];
+// The pairs game: how many pairs on the table, and the seconds a turn has.
+// Any number from 4 up to one pair per card picture (LiveService.FACES).
+const PAIR_COUNTS = Array.from({length: 27}, (_, index) => index + 4);
+const TURN_SECONDS = [10, 20, 30];
+// Up to 4 at a table: the host and three.
+const PAIRS_INVITES = 3;
 
 // Starting something live: a duel against one friend who is on the site now, a room for as many
 // as want in (friends and a chat group invited, anyone else by its code), or joining a room from
@@ -27,6 +33,8 @@ export const LiveStart = () => {
     const [groupId, setGroupId] = useState('');
     const [questions, setQuestions] = useState(10);
     const [seconds, setSeconds] = useState(15);
+    const [pairCount, setPairCount] = useState(8);
+    const [turnSeconds, setTurnSeconds] = useState(20);
     const [code, setCode] = useState('');
     const [busy, setBusy] = useState(false);
 
@@ -48,7 +56,8 @@ export const LiveStart = () => {
     const pick = (id) => setPicked(current => {
         if (mode === 'DUEL') return new Set(current.has(id) ? [] : [id]);
         const next = new Set(current);
-        next.has(id) ? next.delete(id) : next.add(id);
+        if (next.has(id)) next.delete(id);
+        else if (mode !== 'PAIRS' || next.size < PAIRS_INVITES) next.add(id);
         return next;
     });
 
@@ -63,8 +72,8 @@ export const LiveStart = () => {
             mode,
             friendIds: [...picked],
             groupId: mode === 'ROOM' && groupId ? Number(groupId) : null,
-            questions: mode === 'DUEL' ? 7 : questions,
-            seconds,
+            questions: {DUEL: 7, PAIRS: pairCount}[mode] ?? questions,
+            seconds: mode === 'PAIRS' ? turnSeconds : seconds,
         }).then(room => room?.code && router.push(`/live/${room.code}`))
             .finally(() => setBusy(false));
     };
@@ -90,7 +99,11 @@ export const LiveStart = () => {
             </header>
 
             <div className='live-modes' role='radiogroup'>
-                {[['DUEL', faBolt, t('live_duel', 'Duel a friend')], ['ROOM', faDoorOpen, t('live_room', 'Open a room')]]
+                {[
+                    ['DUEL', faBolt, t('live_duel', 'Duel a friend')],
+                    ['ROOM', faDoorOpen, t('live_room', 'Open a room')],
+                    ['PAIRS', faClone, t('pairs_mode', 'Pairs')],
+                ]
                     .map(([value, icon, label]) => (
                         <button key={value} type='button' role='radio' aria-checked={mode === value}
                                 className='live-mode' onClick={() => switchMode(value)}>
@@ -127,10 +140,28 @@ export const LiveStart = () => {
                 </div>
             )}
 
+            {mode === 'PAIRS' && (
+                <div className='live-settings'>
+                    <label className='live-setting'>
+                        {t('pairs_count', 'Pairs')}
+                        <select value={pairCount} onChange={event => setPairCount(Number(event.target.value))}>
+                            {PAIR_COUNTS.map(count => <option key={count} value={count}>{count}</option>)}
+                        </select>
+                    </label>
+                    <label className='live-setting'>
+                        {t('pairs_turn_seconds', 'Seconds a turn')}
+                        <select value={turnSeconds} onChange={event => setTurnSeconds(Number(event.target.value))}>
+                            {TURN_SECONDS.map(value => <option key={value} value={value}>{value}</option>)}
+                        </select>
+                    </label>
+                </div>
+            )}
+
             <p className='live-friends-label'>
-                {mode === 'DUEL'
-                    ? t('live_pick_opponent', 'Who do you want to duel? Only friends on the site now see it.')
-                    : t('live_pick_friends', 'Invite friends (optional): anyone with the code can join too.')}
+                {{
+                    DUEL: t('live_pick_opponent', 'Who do you want to duel? Only friends on the site now see it.'),
+                    PAIRS: t('pairs_pick_friends', 'Take turns turning two cards over; a pair is yours and you go again. Invite up to 3 friends, or share the code.'),
+                }[mode] ?? t('live_pick_friends', 'Invite friends (optional): anyone with the code can join too.')}
             </p>
             {sorted.length ? (
                 <ul className='live-friends'>
@@ -165,8 +196,11 @@ export const LiveStart = () => {
 
             <div className='live-start-actions'>
                 <button type='button' className='home-card-play' disabled={!canStart || busy} onClick={start}>
-                    <FontAwesomeIcon icon={mode === 'DUEL' ? faBolt : faDoorOpen}/>
-                    {mode === 'DUEL' ? t('live_send_duel', 'Send duel') : t('live_open_room', 'Open room')}
+                    <FontAwesomeIcon icon={{DUEL: faBolt, PAIRS: faClone}[mode] ?? faDoorOpen}/>
+                    {{
+                        DUEL: t('live_send_duel', 'Send duel'),
+                        PAIRS: t('pairs_open', 'Open a pairs table'),
+                    }[mode] ?? t('live_open_room', 'Open room')}
                 </button>
 
                 <form className='live-join' onSubmit={join}>
