@@ -7,11 +7,14 @@ import {questionText} from '../../utils/translated';
 import {toast} from 'react-toastify';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
-    faArrowLeft, faBolt, faCheck, faCopy, faCrown, faDoorOpen, faMedal, faPlay, faRightFromBracket, faXmark,
+    faArrowLeft, faBolt, faCheck, faClone, faCopy, faCrown, faDoorOpen, faHandPointer, faMedal, faPlay,
+    faRightFromBracket, faXmark,
 } from '@fortawesome/free-solid-svg-icons';
-import {answerRoom, getRoom, joinRoom, leaveRoom, LIVE_TOPIC, startRoom} from '../../api/live';
+import {answerRoom, declineRoom, flipCard, getRoom, joinRoom, leaveRoom, LIVE_TOPIC, playAgain, startRoom} from '../../api/live';
 import {useChatNotifications} from '../../context/chat-notifications';
 import {Avatar} from '../../components/common/avatar';
+import {PairsBoard} from '../../components/social/pairs-board';
+import {COINS_CHANGED} from '../../api/coin';
 import {useQuizInProgress} from '../../utils/quiz-in-progress';
 
 const LETTERS = 'ABCDEFGH';
@@ -39,11 +42,18 @@ function LiveMatch({isLoggedIn}) {
     const [now, setNow] = useState(Date.now());
     const offset = useRef(0);
     const [picking, setPicking] = useState(false);
+    // Who reopened this room for a rematch while this player was still on the results.
+    const [rematchBy, setRematchBy] = useState(null);
     // The lobby too: the host can start the match at any moment.
     useQuizInProgress(!closed && !missing && !['FINISHED', 'CLOSED'].includes(room?.phase));
 
     const show = (next) => {
         if (!next) return;
+        if (next.phase !== 'FINISHED') setRematchBy(null);
+        // A game of pairs just paid this player: the navbar balance follows.
+        if (next.phase === 'FINISHED' && next.players.some(player => player.user?.id === next.you && player.coins)) {
+            window.dispatchEvent(new Event(COINS_CHANGED));
+        }
         offset.current = next.serverNow - Date.now();
         setRoom(next);
     };
@@ -60,6 +70,7 @@ function LiveMatch({isLoggedIn}) {
         if (topic !== LIVE_TOPIC || event.code !== code) return;
         if (event.type === 'ROOM') show(event.room);
         if (event.type === 'CLOSED') setClosed(event.reason);
+        if (event.type === 'INVITE') setRematchBy(event.from);
     }), [subscribe, code]);
 
     // The clock the countdowns read, a few times a second while something is timed.
@@ -122,13 +133,39 @@ function LiveMatch({isLoggedIn}) {
             .finally(() => setPicking(false));
     };
 
-    const copyLink = () => {
-        navigator.clipboard?.writeText(`${window.location.origin}/live/${code}?join=1`)
-            .then(() => toast.success(t('link_copied', 'Link copied')));
+    // The pairs game: turning a card over. The server ignores one that is not this player's to turn.
+    const flip = (card) => {
+        if (picking) return;
+        setPicking(true);
+        flipCard(code, card).then(show).finally(() => setPicking(false));
     };
 
+    const pairs = room.mode === 'PAIRS';
+    const turnPlayer = pairs ? room.players.find(player => player.user?.id === room.pairs?.turn) : null;
+    const modeLabel = {
+        DUEL: t('live_duel_title', 'Live duel'),
+        ROOM: t('live_room_title', 'Live room'),
+        PAIRS: t('pairs_title', 'Pairs'),
+    }[room.mode];
+
+    // Back to this room's lobby; a room already gone (kept 10 minutes after the end) sends the
+    // player to start a new one instead.
+    const again = () => {
+        setPicking(true);
+        playAgain(code)
+            .then(next => (next ? show(next) : router.push('/challenges')))
+            .finally(() => setPicking(false));
+    };
+
+    const copyCode = () => {
+        navigator.clipboard?.writeText(code)
+            .then(() => toast.success(t('code_copied', 'Code copied')));
+    };
+
+    // From the results too: out of any rematch. Once someone has reopened the room this player is
+    // only invited to it, so leaving is saying no to that.
     const leave = () => {
-        leaveRoom(code).finally(() => router.push('/challenges'));
+        (rematchBy ? declineRoom : leaveRoom)(code).finally(() => router.push('/challenges'));
     };
 
     const scoreboard = (
@@ -153,6 +190,11 @@ function LiveMatch({isLoggedIn}) {
                             {player.lastCorrect ? `+${player.lastPoints}` : <FontAwesomeIcon icon={faXmark}/>}
                         </span>
                     )}
+                    {pairs && ['TURN', 'MISMATCH'].includes(room.phase) && player.user?.id === room.pairs?.turn && (
+                        <span className='live-board-state' data-answered='true' data-tooltip={t('pairs_turn', 'Their turn')}>
+                            <FontAwesomeIcon icon={faHandPointer}/>
+                        </span>
+                    )}
                     {room.phase !== 'LOBBY' && <span className='live-board-score'>{player.score}</span>}
                 </li>
             ))}
@@ -163,31 +205,39 @@ function LiveMatch({isLoggedIn}) {
         <section className='live-page' data-phase={room.phase}>
             <header className='live-head'>
                 <span className='live-mode-badge' data-mode={room.mode}>
-                    <FontAwesomeIcon icon={room.mode === 'DUEL' ? faBolt : faDoorOpen}/>
-                    {room.mode === 'DUEL' ? t('live_duel_title', 'Live duel') : t('live_room_title', 'Live room')}
+                    <FontAwesomeIcon icon={{DUEL: faBolt, PAIRS: faClone}[room.mode] ?? faDoorOpen}/>
+                    {modeLabel}
                 </span>
+                {pairs && ['TURN', 'MISMATCH'].includes(room.phase) && (
+                    <span className='live-step' data-mine={room.pairs.turn === room.you || undefined}>
+                        {room.pairs.turn === room.you
+                            ? t('pairs_your_turn', 'Your turn')
+                            : t('pairs_their_turn', '{{name}}\'s turn', {name: turnPlayer?.user?.displayName ?? '?'})}
+                    </span>
+                )}
                 {['QUESTION', 'REVEAL'].includes(room.phase) && (
                     <span className='live-step'>
                         {t('question', 'Question')} <b>{room.index + 1}</b> / {room.total}
                     </span>
                 )}
-                {room.phase !== 'FINISHED' && (
-                    <button type='button' className='live-leave' onClick={leave}>
-                        <FontAwesomeIcon icon={faRightFromBracket}/> {t('live_leave', 'Leave')}
-                    </button>
-                )}
+                <button type='button' className='live-leave' onClick={leave}>
+                    <FontAwesomeIcon icon={faRightFromBracket}/> {t('live_leave', 'Leave')}
+                </button>
             </header>
 
             {room.phase === 'LOBBY' && (
                 <div className='live-lobby'>
                     <p className='live-code-label'>{t('live_code_label', 'Room code')}</p>
-                    <button type='button' className='live-code' onClick={copyLink}
-                            data-tooltip={t('live_copy_link', 'Copy an invite link')}>
+                    <button type='button' className='live-code' onClick={copyCode}
+                            data-tooltip={t('live_copy_code', 'Copy the code')}>
                         {code} <FontAwesomeIcon icon={faCopy}/>
                     </button>
                     <p className='home-card-sub'>
-                        {t('live_lobby_sub', '{{questions}} questions, {{seconds}} seconds each.',
-                            {questions: room.total, seconds: room.seconds})}
+                        {pairs
+                            ? t('pairs_lobby_sub', '{{pairs}} pairs, {{seconds}} seconds a turn, up to 4 players.',
+                                {pairs: room.total, seconds: room.seconds})
+                            : t('live_lobby_sub', '{{questions}} questions, {{seconds}} seconds each.',
+                                {questions: room.total, seconds: room.seconds})}
                     </p>
 
                     {scoreboard}
@@ -252,6 +302,17 @@ function LiveMatch({isLoggedIn}) {
                 </div>
             )}
 
+            {pairs && ['TURN', 'MISMATCH'].includes(room.phase) && (
+                <div className='live-stage'>
+                    <div className='live-timer' aria-hidden>
+                        <span className='live-timer-fill' data-low={room.phase === 'TURN' && left <= 5 || undefined}
+                              style={{width: `${(room.phase === 'TURN' ? share : 0) * 100}%`}}/>
+                    </div>
+                    <PairsBoard room={room} onFlip={flip} busy={picking}/>
+                    {scoreboard}
+                </div>
+            )}
+
             {room.phase === 'FINISHED' && (
                 <div className='live-finish'>
                     <ol className='live-podium'>
@@ -269,12 +330,20 @@ function LiveMatch({isLoggedIn}) {
                         {room.players[0]?.user?.id === room.you
                             ? t('live_you_won', 'You won!')
                             : t('live_winner', '{{name}} wins', {name: room.players[0]?.user?.displayName})}
-                        {me && ` · ${t('live_your_right', '{{right}}/{{total}} right', {right: me.correct, total: room.total})}`}
+                        {me && ` · ${pairs
+                            ? t('pairs_your_pairs', '{{count}} of {{total}} pairs', {count: me.score, total: room.total})
+                            : t('live_your_right', '{{right}}/{{total}} right', {right: me.correct, total: room.total})}`}
+                        {me?.coins > 0 && ` · ${t('pairs_coins_won', '+{{coins}} coins', {coins: me.coins})}`}
                     </p>
                     {room.players.length > 3 && scoreboard}
-                    <Link href='/challenges' className='home-card-play'>
+                    {rematchBy && (
+                        <p className='live-wait'>
+                            {t('live_rematch_by', '{{name}} wants a rematch', {name: rematchBy.displayName})}
+                        </p>
+                    )}
+                    <button type='button' className='home-card-play' onClick={again} disabled={picking}>
                         <FontAwesomeIcon icon={faBolt}/> {t('live_again', 'Play again')}
-                    </Link>
+                    </button>
                 </div>
             )}
         </section>

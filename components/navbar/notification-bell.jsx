@@ -4,12 +4,12 @@ import {useRouter} from 'next/router';
 import {useTranslation} from 'react-i18next';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faArrowRight, faBell, faBellSlash} from '@fortawesome/free-solid-svg-icons';
-import {getNotifications, markNotificationsRead} from '../../api/feed';
+import {getNotifications, markNotificationsRead, NOTIFICATIONS_CHANGED} from '../../api/feed';
 import {EXPERIENCE_CHANGED} from '../../api/quiz/save';
 import {FeedLine} from '../feed/feed-line';
 
-// ponytail: polled, not pushed. Every event here is worked out on the server when it is read, so
-// there is nothing to push from; a websocket would only shorten the wait below.
+// ponytail: mostly polled. Every event here is worked out on the server when it is read; the few
+// pushed over the socket (challenges, duel invitations) fire NOTIFICATIONS_CHANGED to re-read at once.
 const POLL_MS = 2 * 60 * 1000;
 
 // The bell in the navbar: how many notifications are new, and the list under it. Opening the list
@@ -29,9 +29,11 @@ export const NotificationBell = () => {
         reload();
         const timer = setInterval(reload, POLL_MS);
         window.addEventListener(EXPERIENCE_CHANGED, reload);
+        window.addEventListener(NOTIFICATIONS_CHANGED, reload);
         return () => {
             clearInterval(timer);
             window.removeEventListener(EXPERIENCE_CHANGED, reload);
+            window.removeEventListener(NOTIFICATIONS_CHANGED, reload);
         };
     }, [router.asPath]);
 

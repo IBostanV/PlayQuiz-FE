@@ -8,6 +8,7 @@ import {getMutedGroups, setGroupMuted} from '../api/user/group-mute';
 import {readChallenge, readResult} from '../utils/quizMessage';
 import {declineRoom, LIVE_TOPIC} from '../api/live';
 import {ANNOUNCEMENT_TOPIC} from '../api/announcement';
+import {NOTIFICATIONS_CHANGED} from '../api/feed';
 
 // Defaults (outside the provider) carry the real signatures, so TS callers type-check.
 const ChatNotificationsContext = createContext({
@@ -140,12 +141,32 @@ export const ChatNotificationsProvider = ({isLoggedIn, children}) => {
     // stays until it is answered; the room going away before then takes the toast with it. The
     // room's own page follows the match itself, through subscribe.
     const onLive = (event) => {
+        // A challenge or a turn-based duel sent by a friend: a toast that opens the Together page.
+        const invites = {
+            CHALLENGE: [t('invite_challenge', 'challenges you to beat their score'), '/challenges'],
+            DUEL_INVITE: [t('invite_duel', 'started a duel with you'), '/challenges#duels'],
+        };
+        if (invites[event.type]) {
+            const [text, href] = invites[event.type];
+            // The bell reads it from the server; fetched now rather than at its next poll.
+            window.dispatchEvent(new Event(NOTIFICATIONS_CHANGED));
+            toast.info((
+                <div className='chat-notification'>
+                    <strong>{event.from?.displayName}</strong>
+                    <span>{text}</span>
+                </div>
+            ), {onClick: () => router.push(href), icon: false});
+            return;
+        }
+
         const toastId = `live-${event.code}`;
         if (event.type === 'CLOSED') {
             toast.dismiss(toastId);
             return;
         }
         if (event.type !== 'INVITE' || toast.isActive(toastId)) return;
+        // A rematch of the match on screen: that page says so beside its own Play again button.
+        if (router.pathname === '/live/[code]' && String(router.query.code ?? '').toUpperCase() === event.code) return;
 
         const join = () => {
             toast.dismiss(toastId);
@@ -159,9 +180,10 @@ export const ChatNotificationsProvider = ({isLoggedIn, children}) => {
             <div className='live-invite'>
                 <strong>{event.from?.displayName}</strong>
                 <span>
-                    {event.mode === 'DUEL'
-                        ? t('live_invite_duel', 'challenges you to a live duel')
-                        : t('live_invite_room', 'invites you to a live quiz room')}
+                    {{
+                        DUEL: t('live_invite_duel', 'challenges you to a live duel'),
+                        PAIRS: t('pairs_invite', 'invites you to a game of pairs'),
+                    }[event.mode] ?? t('live_invite_room', 'invites you to a live quiz room')}
                 </span>
                 <span className='live-invite-actions'>
                     <button type='button' className='live-invite-join' onClick={join}>{t('join', 'Join')}</button>
