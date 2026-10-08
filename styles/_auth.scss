@@ -189,6 +189,12 @@
   font-size: 0.9rem;
   height: 50px;
   width: 100%;
+
+  // It glows on hover but stays where it is, without the lift the other buttons have.
+  &:hover:not(:disabled),
+  &:focus-visible {
+    transform: none;
+  }
 }
 
 .auth-spinner {

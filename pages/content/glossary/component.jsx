@@ -3,6 +3,7 @@ import saveGlossary from '../../../api/glossary/save';
 import Form from 'react-bootstrap/Form';
 import { Table } from 'react-bootstrap';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import base64Util from '../../../utils/base64Util';
 import {GlossaryEntity} from "../../../domain/glossary-entity";
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -23,6 +24,7 @@ export default function Glossary({
   setGlossaryFilter,
   glossaryTypes
 }) {
+  const { t } = useTranslation();
   const [addType, setAddType] = useState();
   const [addParent, setAddParent] = useState();
   const [addKey, setAddKey] = useState('');
@@ -83,8 +85,8 @@ export default function Glossary({
   };
 
   const addErrors = {
-    key: !addKey.trim() && 'Set a key',
-    value: !addValue.trim() && 'Set a value',
+    key: !addKey.trim() && t('content_set_key', 'Set a key'),
+    value: !addValue.trim() && t('content_set_value', 'Set a value'),
   };
 
   const save = async (event) => {
@@ -106,7 +108,7 @@ export default function Glossary({
       }, addAttachment);
 
       if (response) {
-        toast.success('Glossary successfully saved');
+        toast.success(t('content_glossary_saved', 'Glossary successfully saved'));
 
         setGlossaries(values => [...values, {
           ...response.data,
@@ -162,7 +164,7 @@ export default function Glossary({
           setItem(GlossaryEntity.getDefaultInstance());
           setBlob(null);
         }
-        toast.success('Glossary deleted');
+        toast.success(t('content_glossary_deleted', 'Glossary deleted'));
       })
       .finally(() => {
         setDeleting(false);
@@ -182,7 +184,7 @@ export default function Glossary({
       }, typeof item.attachment === 'string' ? null : item.attachment);
 
       if (response) {
-        toast.success('Glossary successfully saved');
+        toast.success(t('content_glossary_saved', 'Glossary successfully saved'));
 
         const index = glossaries.findIndex(item => item.termId === response.data.termId);
         if (index !== -1) {
@@ -211,25 +213,26 @@ export default function Glossary({
   return (<div>
     <div className={'d-flex justify-content-around shadowed'}>
       <div className={'col-6 shadowed'}>
-        <h4 className={'text-center'}>Glossaries by</h4>
-        <Form.Select aria-label="Category" onChange={(event) => setGlossaryFilter(event.target.value)}>
+        <h4 className={'text-center'}>{t('content_glossaries_by', 'Glossaries by')}</h4>
+        <Form.Select aria-label={t('content_category', 'Category')} onChange={(event) => setGlossaryFilter(event.target.value)}>
           {categories?.map(category => (
             <option value={category.catId} key={category.catId}>{category.name}</option>))}
         </Form.Select>
         <hr/>
         <TableSearch value={glossarySearch.query} onChange={glossarySearch.setQuery}
-                     placeholder="Search by key, value or type…" count={glossarySearch.results.length}
-                     label="Search glossaries"/>
-        <Table striped bordered variant="dark">
+                     placeholder={t('content_glossary_search_placeholder', 'Search by key, value or type…')}
+                     count={glossarySearch.results.length}
+                     label={t('content_search_glossaries', 'Search glossaries')}/>
+        <Table responsive striped bordered variant="dark">
           <thead>
           <tr>
-            <SortHeader column="key" sort={glossarySort.sort} onSort={glossarySort.toggle}>Key</SortHeader>
-            <SortHeader column="value" sort={glossarySort.sort} onSort={glossarySort.toggle}>Value</SortHeader>
-            <SortHeader column="category" sort={glossarySort.sort} onSort={glossarySort.toggle}>Category</SortHeader>
-            <SortHeader column="type" sort={glossarySort.sort} onSort={glossarySort.toggle}>Type</SortHeader>
-            <SortHeader column="created" sort={glossarySort.sort} onSort={glossarySort.toggle}>Created</SortHeader>
-            <SortHeader column="active" sort={glossarySort.sort} onSort={glossarySort.toggle} className="text-center">Active</SortHeader>
-            <th className="text-center"><span className="visually-hidden">Actions</span></th>
+            <SortHeader column="key" sort={glossarySort.sort} onSort={glossarySort.toggle}>{t('content_key', 'Key')}</SortHeader>
+            <SortHeader column="value" sort={glossarySort.sort} onSort={glossarySort.toggle}>{t('content_value', 'Value')}</SortHeader>
+            <SortHeader column="category" sort={glossarySort.sort} onSort={glossarySort.toggle}>{t('content_category', 'Category')}</SortHeader>
+            <SortHeader column="type" sort={glossarySort.sort} onSort={glossarySort.toggle}>{t('content_type', 'Type')}</SortHeader>
+            <SortHeader column="created" sort={glossarySort.sort} onSort={glossarySort.toggle}>{t('content_created', 'Created')}</SortHeader>
+            <SortHeader column="active" sort={glossarySort.sort} onSort={glossarySort.toggle} className="text-center">{t('content_active', 'Active')}</SortHeader>
+            <th className="text-center"><span className="visually-hidden">{t('content_actions', 'Actions')}</span></th>
           </tr>
           </thead>
           <tbody>
@@ -252,56 +255,56 @@ export default function Glossary({
                           onDelete={() => setPendingDelete(glossary)}
                           busy={deleting && pendingDelete?.termId === glossary.termId}/>
             </tr>))}
-            <EmptyRow show={!glossarySearch.results.length} columns={7} query={glossarySearch.query} what="glossaries"/>
+            <EmptyRow show={!glossarySearch.results.length} columns={7} query={glossarySearch.query} what={t('content_empty_glossaries', 'glossaries')}/>
           </tbody>
         </Table>
-        <Pagination {...glossaryPages} onChange={glossaryPages.setPage} label="Glossaries pages"/>
+        <Pagination {...glossaryPages} onChange={glossaryPages.setPage} label={t('content_glossaries_pages', 'Glossaries pages')}/>
 
         {/* A term still used as an answer, or with terms under it, is refused by the server
             with a message saying which. */}
         <ConfirmDialog open={Boolean(pendingDelete)}
                        danger
                        busy={deleting}
-                       title="Delete glossary?"
+                       title={t('content_delete_glossary_title', 'Delete glossary?')}
                        message={pendingDelete && <>
-                         <strong>{pendingDelete.value || pendingDelete.key}</strong> and its translations will be
-                         permanently deleted. It only works once no questions or other glossaries use it.
+                         <strong>{pendingDelete.value || pendingDelete.key}</strong> {t('content_delete_glossary_confirm',
+                           'and its translations will be permanently deleted. It only works once no questions or other glossaries use it.')}
                        </>}
-                       confirmLabel="Delete"
+                       confirmLabel={t('delete', 'Delete')}
                        onConfirm={confirmDelete}
                        onCancel={() => setPendingDelete(null)}/>
       </div>
       <div className={'col-5 d-flex flex-column gap-4'}>
         <Form className={'shadowed admin-form'} onSubmit={save} noValidate>
-          <h4>New glossary</h4>
+          <h4>{t('content_new_glossary', 'New glossary')}</h4>
           <hr/>
 
           <div className="admin-form-grid">
-            <Field label="Key" htmlFor="glossary-key" error={addTouched && addErrors.key}>
+            <Field label={t('content_key', 'Key')} htmlFor="glossary-key" error={addTouched && addErrors.key}>
               <Form.Control id="glossary-key"
                             value={addKey}
                             isInvalid={addTouched && Boolean(addErrors.key)}
-                            placeholder="Key"
+                            placeholder={t('content_key', 'Key')}
                             onChange={handleKey}/>
             </Field>
 
-            <Field label="Value" htmlFor="glossary-value" error={addTouched && addErrors.value}>
+            <Field label={t('content_value', 'Value')} htmlFor="glossary-value" error={addTouched && addErrors.value}>
               <Form.Control id="glossary-value"
                             value={addValue}
                             isInvalid={addTouched && Boolean(addErrors.value)}
-                            placeholder="Value"
+                            placeholder={t('content_value', 'Value')}
                             onChange={handleValue}/>
             </Field>
 
-            <Field label="Value type" htmlFor="glossary-type">
+            <Field label={t('content_value_type', 'Value type')} htmlFor="glossary-type">
               <Form.Select id="glossary-type" onChange={handleType}>
-                <option value="">None</option>
+                <option value="">{t('content_none', 'None')}</option>
                 {glossaryTypes?.map((type, index) => (
                   <option value={index} key={type.name}>{type.name}</option>))}
               </Form.Select>
             </Field>
 
-            <Field label="Category" htmlFor="glossary-category">
+            <Field label={t('content_category', 'Category')} htmlFor="glossary-category">
               <Form.Select id="glossary-category" onChange={handleCategory}>
                 {categories?.map((category, index) => (
                   <option value={index} key={category.catId}>{category.name}</option>))}
@@ -310,22 +313,22 @@ export default function Glossary({
 
             {/* Map quizzes: a city term keeps its coordinates here; countries and continents are
                 placed by their key (ISO code, continent code) instead. */}
-            <Field label="Options" htmlFor="glossary-options" wide>
+            <Field label={t('content_options', 'Options')} htmlFor="glossary-options" wide>
               <Form.Control id="glossary-options"
                             value={addOptions}
-                            placeholder="e.g. 47.01,28.86 (a city's lat,lng for map quizzes)"
+                            placeholder={t('content_glossary_options_placeholder', 'e.g. 47.01,28.86 (a city\'s lat,lng for map quizzes)')}
                             onChange={(event) => setAddOptions(event.target.value)}/>
             </Field>
 
-            <Field label="Parent" htmlFor="glossary-parent" wide>
+            <Field label={t('content_parent', 'Parent')} htmlFor="glossary-parent" wide>
               <Form.Select id="glossary-parent" onChange={handleParent}>
-                <option value="">No parent</option>
+                <option value="">{t('content_no_parent', 'No parent')}</option>
                 {glossaries?.map(glossary => (<option value={glossary.termId}
                                                       key={glossary.termId}>{glossary.value}</option>))}
               </Form.Select>
             </Field>
 
-            <Field label="Attachment" wide>
+            <Field label={t('content_attachment', 'Attachment')} wide>
               <CoverImage preview={addPreview}
                           onFile={(file) => {
                             setAddAttachment(file);
@@ -338,82 +341,82 @@ export default function Glossary({
             </Field>
           </div>
 
-          <Form.Switch id="glossary-active" className="admin-switch" label="Active"
+          <Form.Switch id="glossary-active" className="admin-switch" label={t('content_active', 'Active')}
                        checked={addIsActive} onChange={handleActive}/>
 
           <div className="admin-form-actions">
-            <SaveButton saving={adding}>Save glossary</SaveButton>
+            <SaveButton saving={adding}>{t('content_save_glossary', 'Save glossary')}</SaveButton>
           </div>
         </Form>
 
         <Form className={'shadowed admin-form'} onSubmit={edit} noValidate>
-          <h4>Edit glossary</h4>
+          <h4>{t('content_edit_glossary', 'Edit glossary')}</h4>
           <hr/>
 
           {!item.termId ? (
             // Nothing picked yet: say how to start instead of showing an empty form.
             <p className="admin-form-empty">
-              <FontAwesomeIcon icon={faHandPointer}/> Pick a row in the table to edit it.
+              <FontAwesomeIcon icon={faHandPointer}/> {t('content_pick_row_to_edit', 'Pick a row in the table to edit it.')}
             </p>
           ) : (
             <>
               <div className="admin-form-grid">
-                <Field label="Key" htmlFor="glossary-edit-key" error={!item.key && 'Set a key'}>
+                <Field label={t('content_key', 'Key')} htmlFor="glossary-edit-key" error={!item.key && t('content_set_key', 'Set a key')}>
                   <Form.Control id="glossary-edit-key"
                                 value={item.key}
                                 isInvalid={!item.key}
-                                placeholder="Key"
+                                placeholder={t('content_key', 'Key')}
                                 onChange={updateItem('key')}/>
                 </Field>
 
-                <Field label="Value" htmlFor="glossary-edit-value" error={!item.value && 'Set a value'}>
+                <Field label={t('content_value', 'Value')} htmlFor="glossary-edit-value" error={!item.value && t('content_set_value', 'Set a value')}>
                   <Form.Control id="glossary-edit-value"
                                 value={item.value}
                                 isInvalid={!item.value}
-                                placeholder="Value"
+                                placeholder={t('content_value', 'Value')}
                                 onChange={updateItem('value')}/>
                 </Field>
 
-                <Field label="Category" htmlFor="glossary-edit-category">
+                <Field label={t('content_category', 'Category')} htmlFor="glossary-edit-category">
                   <Form.Select id="glossary-edit-category" value={item.categoryId} onChange={updateItem('categoryId')}>
                     {categories?.map(category => (
                       <option value={category.catId} key={category.catId}>{category.name}</option>))}
                   </Form.Select>
                 </Field>
 
-                <Field label="Type" htmlFor="glossary-edit-type">
+                <Field label={t('content_type', 'Type')} htmlFor="glossary-edit-type">
                   <Form.Select id="glossary-edit-type" value={item.type?.id ?? ''} onChange={handleTypeEdit}>
-                    <option value="">None</option>
+                    <option value="">{t('content_none', 'None')}</option>
                     {glossaryTypes?.map(type => (
                       <option value={type.id} key={type.id}>{type.name}</option>))}
                   </Form.Select>
                 </Field>
 
-                <Field label="Options" htmlFor="glossary-edit-options" wide>
+                <Field label={t('content_options', 'Options')} htmlFor="glossary-edit-options" wide>
                   <Form.Control id="glossary-edit-options"
                                 value={item.options ?? ''}
-                                placeholder="e.g. 47.01,28.86 (a city's lat,lng for map quizzes)"
+                                placeholder={t('content_glossary_options_placeholder', 'e.g. 47.01,28.86 (a city\'s lat,lng for map quizzes)')}
                                 onChange={updateItem('options')}/>
                 </Field>
 
-                <Field label="Parent" htmlFor="glossary-edit-parent" wide>
+                <Field label={t('content_parent', 'Parent')} htmlFor="glossary-edit-parent" wide>
                   <Form.Select id="glossary-edit-parent" value={item.parentId ?? ''}
                                onChange={(event) => setItem((values) => ({
                                  ...values,
                                  parentId: event.target.value ? Number(event.target.value) : null
                                }))}>
-                    <option value="">No parent</option>
+                    <option value="">{t('content_no_parent', 'No parent')}</option>
                     {glossaries?.map(glossary => (
                       <option value={glossary.termId} key={glossary.termId}>{glossary.value}</option>))}
                   </Form.Select>
                 </Field>
 
-                <Field label="Attachment" wide>
+                <Field label={t('content_attachment', 'Attachment')} wide>
                   <CoverImage preview={blob} onFile={handleEditedImage}/>
                 </Field>
               </div>
 
-              <Form.Switch id="glossary-edit-active" className="admin-switch" label="Active"
+              <Form.Switch id="glossary-edit-active" className="admin-switch" label={t('content_active', 'Active')}
                            checked={Boolean(item.isActive)}
                            onChange={(event) => setItem((values) => ({
                              ...values,
@@ -421,7 +424,7 @@ export default function Glossary({
                            }))}/>
 
               <div className="admin-form-actions">
-                <SaveButton saving={editing} icon={faPen}>Save changes</SaveButton>
+                <SaveButton saving={editing} icon={faPen}>{t('content_save_changes', 'Save changes')}</SaveButton>
               </div>
             </>
           )}

@@ -3,12 +3,30 @@ import Link from 'next/link';
 import {useRouter} from 'next/router';
 import {useTranslation} from 'react-i18next';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {faCalendarDay, faCoins, faEarthAmericas, faHouse, faRankingStar, faRotateRight} from '@fortawesome/free-solid-svg-icons';
+import {
+    faBolt, faBrain, faCalendarDay, faCoins, faEarthAmericas, faHouse, faRankingStar, faRotateRight,
+} from '@fortawesome/free-solid-svg-icons';
 import {getUserHistoryQuiz} from '../../../api/quiz';
+import {getBestArticles} from '../../../api/knowledge-base';
 import {AnswerList, isRight} from '../../../components/quiz/answer-list';
 import {getChallenges, getDailyChallenge} from '../../../api/social';
 import {ChallengeFriends} from '../../../components/social/challenge-friends';
 import {Versus} from '../../../components/social/versus';
+import {ShareDaily} from '../../../components/social/share-daily';
+
+// A new quiz of the same kind, started straight away: the same custom quiz, another express quiz,
+// or the same category with the settings it was played with. The quiz pages say which in the
+// address. A result opened from elsewhere (the history), a challenge or the daily challenge (both
+// a stored quiz, played once) has no settings to go on, so it goes back to the picker.
+const againHref = (quiz, {express, category, quizType, complexity, length}) => {
+    if (quiz?.custom) return `/quiz/custom/${quiz.quizId}`;
+    if (express) return '/quiz/express';
+    if (!category) return '/quiz/categorized';
+    return {
+        pathname: `/quiz/categorized/${category}`,
+        query: Object.fromEntries(Object.entries({quizType: quizType ?? '0', complexity, length}).filter(([, value]) => value)),
+    };
+};
 
 // The score ring's circumference (r = 52), so the arc can be drawn as a fraction of it.
 const RING = 2 * Math.PI * 52;
@@ -18,17 +36,25 @@ const RING = 2 * Math.PI * 52;
 function QuizResult() {
     const router = useRouter();
     const {t} = useTranslation();
-    const {historyId, conquest, challenge, daily} = router.query;
+    const {historyId, conquest, challenge, daily, duel, review} = router.query;
     const [history, setHistory] = useState(null);
     // Played as a challenge: the challenge, for the head-to-head. Played as the daily challenge:
     // the day's table, for this player's place in it.
     const [versus, setVersus] = useState(null);
     const [day, setDay] = useState(null);
+    // The best article for each category a wrong answer was in: "learn why".
+    const [articles, setArticles] = useState({});
 
     // router.query is empty until the route resolves; isReady flips once.
     useEffect(() => {
         if (!router.isReady) return;
-        getUserHistoryQuiz(historyId).then(result => setHistory(result ?? null));
+        getUserHistoryQuiz(historyId).then(result => {
+            setHistory(result ?? null);
+            const wrongIn = [...new Set((result?.answers ?? [])
+                .filter(answer => !isRight(answer) && answer.categoryId)
+                .map(answer => answer.categoryId))];
+            getBestArticles(wrongIn).then(found => setArticles(found && typeof found === 'object' ? found : {}));
+        });
         if (challenge) {
             getChallenges().then(all => setVersus(all?.received?.find(each => String(each.id) === String(challenge)) ?? null));
         }
@@ -118,14 +144,20 @@ function QuizResult() {
                     <p className='result-daily-rank'>
                         <FontAwesomeIcon icon={faRankingStar}/>
                         {t('daily_rank', 'You are #{{rank}} of {{players}} today', {rank: day.you.rank, players: day.players})}
+                        {day.streak > 1 && <> · 🔥 {t('daily_streak', '{{days}} days in a row', {days: day.streak})}</>}
                     </p>
+                    {/* The squares, in the order asked: what makes a day's puzzle worth sending on. */}
+                    <p className='result-daily-grid' aria-label={t('daily_grid', 'Right and wrong, question by question')}>
+                        {answers.map((answer, index) => <span key={index}>{isRight(answer) ? '🟩' : '🟥'}</span>)}
+                    </p>
+                    <ShareDaily day={day} answers={answers}/>
                     <Link href='/challenges' className='did-you-know-more'>
                         {t('daily_table', 'See the table')}
                     </Link>
                 </section>
             )}
 
-            <AnswerList answers={answers}/>
+            <AnswerList answers={answers} articles={articles}/>
 
             <div className={'result-actions'}>
                 {/* A conquest run is one go per cooldown, so there is no "again": back to the map. */}
@@ -134,14 +166,25 @@ function QuizResult() {
                         <FontAwesomeIcon icon={faEarthAmericas}/>
                         <span>{t('back_to_map', 'Back to map')}</span>
                     </Link>
+                ) : duel ? (
+                    // A round is one turn: the next one is the other player's.
+                    <Link href={'/challenges#duels'} className={'result-again'}>
+                        <FontAwesomeIcon icon={faBolt}/>
+                        <span>{t('back_to_duels', 'Back to duels')}</span>
+                    </Link>
+                ) : review ? (
+                    <Link href={'/review'} className={'result-again'}>
+                        <FontAwesomeIcon icon={faBrain}/>
+                        <span>{t('review_more', 'Mistakes deck')}</span>
+                    </Link>
                 ) : (
-                    <Link href={'/quiz/categorized'} className={'result-again'}>
+                    <Link href={againHref(history.quiz, router.query)} className={'result-again'}>
                         <FontAwesomeIcon icon={faRotateRight}/>
                         <span>{t('play_again', 'Play again')}</span>
                     </Link>
                 )}
                 {/* Any quiz but a custom one (those have invitations) can be sent to friends to beat. */}
-                {!history.quiz?.custom && !challenge && <ChallengeFriends historyId={historyId}/>}
+                {!history.quiz?.custom && !challenge && !duel && !review && <ChallengeFriends historyId={historyId}/>}
                 <Link href={'/home'} className={'result-home'}>
                     <FontAwesomeIcon icon={faHouse}/>
                     <span>{t('home', 'Home')}</span>

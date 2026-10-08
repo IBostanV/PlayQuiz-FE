@@ -1,20 +1,17 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import Link from 'next/link';
 import PropTypes from 'prop-types';
 import {useRouter} from 'next/router';
 import {logout} from '../../api/authentication';
 import {useTranslation} from "react-i18next";
-import getLanguages from "../../api/question/get-languages";
-import saveUserLanguage from "../../api/profile/save-language";
-import {toast} from "react-toastify";
 import {SecureComponent} from "../security";
 import {FlexContainer} from "../common/FlexContainer";
 import {Image} from "react-bootstrap";
 import {getCurrentUser} from "../../api/user";
 import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
 import {
-  faBolt, faBookOpen, faCoins, faBrain, faComments, faEarthAmericas, faEnvelopeOpenText, faFire, faGaugeHigh,
-  faGear, faNewspaper, faPalette, faPuzzlePiece, faRightFromBracket, faTrophy, faWandMagicSparkles, faPeopleGroup} from "@fortawesome/free-solid-svg-icons";
+  faBolt, faBookOpen, faCoins, faCompass, faBrain, faComments, faEarthAmericas, faEnvelopeOpenText, faFire, faGaugeHigh,
+  faGear, faNewspaper, faPalette, faPuzzlePiece, faRightFromBracket, faTrophy, faWandMagicSparkles, faPeopleGroup, faUsers, faTicket, faChevronDown} from "@fortawesome/free-solid-svg-icons";
 import {useUserContext} from "../../context/user-context";
 import {ConfirmDialog} from "../common/popup";
 import {Avatar} from "../common/avatar";
@@ -23,13 +20,22 @@ import {FEEDBACK_CHANGED, getOpenFeedbackCount} from "../../api/feedback";
 import {EXPERIENCE_CHANGED} from "../../api/quiz/save";
 import {COINS_CHANGED} from "../../api/coin";
 import {NotificationBell} from "./notification-bell";
+import {useAppearance} from "../../context/appearance";
+import {fadeToHome} from "../../utils/fade-to-home";
 
-// Main sections, shown to everyone, in the order a player works through them: the two ways to
-// take a quiz, the test that measures you, then the reading and the chat — with Conquest in the
-// middle, where its outlined pill sits between the things you take and the things you read.
-const MAIN_LINKS = [
+// The ways to play a quiz, under one "Quiz" pill: picking one, a quick one, or with others.
+const QUIZ_LINKS = [
   {href: '/quiz/categorized', text: 'take_quiz', icon: faPuzzlePiece},
   {href: '/quiz/express', text: 'express_quiz', icon: faBolt},
+  // Playing with friends: the daily challenge, duels, challenges, live duels and rooms.
+  {href: '/challenges', text: 'nav_together', label: 'Together', icon: faPeopleGroup,
+    guestTip: ['together_sign_in', 'Log in to play with friends']},
+];
+
+// Main sections, shown to everyone, in the order a player works through them: the quizzes (in
+// their menu, first), the test that measures you, then the reading and the chat — with Conquest
+// in the middle, where its outlined pill sits between the things you take and the things you read.
+const MAIN_LINKS = [
   // The test is kept on the player's account — the score, the norming and the retakes all
   // depend on knowing whose run it is — so a guest sees it shut rather than half-usable.
   {href: '/iq', text: 'iq_test', label: 'IQ test', icon: faBrain,
@@ -38,15 +44,101 @@ const MAIN_LINKS = [
   // map reads signed out — but cannot take part, so the pill is shown as shut rather than hidden.
   {href: '/conquest', text: 'conquest', label: 'Conquest', icon: faEarthAmericas, highlight: true,
     guestTip: ['conquest_sign_in', 'Log in to take part in the conquest']},
-  // Playing with friends: the daily challenge, challenges, live duels and rooms.
-  {href: '/challenges', text: 'play_together', label: 'Together', icon: faPeopleGroup,
-    guestTip: ['together_sign_in', 'Log in to play with friends']},
+  // Communities players start and post in; every one belongs to an account.
+  {href: '/groups', text: 'groups', label: 'Groups', icon: faUsers, account: true},
   {href: '/knowledge-base', text: 'knowledge_base', icon: faBookOpen},
   // Patch notes, new questions and headlines read for everyone; friends' news needs an account.
   {href: '/news', text: 'news', label: 'News', icon: faNewspaper},
   // Nothing to show a guest: every chat belongs to an account.
   {href: '/chat', text: 'chat', icon: faComments, account: true},
 ];
+
+// "Quiz", a pill that opens the ways to play. Filled when the page is one of them, like a section.
+// The menu is fixed to the screen under the pill rather than placed inside the capsule: on a phone
+// the capsule scrolls sideways, and would cut a dropdown off.
+const QuizMenu = ({isLoggedIn, isActive}) => {
+  const {t} = useTranslation();
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const [at, setAt] = useState(null);
+  const rootRef = useRef(null);
+  const buttonRef = useRef(null);
+  const current = QUIZ_LINKS.some(link => isActive(link.href));
+
+  useEffect(() => setOpen(false), [router.asPath]);
+
+  // Closes on a click anywhere else, on Escape, and when the page moves under it.
+  useEffect(() => {
+    if (!open) return undefined;
+    const close = () => setOpen(false);
+    const onPointerDown = (event) => {
+      if (!rootRef.current?.contains(event.target)) close();
+    };
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        close();
+        buttonRef.current?.focus();
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [open]);
+
+  const toggle = () => {
+    if (!open) {
+      const box = buttonRef.current.getBoundingClientRect();
+      setAt({top: box.bottom + 8, left: Math.max(8, Math.min(box.left, window.innerWidth - 228))});
+    }
+    setOpen(value => !value);
+  };
+
+  return (
+    <span className="nav-menu" ref={rootRef}>
+      <button type="button" ref={buttonRef} className="nav-link-pill nav-menu-button"
+              data-current={current || undefined}
+              aria-haspopup="true" aria-expanded={open}
+              onClick={toggle}
+              data-tooltip={open ? undefined : t('nav_quiz', 'Quiz')}
+              data-tooltip-placement="bottom">
+        <FontAwesomeIcon icon={faPuzzlePiece}/>
+        <span className="nav-link-label">{t('nav_quiz', 'Quiz')}</span>
+        <FontAwesomeIcon icon={faChevronDown} className="nav-menu-caret"/>
+      </button>
+      {open && at && (
+        <div className="nav-menu-panel" style={{top: at.top, left: at.left}}>
+          {QUIZ_LINKS.map(link => {
+            const shut = !isLoggedIn && Boolean(link.guestTip);
+            const body = (
+              <>
+                <FontAwesomeIcon icon={link.icon}/>
+                <span>{t(link.text, link.label)}</span>
+              </>
+            );
+            return shut ? (
+              <span key={link.href} className="nav-menu-item" data-shut="true" aria-disabled="true">
+                {body}
+                <small>{t(...link.guestTip)}</small>
+              </span>
+            ) : (
+              <Link key={link.href} href={link.href} className="nav-menu-item"
+                    aria-current={isActive(link.href) ? 'page' : undefined}>
+                {body}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </span>
+  );
+};
 
 // The main links as pills in one capsule; the current section is the filled one.
 const MainLinks = ({isLoggedIn}) => {
@@ -62,6 +154,7 @@ const MainLinks = ({isLoggedIn}) => {
 
   return (
     <nav className="nav-links" aria-label={t('main_navigation', 'Main navigation')}>
+      <QuizMenu isLoggedIn={isLoggedIn} isActive={isActive}/>
       {links.map(link => {
         const shut = !isLoggedIn && Boolean(link.guestTip);
         const body = (
@@ -102,16 +195,15 @@ const MainLinks = ({isLoggedIn}) => {
 
 function Navbar({ isLoggedIn }) {
   const router = useRouter();
-  const {t, i18n} = useTranslation();
+  const {t} = useTranslation();
   const roles = useUserContext();
+  const {settings: appearance} = useAppearance();
   const isAdmin = roles?.includes('ROLE_ADMIN');
   // Content editors and publishers reach the content dashboard, and admins reach both.
   const isContentEditor = isAdmin
       || roles?.includes('ROLE_CONTENT_EDITOR')
       || roles?.includes('ROLE_CONTENT_PUBLISHER');
 
-  const [languages, setLanguages] = useState([]);
-  const [language, setLanguage] = useState(1);
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -154,7 +246,7 @@ function Navbar({ isLoggedIn }) {
   const identity = user && (
       <>
         <span className={'nav-user-face'}>
-          <Avatar name={user.username || '?'} photo={user.avatar} className={'nav-user-avatar'}/>
+          <Avatar name={user.username || '?'} photo={user.avatar} frame={user.equippedFrame} className={'nav-user-avatar'}/>
           {/* The trophy they chose on their profile, on the rim of their face. It comes with the
               account, so showing it costs no second request. */}
           {user.trophy && (
@@ -166,7 +258,7 @@ function Navbar({ isLoggedIn }) {
         </span>
         {/* No username: a placeholder, not the email, which is never shown as a name. */}
         {user.username
-            ? <span className={'nav-user-name'}>{user.username}</span>
+            ? <span className={'nav-user-name'} style={{color: user.nameColor ?? undefined}}>{user.username}</span>
             : (
                 <span className={'nav-user-name'} data-placeholder={'true'}
                       data-tooltip={t('no_username_hint', 'Set a username in your profile')}
@@ -209,54 +301,16 @@ function Navbar({ isLoggedIn }) {
   );
 
   const [confirmingSignOut, setConfirmingSignOut] = useState(false);
-  const [signingOut, setSigningOut] = useState(false);
-
+  // The dialog goes at once and the page fades out while the session ends behind it.
   const signOut = () => {
-    setSigningOut(true);
-    logout()
-        .then(() => router.push('/home'))
-        .finally(() => {
-          setSigningOut(false);
-          setConfirmingSignOut(false);
-        });
+    setConfirmingSignOut(false);
+    fadeToHome(router, 'push', logout());
   };
 
-  useEffect(() => {
-    const fetchLanguages = async () => await getLanguages();
-    fetchLanguages().then(setLanguages);
-
-    const langId = localStorage.getItem('langId');
-    setLanguage(langId);
-  }, [isLoggedIn]);
-
-  const handleLanguage = (event) => {
-    const value = event.target.value;
-    const newLang = languages.find(item => item.langId.toString() === value);
-
-    if (isLoggedIn) {
-      const saveNewLanguage = async () => await saveUserLanguage(newLang);
-      saveNewLanguage().then(() => setLanguage(newLang.langId));
-    }
-
-    localStorage.setItem('langCode', newLang.langCode);
-    localStorage.setItem('langId', newLang.langId);
-
-    i18n.changeLanguage(newLang.langCode)
-        .then((tFnc) => toast.success(tFnc('saved')));
-  }
-
-  const changeLang = (className) =>
-      <select className={`lang-select ${className}`} aria-label={t('language', 'Language')}
-              data-tooltip={t('language', 'Language')} data-tooltip-placement={'bottom'} onChange={handleLanguage} value={language}>
-        {languages?.map(lang =>
-            <option key={lang.langId} value={lang.langId}>{lang.langCode}</option>
-        )}
-      </select>
-
-  // Logged out: language, then Login as the quiet option and Register as the call to action.
+  // Logged out: Login as the quiet option and Register as the call to action. The language is
+  // picked in the footer.
   const notLoggedInRender =
       <div className="nav-guest">
-        {changeLang('nav-guest-lang')}
         <Link href="/login" className="nav-login"
               aria-current={router.pathname === '/login' ? 'page' : undefined}>{t('login')}</Link>
         <Link href="/register" className="nav-register"
@@ -266,7 +320,7 @@ function Navbar({ isLoggedIn }) {
   return (
       <div className="header">
         <div className="nav-start">
-          <Link href="/home" className="nav-brand" aria-label="Play Quiz home">
+          <Link href="/home" className="nav-brand" aria-label={t('home_link_label', 'Play Quiz home')}>
             <Image className="nav-logo" width={100} src="/resources/pq-white-logo.png" alt="Play Quiz" fluid/>
           </Link>
           <MainLinks isLoggedIn={isLoggedIn}/>
@@ -287,9 +341,9 @@ function Navbar({ isLoggedIn }) {
             isAuthenticated={isLoggedIn}
             defaultRender={notLoggedInRender}
         >
-          <FlexContainer>
+          <FlexContainer className="nav-account">
             {/* Registration only asks for an email, so username can still be empty. */}
-            {/* The block renders without the user too, so a failed fetch never hides the language picker. */}
+            {/* The block renders without the user too, so a failed fetch never hides the actions. */}
             {/* Admins get a golden border instead of a badge. */}
             <span className={'nav-user'} data-admin={isAdmin || undefined}>
               {/* The face and name are the way into the profile settings, for everyone. */}
@@ -302,8 +356,6 @@ function Navbar({ isLoggedIn }) {
                   </Link>
               )}
               {user && <span className={'nav-user-divider'} aria-hidden/>}
-              {changeLang('nav-user-lang')}
-              <span className={'nav-user-divider'} aria-hidden/>
               {/* The quiz content: categories, glossaries, questions, knowledge base. */}
               {isContentEditor && (
                   <Link href={'/content'} className={'nav-user-action'}
@@ -321,6 +373,11 @@ function Navbar({ isLoggedIn }) {
                     aria-current={router.pathname.startsWith('/quiz/invitations') ? 'page' : undefined}>
                 <FontAwesomeIcon icon={faEnvelopeOpenText}/>
               </Link>
+              <Link href={'/season'} className={'nav-user-action'} aria-label={t('season_pass', 'Season pass')}
+                    data-tooltip={t('season_pass', 'Season pass')} data-tooltip-placement={'bottom'}
+                    aria-current={router.pathname.startsWith('/season') ? 'page' : undefined}>
+                <FontAwesomeIcon icon={faTicket}/>
+              </Link>
               <Link href={'/trophies'} className={'nav-user-action'} aria-label={t('trophies', 'Trophies')}
                     data-tooltip={t('trophies', 'Trophies')} data-tooltip-placement={'bottom'}
                     aria-current={router.pathname.startsWith('/trophies') ? 'page' : undefined}>
@@ -331,6 +388,12 @@ function Navbar({ isLoggedIn }) {
                     aria-current={router.pathname.startsWith('/appearance') ? 'page' : undefined}>
                 <FontAwesomeIcon icon={faPalette}/>
               </Link>
+              {!appearance.hideTourLink && (
+                  <Link href={'/home?tour'} className={'nav-user-action'} aria-label={t('site_tour', 'Site tour')}
+                        data-tooltip={t('site_tour', 'Site tour')} data-tooltip-placement={'bottom'}>
+                    <FontAwesomeIcon icon={faCompass}/>
+                  </Link>
+              )}
               {/* Admins only: the admin dashboard, with the open-feedback count on the gear. */}
               {isAdmin && (
                   <Link href={openFeedback ? '/admin?tab=feedback' : '/admin'} className={'nav-user-action'}
@@ -359,7 +422,6 @@ function Navbar({ isLoggedIn }) {
             </span>
             {/* Not a destructive action, so the popup stays cyan and opens on the confirm button. */}
             <ConfirmDialog open={confirmingSignOut}
-                           busy={signingOut}
                            title={t('sign_out_title', 'Sign out?')}
                            message={t('sign_out_confirm', 'You will need to log in again to play and chat.')}
                            confirmLabel={t('sign_out')}

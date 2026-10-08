@@ -25,6 +25,19 @@ import {readChallenge, readResult, resultMessage, stripMarkers} from "../../util
 import {toDate} from "../../utils/toDate";
 
 // Quill leaves "<p><br></p>" behind in an empty editor.
+// Chat needs a few marks, not a document's worth: one short row instead of PrimeReact's full
+// toolbar, which wraps into several on a phone.
+const CHAT_TOOLBAR = (
+  <span className='ql-formats'>
+    <button type='button' className='ql-bold' aria-label='Bold'/>
+    <button type='button' className='ql-italic' aria-label='Italic'/>
+    <button type='button' className='ql-strike' aria-label='Strikethrough'/>
+    <button type='button' className='ql-link' aria-label='Link'/>
+    <button type='button' className='ql-list' value='bullet' aria-label='List'/>
+    <button type='button' className='ql-code-block' aria-label='Code'/>
+  </span>
+);
+
 const isBlank = (html) => !html || !html.replace(/<[^>]*>/g, '').trim();
 
 // A run of messages breaks after this long, so a reply hours or days later keeps its own header.
@@ -471,7 +484,9 @@ function Message() {
           </div>
         )}
         <div className='chat-composer' onKeyDown={onComposerKeyDown} data-editing={Boolean(editingMessage)}>
-          <Editor value={input} onTextChange={(e) => setInput(e.htmlValue ?? '')}/>
+          <Editor value={input} onTextChange={(e) => setInput(e.htmlValue ?? '')}
+                  headerTemplate={CHAT_TOOLBAR}
+                  placeholder={t('write_message', 'Write a message…')}/>
           <button type='button'
                   className='chat-send'
                   onClick={sendPrivateMessage}

@@ -5,3 +5,5 @@ export { default as getFriends } from './get-friends';
 export { default as getUserProfile } from './get-profile';
 export { addFriend, removeFriend } from './friendship';
 export { createUser, deleteUser, getManagedUsers, setUserBlocked, updateUser } from './admin';
+export { markTourSeen } from './tour';
+export { getUserActivity, setProfileVisibility } from './activity';

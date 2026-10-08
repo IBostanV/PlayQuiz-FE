@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
+import {translated} from '../../utils/translated';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faCheck, faEyeSlash, faGamepad, faXmark} from '@fortawesome/free-solid-svg-icons';
 import getQuestionWithOptions from '../../api/question/get-with-options';
@@ -16,7 +17,7 @@ import {keyOf, QuestionOptions} from '../quiz/question-options';
  * question — which locks the card after a reload, and `mine` locks the sender out of their own.
  */
 export const QuizMessage = ({question, mine, answered, onAnswer}) => {
-    const {t} = useTranslation();
+    const {t, i18n} = useTranslation();
     const [picked, setPicked] = useState(null);
     const [result, setResult] = useState(null);
     // Only for a message sent before the options travelled with it.
@@ -67,7 +68,9 @@ export const QuizMessage = ({question, mine, answered, onAnswer}) => {
                 )}
             </header>
 
-            <p className='chat-quiz-question'>{question.content}</p>
+            <p className='chat-quiz-question'>
+                {translated(question.translations ?? loaded?.translations, i18n.language, question.content)}
+            </p>
 
             {answers ? (
                 <QuestionOptions answers={answers}

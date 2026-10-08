@@ -9,7 +9,12 @@ import {Popup} from '../common/popup';
 import {sendFeedback} from '../../api/feedback';
 
 // The server's cap (FeedbackInput.question / Q_FEEDBACK.QUESTION).
-const MAX_QUESTION = 1100;
+const MAX_QUESTION = 4000;
+
+// The options as the player had them, lettered as on screen (a 50/50 hint has already taken two away).
+const optionLines = (answers = []) => answers.map((answer, index) =>
+    `
+${String.fromCharCode(65 + index)}. ${answer.content}`).join('');
 
 // `message` is what the admins read (their dashboard is in English); `label` what the player sees.
 const REASONS = [
@@ -39,7 +44,8 @@ const ReportForm = ({question, custom, onDone, onCancel}) => {
             type: 'BUG',
             message: details.trim() ? `${picked.message}: ${details.trim()}` : picked.message,
             page: router.asPath,
-            question: `${custom ? 'Custom question' : 'Question'} #${question.id}: ${question.content}`.slice(0, MAX_QUESTION),
+            question: `${custom ? 'Custom question' : 'Question'} #${question.id}: ${question.content}${optionLines(question.answers)}`
+                .slice(0, MAX_QUESTION),
         })
             .then(sent => {
                 // Not sent (e.g. too many reports): the player stays on the question.
@@ -106,7 +112,7 @@ export const ReportQuestion = ({question, custom = false, onSkip}) => {
     return (
         <>
             <button type='button' className='quiz-report' aria-haspopup='dialog'
-                    onClick={() => setReported({id: question.id, content: question.content})}>
+                    onClick={() => setReported({id: question.id, content: question.content, answers: question.answers})}>
                 <FontAwesomeIcon icon={faFlag}/>
                 <span>{t('report_question', 'Report a problem')}</span>
             </button>
@@ -127,7 +133,7 @@ export const ReportQuestion = ({question, custom = false, onSkip}) => {
 };
 
 ReportQuestion.propTypes = {
-    question: PropTypes.shape({id: PropTypes.number, content: PropTypes.string}).isRequired,
+    question: PropTypes.shape({id: PropTypes.number, content: PropTypes.string, answers: PropTypes.array}).isRequired,
     custom: PropTypes.bool,
     onSkip: PropTypes.func.isRequired,
 };

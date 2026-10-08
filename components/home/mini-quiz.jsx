@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useTranslation} from 'react-i18next';
+import {questionText} from '../../utils/translated';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faFire, faForward, faGamepad} from '@fortawesome/free-solid-svg-icons';
 import {checkMiniGameAnswer, getMiniGameQuestion} from '../../api/question/mini-game';
@@ -10,7 +11,7 @@ import {SendQuestion} from '../chat/send-question';
 // shows at once, with the right option lit, and a streak counts correct answers in a row.
 // Renders nothing when there is no question to ask.
 export const MiniQuiz = () => {
-    const {t} = useTranslation();
+    const {t, i18n} = useTranslation();
     const [question, setQuestion] = useState(null);
     const [picked, setPicked] = useState(null);
     const [result, setResult] = useState(null);
@@ -75,7 +76,7 @@ export const MiniQuiz = () => {
 
             {question ? (
                 <div className='mini-quiz-play' key={question.id}>
-                    <p className='mini-quiz-question'>{question.content}</p>
+                    <p className='mini-quiz-question'>{questionText(question, i18n.language)}</p>
 
                     <QuestionOptions answers={question.answers ?? []}
                                      picked={picked}

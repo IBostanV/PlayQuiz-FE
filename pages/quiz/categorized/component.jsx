@@ -199,7 +199,8 @@ function Quiz() {
 
             <div className={'quiz-body'}>
                 {/* Filters stack in the rail, so adding another is just another block. */}
-                <aside className={'quiz-filters'}>
+                <aside className={'quiz-filters'} aria-labelledby={'quiz-filters-title'}>
+                    <h2 id={'quiz-filters-title'} className={'quiz-filters-title'}>{t('parameters', 'Parameters')}</h2>
                     <Filter name={'quiz-type'}
                             label={t('quiz_type', 'Quiz type')}
                             options={typeOptions.map(type => ({value: type.id, label: t(type.name)}))}

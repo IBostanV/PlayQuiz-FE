@@ -19,6 +19,7 @@ export const LANGUAGE_PATH = API + '/language';
 export const USER_HISTORY_PATH = API + '/user-history';
 
 export const USER_PATH = API + '/user';
+export const BACKGROUNDS_PATH = API + '/backgrounds';
 
 export const KNOWLEDGE_BASE_PATH = API + '/knowledge-base';
 
@@ -41,12 +42,23 @@ export const TROPHY_PATH = API + '/trophy';
 export const STATISTICS_PATH = API + '/statistics';
 
 export const FEED_PATH = API + '/feed';
+export const ANNOUNCEMENT_PATH = API + '/announcement';
 
 export const SOCIAL_PATH = API + '/social';
 
 export const LIVE_PATH = API + '/live';
 
 export const LEADERBOARD_PATH = API + '/leaderboard';
+
+export const GROUPS_PATH = API + '/groups';
+
+export const DUELS_PATH = API + '/duels';
+
+export const REVIEW_PATH = API + '/review';
+
+export const COSMETICS_PATH = API + '/cosmetics';
+
+export const SEASON_PATH = API + '/season';
 
 export const CHANGE_PASSWORD_URL = `${USER_PATH}/change-password`;
 export const VERIFY_OLD_PASSWORD_URL = `${USER_PATH}/verify-password`;

@@ -1,0 +1,489 @@
+// The reasons to come back: the daily puzzle's share, turn-based duels, the mistakes deck,
+// "learn why", cosmetics (frames and the wardrobe) and the season pass.
+
+// ---- Cosmetic frames: drawn round any avatar that wears one (components/common/avatar, the
+// profile's big circle). Rings are box-shadows, so a photo and initials take them alike.
+
+[data-frame='FRAME_SKY'] {
+  box-shadow: 0 0 0 2px #7fd8ff, 0 0 10px rgba(127, 216, 255, 0.55) !important;
+}
+
+[data-frame='FRAME_BRONZE'] {
+  box-shadow: 0 0 0 2px #cd7f32, 0 0 0 4px rgba(205, 127, 50, 0.35) !important;
+}
+
+[data-frame='FRAME_SILVER'] {
+  box-shadow: 0 0 0 2px #e3e8ee, 0 0 0 4px rgba(160, 172, 186, 0.6), 0 0 10px rgba(227, 232, 238, 0.4) !important;
+}
+
+[data-frame='FRAME_NEON'] {
+  box-shadow: 0 0 0 2px #39ff9a, 0 0 12px #39ff9a, 0 0 22px rgba(57, 255, 154, 0.45) !important;
+}
+
+[data-frame='FRAME_GOLD'] {
+  box-shadow: 0 0 0 2px #ffe27a, 0 0 0 4px #b97a07, 0 0 16px rgba(245, 184, 46, 0.6) !important;
+}
+
+[data-frame='FRAME_RAINBOW'] {
+  box-shadow: 0 0 0 2px #ff5e7e, 0 0 0 4px #ffd93d, 0 0 0 6px #5fe3b3, 0 0 0 8px #6bb8ff !important;
+}
+
+// The season's top reward: a slow pulse, the one frame that moves. No !important here (an animation
+// cannot change an important value); the doubled attribute outranks the avatars' own shadows instead.
+[data-frame='FRAME_CHAMPION'][data-frame] {
+  animation: champion-glow 2.4s ease-in-out infinite;
+  box-shadow: 0 0 0 2px #ffe27a, 0 0 0 4px #b69cff, 0 0 18px rgba(182, 156, 255, 0.7);
+}
+
+@keyframes champion-glow {
+  50% {
+    box-shadow: 0 0 0 2px #fff3b0, 0 0 0 4px #d6c6ff, 0 0 28px rgba(255, 226, 122, 0.8);
+  }
+}
+
+:root[data-motion='off'] [data-frame='FRAME_CHAMPION'] {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) [data-frame='FRAME_CHAMPION'] {
+    animation: none;
+  }
+}
+
+// A purple tone for the duels card's icon, next to the site's gold, amber and pink.
+.home-card-icon[data-tone='violet'] {
+  background: radial-gradient(circle at 35% 30%, #e4d9ff 0%, #9b7bff 55%, #4c2fb3 100%);
+  box-shadow: 0 0 18px rgba(155, 123, 255, 0.45);
+  color: #1a0b45;
+}
+
+// ---- The daily puzzle
+
+.daily-number {
+  color: var(--ui-accent-light);
+}
+
+.daily-streak {
+  color: #ffb36b;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  margin-left: 8px;
+  text-transform: none;
+}
+
+.result-daily-grid {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 1.3rem;
+  gap: 2px;
+  margin: 8px 0;
+}
+
+.result-share {
+  @include chat-button;
+  height: 40px;
+  padding: 0 18px;
+}
+
+// ---- Duels
+
+.duel-start {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+
+  select {
+    background: rgba(4, 14, 22, 0.7);
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+    border-radius: 10px;
+    color: #eaf6fd;
+    flex: 1 1 180px;
+    min-width: 0;
+    padding: 6px 10px;
+  }
+
+  .profile-secondary-button {
+    padding: 0 18px;
+    width: auto;
+  }
+}
+
+.duel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+// You | the rounds | them, with the play button on a line of its own: a grid, so the two sides
+// keep their size and only the middle gives way on a narrow screen.
+.duel-item {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.16);
+  border-radius: 12px;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 10px 12px;
+
+  &[data-outcome='YOUR_TURN'] {
+    border-color: rgba(155, 123, 255, 0.6);
+    box-shadow: 0 0 14px rgba(155, 123, 255, 0.25);
+  }
+}
+
+.duel-side {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+
+  .chat-avatar {
+    flex: none;
+    width: 40px;
+  }
+}
+
+.duel-score {
+  color: #ffffff;
+  font-size: 1.4rem;
+  font-weight: 800;
+  min-width: 1ch;
+  text-align: center;
+}
+
+.duel-middle {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  text-align: center;
+}
+
+.duel-names {
+  color: #cfe9f7;
+  font-size: 0.85rem;
+
+  a {
+    color: #ffffff;
+    font-weight: 700;
+  }
+}
+
+.duel-rounds {
+  display: flex;
+  gap: 5px;
+}
+
+.duel-round {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 50%;
+  height: 10px;
+  width: 10px;
+
+  &[data-mark='won'] { background: #4ade80; }
+  &[data-mark='lost'] { background: #ff6b6b; }
+  &[data-mark='draw'] { background: #f5c95a; }
+
+  &[data-current] {
+    box-shadow: 0 0 0 2px rgba(155, 123, 255, 0.8);
+  }
+}
+
+.duel-status {
+  color: #9fb6c4;
+  font-size: 0.72rem;
+}
+
+.duel-play {
+  grid-column: 1 / -1;
+  justify-content: center;
+}
+
+// ---- The mistakes deck
+
+.review-due {
+  align-items: baseline;
+  color: #cfe9f7;
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.review-due-count {
+  color: #ffffff;
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.review-ladder {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.review-rung {
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.16);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px;
+  text-align: center;
+}
+
+.review-rung-count {
+  color: #ffffff;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.review-rung-label {
+  color: #9fb6c4;
+  font-size: 0.72rem;
+}
+
+// ---- Learn why: under a wrong answer on the result page.
+
+.result-learn {
+  align-items: center;
+  color: var(--ui-accent-light);
+  display: inline-flex;
+  font-size: 0.8rem;
+  gap: 6px;
+  margin-top: 6px;
+
+  svg {
+    height: 0.9em;
+    width: 0.9em;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: #ffffff;
+  }
+}
+
+// ---- The wardrobe (shop)
+
+.wardrobe-section {
+  margin-top: 22px;
+}
+
+.wardrobe-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.wardrobe-item {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.16);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 10px 10px;
+  text-align: center;
+
+  &[data-worn] {
+    border-color: var(--ui-accent);
+  }
+
+  .profile-secondary-button {
+    padding: 0 14px;
+    width: auto;
+  }
+}
+
+.wardrobe-preview {
+  align-items: center;
+  display: flex;
+  height: 56px;
+  justify-content: center;
+}
+
+.wardrobe-avatar {
+  font-size: 1rem;
+  height: 48px;
+  width: 48px;
+}
+
+.wardrobe-name {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.wardrobe-title {
+  color: #eaf6fd;
+  font-size: 0.85rem;
+}
+
+.wardrobe-season {
+  align-items: center;
+  color: #ff9ff3;
+  display: inline-flex;
+  font-size: 0.75rem;
+  gap: 4px;
+
+  // Sized here so the ticket stays at the text's size whether or not FontAwesome's CSS has landed.
+  svg {
+    height: 0.9em;
+    width: 0.9em;
+  }
+}
+
+// ---- The season pass
+
+.season-track {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  height: 12px;
+  overflow: hidden;
+}
+
+.season-track-fill {
+  background: linear-gradient(90deg, var(--ui-accent-bright), #b69cff, #ff9ff3);
+  display: block;
+  height: 100%;
+}
+
+.season-quests {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.season-quest {
+  align-items: center;
+  display: grid;
+  gap: 4px 10px;
+  grid-template-areas: 'mark name count points' 'mark bar bar bar';
+  grid-template-columns: 20px minmax(0, 1fr) auto auto;
+}
+
+.season-quest-mark {
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.45);
+  border-radius: 50%;
+  color: #4ade80;
+  display: grid;
+  font-size: 0.65rem;
+  grid-area: mark;
+  height: 18px;
+  place-items: center;
+  width: 18px;
+
+  .season-quest[data-done] & {
+    border-color: #4ade80;
+  }
+}
+
+.season-quest-name {
+  color: #eaf6fd;
+  font-size: 0.85rem;
+  grid-area: name;
+}
+
+.season-quest-bar {
+  grid-area: bar;
+}
+
+.season-quest-count {
+  color: #9fb6c4;
+  font-size: 0.75rem;
+  grid-area: count;
+}
+
+.season-quest-points {
+  color: #ff9ff3;
+  font-size: 0.75rem;
+  font-weight: 700;
+  grid-area: points;
+}
+
+.season-tiers {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(min(150px, 100%), 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.season-tier {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 0.6;
+  padding: 12px 10px;
+  text-align: center;
+
+  &[data-unlocked] {
+    border-color: rgba(var(--ui-accent-rgb), 0.5);
+    opacity: 1;
+  }
+
+  &[data-special] {
+    border-color: rgba(255, 159, 243, 0.55);
+  }
+
+  &[data-claimed] {
+    opacity: 0.75;
+  }
+
+  .profile-secondary-button {
+    padding: 0 16px;
+    width: auto;
+  }
+}
+
+.season-tier-number {
+  color: #ffffff;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.season-tier-reward {
+  color: #eaf6fd;
+  font-size: 0.85rem;
+
+  svg {
+    height: 0.9em;
+    width: 0.9em;
+  }
+}
+
+.season-tier-points,
+.season-tier-state {
+  color: #9fb6c4;
+  font-size: 0.72rem;
+}
+
+// The tick or lock on a tier, and the tick in a quest's circle: at the text's size.
+.season-tier-state svg,
+.season-quest-mark svg {
+  height: 0.9em;
+  width: 0.9em;
+}

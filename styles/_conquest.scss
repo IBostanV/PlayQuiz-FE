@@ -20,6 +20,10 @@
   gap: 18px;
   justify-content: space-between;
   padding: 20px 24px;
+
+  @media (max-width: 575.98px) {
+    padding: 16px;
+  }
 }
 
 .conquest-title {
@@ -85,7 +89,8 @@
   gap: 18px;
   grid-template-columns: minmax(0, 1fr) 320px;
 
-  @media (max-width: 900px) {
+  // Portrait tablets and phones: the panel goes under the map, which needs the whole width.
+  @media (max-width: 991.98px) {
     grid-template-columns: minmax(0, 1fr);
   }
 }
@@ -105,6 +110,13 @@
   display: flex;
   justify-content: center;
   width: 100%;
+
+  // Stacked, the window's leftover height is far taller than the map is wide, which only adds
+  // empty ocean above and below. max-height beats the height set in script, and the viewBox
+  // follows clientHeight, so the map keeps its shape.
+  @media (max-width: 991.98px) {
+    max-height: 70vw;
+  }
 }
 
 .conquest-map {

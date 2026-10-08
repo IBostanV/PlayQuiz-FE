@@ -8,6 +8,7 @@ import {getChallenges} from '../../api/social';
 import {DailyChallenge} from '../../components/social/daily-challenge';
 import {LiveStart} from '../../components/social/live-start';
 import {Versus} from '../../components/social/versus';
+import {Duels} from '../../components/social/duels';
 
 // Everything played with other people, in one place: live duels and rooms, the daily challenge,
 // and the challenges sent and received.
@@ -38,12 +39,13 @@ function Together({isLoggedIn}) {
                 <div>
                     <h1 className='trophies-title'>{t('play_together', 'Play together')}</h1>
                     <p className='trophies-lead'>
-                        {t('together_lead', 'Duel a friend live, fill a room, race everyone on today\'s questions, or send a score to beat.')}
+                        {t('together_lead', 'Duel a friend live or turn by turn, fill a room, race everyone on today\'s questions, or send a score to beat.')}
                     </p>
                 </div>
             </header>
 
             <LiveStart/>
+            <Duels/>
             <DailyChallenge/>
 
             <section className='home-card' data-wide='true' aria-labelledby='challenges-title'>

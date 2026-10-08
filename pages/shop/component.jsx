@@ -6,6 +6,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {faClock, faCoins, faLightbulb, faSnowflake} from '@fortawesome/free-solid-svg-icons';
 import {getCurrentUser} from '../../api/user';
 import {buyStreakFreeze, COINS_CHANGED, EXTRA_TIME_SECONDS, PRICES, STREAK_FREEZE_MAX} from '../../api/coin';
+import {Wardrobe} from '../../components/cosmetic/wardrobe';
 
 // Where coins go. Streak freezes are bought here; hints and extra time are bought inside a quiz,
 // where they are used, so they are only described. Laid out like the trophy shelf.
@@ -83,6 +84,8 @@ function Shop({isLoggedIn}) {
                     <span className='quiz-coin-price'><FontAwesomeIcon icon={faCoins}/> {PRICES.EXTRA_TIME}</span>
                 </li>
             </ul>
+
+            {user && <Wardrobe name={user.username || '?'} photo={user.avatar}/>}
         </section>
     );
 }

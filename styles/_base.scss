@@ -56,12 +56,22 @@ main {
   // Fill the space left by the sticky header, but keep growing past it so tall pages
   // scroll the window instead of scrolling inside a fixed-height <main>.
   flex: 1 0 auto;
-  padding: 20px;
+  --main-pad: 20px;
+  padding: var(--main-pad);
   // Column flex rather than `height: 100%`: main's own height comes from flex and so is
   // indefinite, which makes a percentage height on a child resolve to auto. A child that
   // wants the full height asks for `flex: 1` instead.
   display: flex;
   flex-direction: column;
+  // Phones: every px of gutter is a px the page loses.
+  @media (max-width: 575.98px) {
+    --main-pad: 12px;
+  }
+}
+
+// Images and embeds never push the page wider than the screen.
+img, video, iframe {
+  max-width: 100%;
 }
 
 p,
@@ -76,10 +86,27 @@ ul {
 }
 
 .background {
-  background: url("/resources/favicon.png") no-repeat fixed center;
-  background-size: 6%;
+  // Its own stacking context, so the picture below sits behind the page but not behind <body>.
+  isolation: isolate;
   min-height: 100%;
   position: relative;
+
+  // What is behind the site: the logo, or the player's own picture (Appearance). A layer of its
+  // own, fixed to the window: a scroll moves the page over it rather than repainting it, as
+  // background-attachment: fixed would on every frame.
+  &::before {
+    background: url("/resources/favicon.png") no-repeat center / 6%;
+    content: '';
+    inset: 0;
+    pointer-events: none;
+    position: fixed;
+    will-change: transform;
+    z-index: -1;
+  }
+}
+
+[data-background] .background::before {
+  background: var(--ui-background) no-repeat center / cover;
 }
 
 .header {
@@ -100,6 +127,14 @@ ul {
   -webkit-backdrop-filter: blur(5px) saturate(150%);
   border-bottom: 1px solid rgba(var(--ui-accent-rgb), 0.35);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  // Phones: the bar stacks into rows (_navbar), and that much bar pinned to the top would eat
+  // the screen, so it scrolls away with the page.
+  @media (max-width: 767.98px) {
+    justify-content: center;
+    padding: 8px 12px;
+    position: relative;
+  }
 
   // Energy line: brightest mid-span, fading out at both ends.
   &::after {
@@ -167,6 +202,76 @@ ul {
   --bs-card-box-shadow: none;
   --bs-card-inner-border-radius: none;
   --bs-card-bg: none;
+}
+
+// The language picker (components/common/language-select): a globe beside the select, the same in
+// the footer, on Appearance and on the profile.
+.language-select {
+  align-items: center;
+  align-self: flex-start;
+  color: #9fb6c4;
+  display: inline-flex;
+  gap: 6px;
+  margin: 0;
+
+  svg {
+    height: 0.9em;
+    width: 0.9em;
+  }
+}
+
+// The language as a form field (LanguageSelect with `field`), on the profile and on Appearance:
+// the globe inside on the left, the caret on the right, the look of the profile's inputs.
+.language-field {
+  display: block;
+  margin: 0;
+  position: relative;
+
+  .language-icon {
+    color: var(--ui-accent-light);
+    height: 0.95em;
+    left: 15px;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0.95em;
+  }
+
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-color: rgba(0, 0, 0, 0.3);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath fill='%237fa3b6' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+    background-position: right 16px center;
+    background-repeat: no-repeat;
+    background-size: 10px 6px;
+    border: 1px solid rgba(var(--ui-accent-rgb), 0.3);
+    border-radius: 12px;
+    color: #eaf6fd;
+    cursor: pointer;
+    font: inherit;
+    min-height: 46px;
+    padding: 0 40px 0 40px;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+    width: 100%;
+
+    &:hover {
+      border-color: rgba(var(--ui-accent-rgb), 0.6);
+    }
+
+    &:focus {
+      border-color: var(--ui-accent);
+      box-shadow: 0 0 0 1px var(--ui-accent), 0 0 16px rgba(var(--ui-accent-rgb), 0.3);
+      outline: none;
+    }
+
+    // The open list is the system's own; dark, so it does not flash white.
+    option {
+      background: #0a1e2c;
+      color: #eaf6fd;
+    }
+  }
 }
 
 .lang-select {

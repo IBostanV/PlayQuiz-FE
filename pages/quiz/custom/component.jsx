@@ -11,6 +11,7 @@ import {InputOption} from '../../../components/quiz/input-option';
 import {OrderOption} from '../../../components/quiz/order-option';
 import {ReportQuestion} from '../../../components/feedback/report-question';
 import {ExtraTimeButton} from '../../../components/quiz/coin-actions';
+import {useQuizInProgress} from '../../../utils/quiz-in-progress';
 
 // Seconds left at which a question's countdown turns red.
 const LOW_TIME = 5;
@@ -64,6 +65,7 @@ function CustomQuiz({isLoggedIn}) {
     const total = questions.length;
     const finished = Boolean(play) && position >= total;
     const question = finished ? null : questions[position];
+    useQuizInProgress(!finished && !unavailable);
 
     const endTurn = (answer) => {
         if (!question || endedTurn.current === position) return;

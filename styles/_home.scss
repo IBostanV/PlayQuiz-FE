@@ -1,21 +1,22 @@
 // Home page friends: glass card with an add row and one line per friend.
 // Under the carousel: "Did you know?" and, when signed in, friends, side by side (stacked
 // on narrow screens).
-// How it works: a band the full width of the window. main pads the page by 20px, so the section
-// pulls back by exactly that rather than using 100vw, which a scrollbar would make too wide.
+// How it works: a band the full width of the window. main pads the page by --main-pad (20px,
+// less on phones), so the section pulls back by exactly that rather than using 100vw, which a
+// scrollbar would make too wide.
 .home-how {
   background:
     radial-gradient(ellipse at 20% 0%, rgba(var(--ui-accent-rgb), 0.16) 0%, rgba(var(--ui-accent-rgb), 0) 60%),
     linear-gradient(180deg, rgba(6, 20, 30, 0.95) 0%, rgba(4, 14, 22, 0.95) 100%);
   border-bottom: 1px solid rgba(var(--ui-accent-rgb), 0.18);
   border-top: 1px solid rgba(var(--ui-accent-rgb), 0.18);
-  margin: 16px -20px 0;
-  padding: 13px 20px 14px;
+  margin: 16px calc(-1 * var(--main-pad, 20px)) 0;
+  padding: 13px var(--main-pad, 20px) 14px;
 
   // Above the carousel for a logged-out visitor: flush with the top of the page, with the
   // gap moved below it instead.
   &[data-top='true'] {
-    margin: -20px -20px 16px;
+    margin: calc(-1 * var(--main-pad, 20px)) calc(-1 * var(--main-pad, 20px)) 16px;
   }
 }
 
@@ -153,6 +154,12 @@
   gap: 28px;
   justify-content: center;
   margin-top: 28px;
+
+  // Stacked one card per line on a phone, so the gap is only between rows: half of it will do.
+  @media (max-width: 575.98px) {
+    gap: 14px;
+    margin-top: 14px;
+  }
 }
 
 // The friends dock: the friends panel in the bottom left corner of the screen, shut to its own
@@ -180,6 +187,21 @@
   }
   // Under the sticky header, which the panel can reach up to on a short window.
   z-index: 9;
+
+  // A phone has no corner to spare: hanging over the page it would cover what is being read,
+  // so the panel joins the flow instead, a full-width block at the end of the page.
+  @media (max-width: 767.98px) {
+    height: auto;
+    margin-top: 20px;
+    position: static;
+    width: 100%;
+
+    .friends-panel {
+      max-height: none;
+      max-width: none;
+      position: static;
+    }
+  }
 
   .friends-panel {
     bottom: 0;
@@ -833,8 +855,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 16px 20px;
-  margin: -20px -20px 20px;
-  padding: 16px max(20px, calc((100% - (460px + 380px + 28px)) / 2 + 20px));
+  margin: calc(-1 * var(--main-pad, 20px)) calc(-1 * var(--main-pad, 20px)) 20px;
+  padding: 16px max(var(--main-pad, 20px), calc((100% - (460px + 380px + 28px)) / 2 + var(--main-pad, 20px)));
 }
 
 .home-welcome-avatar {
@@ -936,6 +958,58 @@
   &[data-wide='true'] {
     flex-basis: 100%;
     max-width: calc(460px + 380px + 28px);
+  }
+}
+
+// The player's categories: 2 by 2, as wide as the leaderboard under it. Wide tiles, so the four
+// of them stay a reasonable height.
+.home-favorites-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+  margin: 4px 0 6px;
+  padding: 0;
+
+  .category-card {
+    aspect-ratio: 16 / 9;
+    // A category with no picture shows the site's own logo, the one behind every page; a picture
+    // covers it whole (and it holds the place while the picture loads).
+    background: url('/resources/favicon.png') center 40% / auto 45% no-repeat;
+    border-radius: 12px;
+
+    &:hover,
+    &:focus-visible {
+      transform: translateY(-3px);
+    }
+  }
+
+  .category-card-body {
+    gap: 6px;
+    padding: 10px;
+  }
+
+  .category-card-name {
+    font-size: 0.85rem;
+    overflow-wrap: anywhere;
+  }
+
+  @media (max-width: 600px) {
+    gap: 6px;
+
+    .category-card-body {
+      padding: 6px;
+    }
+
+    .category-card-name {
+      font-size: 0.75rem;
+      letter-spacing: 0.03em;
+    }
+
+    // No hover on a phone, and no room for it.
+    .category-card-play {
+      display: none;
+    }
   }
 }
 

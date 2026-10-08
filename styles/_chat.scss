@@ -462,7 +462,7 @@
   }
 
   // Composer in edit mode: amber instead of cyan, matching the strip above it.
-  .chat-composer[data-editing='true'] .p-editor-container .p-editor-content:focus-within {
+  .chat-composer[data-editing='true'] .p-editor-container:focus-within {
     border-color: #ffc76b;
     box-shadow: 0 0 0 1px #ffc76b, 0 0 16px rgba(255, 199, 107, 0.3);
   }
@@ -515,35 +515,66 @@
     gap: 12px;
     padding: 14px 18px;
 
+    // One rounded field: the toolbar is a slim strip along its top, split from the text by a
+    // hairline, and the whole box lights up while you type.
     .p-editor-container {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(var(--ui-accent-rgb), 0.25);
+      border-radius: 16px;
       flex: 1;
       min-width: 0;
+      overflow: hidden;
+      transition: border-color 180ms ease, box-shadow 180ms ease;
+
+      &:focus-within {
+        border-color: var(--chat-accent);
+        box-shadow: 0 0 0 1px var(--chat-accent), 0 0 16px rgba(var(--ui-accent-rgb), 0.3);
+      }
     }
 
     .p-editor-container .p-editor-toolbar {
       background: rgba(var(--ui-accent-rgb), 0.06);
-      border-color: rgba(var(--ui-accent-rgb), 0.25);
-      border-radius: 12px 12px 0 0;
-      padding: 6px 8px;
+      border: none;
+      border-bottom: 1px solid rgba(var(--ui-accent-rgb), 0.15);
+      border-radius: 0;
+      padding: 4px 8px;
+
+      .ql-formats {
+        margin-right: 0;
+      }
+
+      button {
+        border-radius: 8px;
+        height: 30px;
+        padding: 6px;
+        width: 32px;
+
+        &:hover,
+        &.ql-active {
+          background: rgba(var(--ui-accent-rgb), 0.16);
+        }
+      }
     }
 
     .p-editor-container .p-editor-content {
-      border-color: rgba(var(--ui-accent-rgb), 0.25);
-      border-radius: 0 0 12px 12px;
+      border: none;
     }
 
     .p-editor-container .p-editor-content .ql-editor {
-      background: rgba(0, 0, 0, 0.3);
-      border-radius: 0 0 12px 12px;
+      background: transparent;
       color: #eaf6fd;
+      font-size: 0.9rem;
+      line-height: 1.45;
       max-height: 160px;
-      min-height: 64px;
+      min-height: 46px;
       overflow-y: auto;
-    }
+      padding: 12px 14px;
 
-    .p-editor-container .p-editor-content:focus-within {
-      border-color: var(--chat-accent);
-      box-shadow: 0 0 0 1px var(--chat-accent), 0 0 16px rgba(var(--ui-accent-rgb), 0.3);
+      &.ql-blank::before {
+        color: #6f8d9d;
+        font-style: normal;
+        left: 14px;
+      }
     }
   }
 
@@ -569,6 +600,47 @@
 
     .chat-message {
       max-width: 88%;
+    }
+  }
+
+  // Phones: tighter gutters, so the thread and composer keep the width for text.
+  @media (max-width: 575.98px) {
+    gap: 14px;
+
+    .chat-groups {
+      max-height: 132px;
+    }
+
+    .chat-sidebar {
+      padding: 14px 10px 10px;
+    }
+
+    .chat-header,
+    .chat-thread {
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+
+    .chat-composer {
+      gap: 8px;
+      padding: 10px;
+    }
+
+    // The paper plane says Send on its own; a round button leaves the field the width.
+    .chat-send {
+      border-radius: 50%;
+      flex: none;
+      padding: 0;
+      width: 46px;
+
+      span {
+        clip: rect(0 0 0 0);
+        height: 1px;
+        overflow: hidden;
+        position: absolute;
+        white-space: nowrap;
+        width: 1px;
+      }
     }
   }
 
@@ -641,7 +713,7 @@
   @include glass-slab(8);
   margin: 40px auto;
   max-width: 460px;
-  padding: 36px 32px 28px;
+  padding: clamp(24px, 6vw, 36px) clamp(18px, 6vw, 32px) 28px;
   text-align: center;
   width: 100%;
 

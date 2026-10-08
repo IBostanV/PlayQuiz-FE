@@ -148,13 +148,13 @@ export const FriendsPanel = () => {
                         {friends.map(friend => (
                             <li key={friend.id} className='friends-item'>
                                 <span className='friends-face'>
-                                    <Avatar name={friend.displayName} photo={friend.photo}/>
+                                    <Avatar name={friend.displayName} photo={friend.photo} frame={friend.frame}/>
                                     <span className='presence-dot' data-online={online.has(friend.id) || undefined}
                                           data-busy={online.get(friend.id) ? 'true' : undefined}
                                           aria-label={online.get(friend.id) ? t('presence_playing', 'In a match')
                                               : online.has(friend.id) ? t('presence_online', 'Online') : t('presence_offline', 'Offline')}/>
                                 </span>
-                                <Link href={`/profile/${friend.id}`} className='friends-name'>{friend.displayName}</Link>
+                                <Link href={`/profile/${friend.id}`} className='friends-name' style={{color: friend.nameColor ?? undefined}}>{friend.displayName}</Link>
                                 {online.has(friend.id) && !online.get(friend.id) && (
                                     <button type='button'
                                             className='friends-action friends-action-duel'

@@ -6,6 +6,7 @@ import {getCurrentUser, getUserProfile} from '../../api/user';
 import base64Util from '../../utils/base64Util';
 import {TrophyBadge} from '../../components/trophy/trophy-badge';
 import {Statistics} from '../../components/profile/statistics';
+import {ProfileActivity} from '../../components/profile/activity';
 
 // A list the player picked (occupations, favourite categories), or a dash when they picked none.
 const Chips = ({items}) => items?.length
@@ -20,7 +21,8 @@ const Field = ({label, wide = false, children}) => (
 );
 
 // Another player's profile: the same card and details as the Profile page, read-only, without
-// the email, the password change or the quiz history. Statistics are totals only, no runs. Opening your own sends you to /profile.
+// the email or the password change, then their activity (quizzes, likes, writing, friends, groups)
+// if they let the reader see it. Opening your own sends you to /profile.
 function UserProfile() {
     const {t} = useTranslation();
     const router = useRouter();
@@ -53,7 +55,7 @@ function UserProfile() {
         <div className='profile-page'>
             <aside className='profile-card'>
                 <div className='profile-avatar-slot'>
-                    <div className='profile-avatar' data-readonly='true'>
+                    <div className='profile-avatar' data-readonly='true' data-frame={profile.frame || undefined}>
                         {profile.avatar
                             ? <img src={base64Util(profile.avatar)} alt=''/>
                             : <span className='profile-avatar-initial' aria-hidden>{profile.displayName.charAt(0)}</span>}
@@ -65,7 +67,7 @@ function UserProfile() {
                     )}
                 </div>
 
-                <h1 className='profile-name'>{fullName || profile.displayName}</h1>
+                <h1 className='profile-name' style={{color: profile.nameColor ?? undefined}}>{fullName || profile.displayName}</h1>
                 {fullName && profile.username && <p className='profile-username'>@{profile.username}</p>}
                 <p className='profile-hint'>
                     {t('level_value', 'Level {{level}}', {level: profile.playerLevel?.level ?? 1})}
@@ -114,6 +116,8 @@ function UserProfile() {
             </section>
 
             <Statistics userId={profile.id}/>
+
+            <ProfileActivity userId={profile.id} name={profile.displayName}/>
         </div>
     );
 }

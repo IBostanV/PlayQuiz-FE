@@ -4,7 +4,10 @@ import {useRouter} from 'next/router';
 import Navbar from '../navbar';
 import {Footer} from '../footer';
 import {FriendsPanel} from '../friends/friends-panel';
+import {SiteTour} from '../tour/site-tour';
+import {Announcements} from '../announcement/announcements';
 import PropTypes from 'prop-types';
+import {hasCookie} from 'cookies-next';
 
 /* eslint-disable-next-line */
 function Layout({ children, isLoggedIn }) {
@@ -28,6 +31,8 @@ function Layout({ children, isLoggedIn }) {
     // ponytail: the fade only lasts as long as the next page takes to load, so an instant one
     // cuts it short; holding the old page on screen until the fade is done would fix that.
     const [leaving, setLeaving] = useState(false);
+    const [signedOut, setSignedOut] = useState(false);
+    const headerLoggedIn = isLoggedIn && !signedOut;
     useEffect(() => {
         const section = (path) => path.split('/')[1];
         const start = (url) => {
@@ -35,12 +40,31 @@ function Layout({ children, isLoggedIn }) {
             const current = window.location.pathname;
             const betweenChats = section(next) === 'chat' && section(current) === 'chat';
             if (next !== current && !betweenChats) setLeaving(true);
+            // Done with the sign-in fade-in (below); the next page swings in as usual. Not on a
+            // ?query change: home stays mounted, and would swing then and there.
+            if (next !== current && document.documentElement.getAttribute('data-slide') === 'in') {
+                document.documentElement.removeAttribute('data-slide');
+            }
         };
-        const end = () => setLeaving(false);
+        const end = () => {
+            setLeaving(false);
+            setSignedOut(false);
+            // Arrived from a sign-in fade (utils/fade-to-home): the new screen fades up in its place.
+            const root = document.documentElement;
+            if (root.getAttribute('data-slide') !== 'out') return;
+            // Kept until the player moves on: taking it off any sooner gives the page its swing
+            // back, and the browser plays it then and there.
+            root.setAttribute('data-slide', 'in');
+        };
+        // Signing out: once the page has faded away the header goes over to signed out, rather than
+        // staying signed in over an empty page until home has loaded.
+        const faded = () => setSignedOut(!hasCookie('authorization'));
+        window.addEventListener('pq:faded', faded);
         router.events.on('routeChangeStart', start);
         router.events.on('routeChangeComplete', end);
         router.events.on('routeChangeError', end);
         return () => {
+            window.removeEventListener('pq:faded', faded);
             router.events.off('routeChangeStart', start);
             router.events.off('routeChangeComplete', end);
             router.events.off('routeChangeError', end);
@@ -51,11 +75,12 @@ function Layout({ children, isLoggedIn }) {
         <>
             <Head>
                 <title>Play Quiz</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
                 <link rel="icon" href="/resources/favicon.png"/>
             </Head>
 
             <div className="d-flex flex-column background">
-                <Navbar isLoggedIn={isLoggedIn}/>
+                <Navbar isLoggedIn={headerLoggedIn}/>
                 <main>
                     <div className='page-transition' key={pathname} data-leaving={leaving || undefined}>
                         {children}
@@ -64,7 +89,9 @@ function Layout({ children, isLoggedIn }) {
                         settle at main's end — which is where the footer begins. */}
                     {showFriends && <div className='friends-dock'><FriendsPanel/></div>}
                 </main>
-                {showFooter && <Footer isLoggedIn={isLoggedIn}/>}
+                {showFooter && <Footer isLoggedIn={headerLoggedIn}/>}
+                <SiteTour isLoggedIn={isLoggedIn}/>
+                {headerLoggedIn && <Announcements/>}
             </div>
         </>
     );

@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import {useRouter} from 'next/router';
+import {fadeToHome} from '../../utils/fade-to-home';
 import {setCookie} from 'cookies-next';
 import {toast} from 'react-toastify';
 import {useTranslation} from 'react-i18next';
@@ -40,7 +41,7 @@ function SocialLoginReturn() {
                 localStorage.setItem('langId', parseInt(account.language?.langId));
                 localStorage.setItem('userId', parseInt(account.id));
             }
-            router.replace('/home');
+            fadeToHome(router, 'replace');
         });
     }, [router.isReady]);
 

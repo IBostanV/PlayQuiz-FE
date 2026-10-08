@@ -7,6 +7,7 @@ import {
     faArrowUp, faBolt, faBookOpen, faComments, faEnvelope, faHandHoldingHeart, faHouse, faPuzzlePiece, faUser,
 } from '@fortawesome/free-solid-svg-icons';
 import {FeedbackDialog} from '../feedback/feedback-dialog';
+import {LanguageSelect} from '../common/language-select';
 
 const LINKS = [
     {href: '/home', text: ['home', 'Home'], icon: faHouse},
@@ -30,7 +31,7 @@ export const Footer = ({isLoggedIn}) => {
         <footer className='site-footer'>
             <div className='site-footer-main'>
                 <div className='site-footer-brand'>
-                    <Link href='/home' aria-label='Play Quiz home'>
+                    <Link href='/home' aria-label={t('home_link_label', 'Play Quiz home')}>
                         <img className='site-footer-logo' src='/resources/pq-white-logo.png' alt='Play Quiz'/>
                     </Link>
                     <p className='site-footer-tagline'>
@@ -50,16 +51,20 @@ export const Footer = ({isLoggedIn}) => {
                     </ul>
                 </nav>
 
-                <button type='button' className='site-footer-feedback' onClick={() => setWriting(true)}
-                        aria-haspopup='dialog'>
-                    <FontAwesomeIcon icon={faEnvelope}/>
-                    <span>{t('send_feedback', 'Send feedback')}</span>
-                </button>
+                {/* Kept together, so a longer translation of the links never leaves back-to-top on a row of its own. */}
+                <div className='site-footer-actions'>
+                    <LanguageSelect isLoggedIn={isLoggedIn} className='site-footer-language'/>
+                    <button type='button' className='site-footer-feedback' onClick={() => setWriting(true)}
+                            aria-haspopup='dialog' data-tooltip={t('send_feedback', 'Send feedback')}>
+                        <FontAwesomeIcon icon={faEnvelope}/>
+                        <span>{t('send_feedback', 'Send feedback')}</span>
+                    </button>
 
-                <button type='button' className='site-footer-top' onClick={toTop}
-                        aria-label={t('back_to_top', 'Back to top')} data-tooltip={t('back_to_top', 'Back to top')}>
-                    <FontAwesomeIcon icon={faArrowUp}/>
-                </button>
+                    <button type='button' className='site-footer-top' onClick={toTop}
+                            aria-label={t('back_to_top', 'Back to top')} data-tooltip={t('back_to_top', 'Back to top')}>
+                        <FontAwesomeIcon icon={faArrowUp}/>
+                    </button>
+                </div>
             </div>
 
             <div className='site-footer-bottom'>

@@ -215,22 +215,6 @@
     margin: 4px 2px;
     width: 1px;
   }
-
-  // Language picker: a small pill inside the pill, not a boxed select.
-  .nav-user-lang {
-    background-color: transparent;
-    background-position: right 10px center;
-    border: none;
-    border-radius: 999px;
-    font-size: 0.95em;
-    padding: 6px 26px 6px 12px;
-
-    &:hover,
-    &:focus-visible {
-      background-color: rgba(var(--ui-accent-rgb), 0.14);
-      box-shadow: none;
-    }
-  }
 }
 
 // Round icon actions in the account pill: dashboard, profile, sign out.
@@ -377,7 +361,9 @@
     outline: none;
   }
 
-  &[aria-current='page'] {
+  // The Quiz menu's pill takes data-current: a button is not a page, so aria-current is not its to wear.
+  &[aria-current='page'],
+  &[data-current] {
     background: linear-gradient(135deg, var(--ui-accent-bright) 0%, var(--ui-accent-dark) 100%);
     box-shadow: 0 4px 14px rgba(var(--ui-accent-rgb), 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
     color: var(--ui-on-accent, #ffffff);
@@ -386,6 +372,111 @@
 
     svg {
       opacity: 1;
+    }
+  }
+}
+
+// ---- The Quiz menu: a pill that opens the ways to play (components/navbar, QuizMenu) -------------
+
+.nav-menu {
+  display: inline-flex;
+}
+
+.nav-menu-button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+
+  .nav-menu-caret {
+    height: 0.7em;
+    opacity: 0.7;
+    transition: transform 180ms ease;
+    width: 0.7em;
+  }
+
+  &[aria-expanded='true'] .nav-menu-caret {
+    transform: rotate(180deg);
+  }
+}
+
+// Fixed to the screen under the pill (its place is set when it opens), so the scrolling capsule on
+// a phone cannot cut it off.
+.nav-menu-panel {
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  animation: bell-panel-in 180ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  background: linear-gradient(180deg, rgba(10, 30, 44, 0.97) 0%, rgba(3, 11, 17, 0.98) 100%);
+  border: 1px solid rgba(var(--ui-accent-rgb), 0.28);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(var(--ui-accent-rgb), 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  position: fixed;
+  transform-origin: 24px -8px;
+  white-space: normal;
+  width: 220px;
+  z-index: 1050;
+}
+
+.nav-menu-item {
+  align-items: center;
+  border-radius: 10px;
+  color: #cfe9f7;
+  display: grid;
+  font-size: 0.85rem;
+  font-weight: 600;
+  gap: 2px 10px;
+  grid-template-columns: 18px minmax(0, 1fr);
+  padding: 9px 10px;
+  text-decoration: none;
+
+  svg {
+    color: var(--ui-accent-light);
+    height: 0.95em;
+    width: 0.95em;
+  }
+
+  small {
+    color: #7fa3b6;
+    font-size: 0.7rem;
+    font-weight: 400;
+    grid-column: 2;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: rgba(var(--ui-accent-rgb), 0.14);
+    color: #ffffff;
+    outline: none;
+  }
+
+  &[aria-current='page'] {
+    background: rgba(var(--ui-accent-rgb), 0.2);
+    color: #ffffff;
+  }
+
+  &[data-shut='true'] {
+    cursor: not-allowed;
+    opacity: 0.55;
+
+    &:hover {
+      background: none;
+      color: #cfe9f7;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion='on']) {
+    .nav-menu-panel {
+      animation: none;
+    }
+
+    .nav-menu-button .nav-menu-caret {
+      transition: none;
     }
   }
 }
@@ -438,6 +529,95 @@
     position: absolute;
     white-space: nowrap;
     width: 1px;
+  }
+}
+
+// Phones: the logo and Create share the first row, the pills take a full row of their own (and
+// scroll sideways if a language makes them too wide), the account pill a row under that.
+@media (max-width: 767.98px) {
+  .nav-start {
+    gap: 8px;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .nav-brand .nav-logo {
+    width: 80px;
+  }
+
+  .nav-links {
+    flex: 1 0 100%;
+    justify-content: space-between;
+    order: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  // A finger, not a pointer: taller pills.
+  .nav-link-pill {
+    flex: none;
+    padding: 10px;
+  }
+
+  // The account pill becomes a full-width card in two rows: who you are and the language on
+  // top, the actions spread evenly under a hairline, the level line along the foot.
+  .nav-account {
+    width: 100%;
+  }
+
+  .nav-user {
+    border-radius: 18px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 8px 12px 28px;
+    row-gap: 8px;
+    width: 100%;
+
+    // The break between the rows, drawn as the same glowing hairline as the dividers.
+    &::before {
+      background: linear-gradient(90deg, rgba(var(--ui-accent-rgb), 0), rgba(var(--ui-accent-rgb), 0.45), rgba(var(--ui-accent-rgb), 0));
+      content: '';
+      flex-basis: 100%;
+      height: 1px;
+      order: 2;
+    }
+
+    > .nav-user-identity {
+      flex: 1 1 auto;
+    }
+
+    // Room for the whole name now it has a row of its own.
+    .nav-user-name {
+      max-width: none;
+      min-width: 0;
+    }
+
+    // The rows and the hairline do the dividers' job.
+    > .nav-user-divider {
+      display: none;
+    }
+
+    > :is(.nav-user-action, .nav-bell) {
+      order: 3;
+    }
+
+    .nav-user-level {
+      bottom: 8px;
+      left: 14px;
+      right: 14px;
+    }
+  }
+
+  // Each action a soft round button, big enough for a thumb.
+  .nav-user-action {
+    background-color: rgba(var(--ui-accent-rgb), 0.08);
+    font-size: 1.1em;
+    height: 40px;
+    width: 40px;
   }
 }
 
@@ -508,11 +688,12 @@
   align-items: center;
   display: flex;
   gap: 10px;
-}
 
-.nav-guest-lang {
-  border-radius: 999px;
-  padding: 8px 28px 8px 14px;
+  // As tall as the account pill that replaces it on signing in (4px + 36px identity + 15px
+  // experience row), so the bar keeps its height and nothing in it moves down.
+  @media (min-width: 768px) {
+    min-height: 55px;
+  }
 }
 
 .nav-login {

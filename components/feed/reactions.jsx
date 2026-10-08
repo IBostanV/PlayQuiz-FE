@@ -3,8 +3,9 @@ import PropTypes from 'prop-types';
 import {useTranslation} from 'react-i18next';
 import {getReactions, REACTIONS, toggleReaction} from '../../api/social';
 
-// What friends did is what people react to; a headline or a patch note is not theirs to cheer.
-const REACTABLE = new Set(['FRIEND_LEVELS', 'FRIEND_CONQUEST', 'FRIEND_POST']);
+// What friends did, and what group members post, is what people react to; a headline or a patch
+// note is not theirs to cheer.
+const REACTABLE = new Set(['FRIEND_LEVELS', 'FRIEND_CONQUEST', 'FRIEND_POST', 'GROUP_POST']);
 
 export const isReactable = (item) => REACTABLE.has(item?.type);
 

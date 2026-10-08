@@ -6,7 +6,10 @@ import { getCategorizedQuiz } from '../../../api/quiz';
 import saveUserQuiz from '../../../api/quiz/save';
 import { enterConquestAttempt } from '../../../api/conquest';
 import { getChallengeQuiz, getDailyChallengeQuiz } from '../../../api/social';
+import { getDuelQuiz } from '../../../api/duels';
+import { getReviewQuiz } from '../../../api/review';
 import { useTranslation } from 'react-i18next';
+import { questionText } from '../../../utils/translated';
 import formatTime from '../../../utils/formatTime';
 import {SingleOption} from "../../../components/quiz/single-option";
 import {MultipleOption} from "../../../components/quiz/multiple-option";
@@ -19,6 +22,7 @@ import { ConfirmDialog } from '../../../components/common/popup';
 import { ReportQuestion } from '../../../components/feedback/report-question';
 import { mapLevelOf, placeOptions } from '../../../components/map/geo';
 import { HintButton, withoutOptions } from '../../../components/quiz/coin-actions';
+import { useQuizInProgress } from '../../../utils/quiz-in-progress';
 
 // The map pulls in d3 and the world atlas, so it loads only when a map question shows up.
 const MapChoice = dynamic(() => import('../../../components/map/map-choice'), { ssr: false });
@@ -26,15 +30,17 @@ const MapChoice = dynamic(() => import('../../../components/map/map-choice'), { 
 const byTermId = (answer) => answer.termId;
 
 function Quiz() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
-  const { categoryId, quizType, complexity, length, conquest, challenge, daily } = router.query;
+  const { categoryId, quizType, complexity, length, conquest, challenge, daily, duel, review } = router.query;
 
   const [spentTime, setSpentTime] = useState(0);
   const [userAnswers, setUserAnswers] = useState([]);
   // The quiz arrives with its questions, options and all; they are asked in the order given.
   const [questions, setQuestions] = useState([]);
   const [completed, setCompleted] = useState(false);
+  // From arrival on, not from the first question: an announcement must not cover a quiz still loading.
+  useQuizInProgress(!completed);
   const [currentQuestion, setCurrentQuestion] = useState({});
   const [currentQuestionTime, setCurrentQuestionTime] = useState(0);
   // Questions skipped after reporting them; they count towards progress like answered ones.
@@ -53,11 +59,14 @@ function Quiz() {
       return;
     }
 
-    // A challenge or the daily challenge is a stored quiz played again, the same questions under
-    // the same quiz id, so the runs can be set side by side; anything else is drawn fresh.
+    // A challenge, the daily challenge or a duel round is a stored quiz played again, the same
+    // questions under the same quiz id, so the runs can be set side by side; a review is the
+    // player's own due mistakes; anything else is drawn fresh.
     const createQuiz = async () => {
       if (challenge) return getChallengeQuiz(challenge);
       if (daily) return getDailyChallengeQuiz();
+      if (duel) return getDuelQuiz(duel);
+      if (review) return getReviewQuiz();
       return getCategorizedQuiz(categoryId, quizType, complexity, length);
     };
     let timer;
@@ -158,7 +167,12 @@ function Quiz() {
         if (conquest) {
           await enterConquestAttempt(Number(conquest), historyId);
         }
-        const from = conquest ? '&conquest=1' : challenge ? `&challenge=${challenge}` : daily ? '&daily=1' : '';
+        // An ordinary run passes on what it was played with, so "Play again" can start the same
+        // kind of quiz straight away rather than going back to the picker.
+        const settings = new URLSearchParams(Object.entries({category: categoryId, quizType, complexity, length})
+            .filter(([, value]) => value));
+        const from = conquest ? '&conquest=1' : challenge ? `&challenge=${challenge}` : daily ? '&daily=1'
+            : duel ? `&duel=${duel}` : review ? '&review=1' : `&${settings}`;
         router.push(`/quiz/result?historyId=${historyId}${from}`);
       });
   };
@@ -228,7 +242,12 @@ function Quiz() {
       case 'VALUES_RANGE':
         return <RangeOption answers={currentQuestion.answers} onConfirm={recordAnswer} />;
       case 'DRAG_AND_DROP':
-        return <DragOption currentQuestion={currentQuestion} onConfirm={recordAnswer} />;
+        return (
+          <>
+            <p className="quiz-type-hint">{t('drag_pairs_hint', 'Match each one with its pair.')}</p>
+            <DragOption currentQuestion={currentQuestion} onConfirm={recordAnswer} />
+          </>
+        );
       // No 50/50 here: on two options it would leave only the answer.
       case 'ONE_FROM_TWO':
         return <SingleOption currentQuestion={currentQuestion} handleAnswer={recordAnswer} />;
@@ -237,7 +256,7 @@ function Quiz() {
           <>
             <SingleOption currentQuestion={currentQuestion} handleAnswer={recordAnswer} />
             {/* Not where runs are compared: a bought hint would be a bought score. */}
-            {!conquest && !challenge && !daily && (
+            {!conquest && !challenge && !daily && !duel && (
               <div className="quiz-coin-actions">
                 <HintButton question={currentQuestion}
                             onRemove={(termIds) => setCurrentQuestion(question => withoutOptions(question, termIds))} />
@@ -266,7 +285,7 @@ function Quiz() {
       {currentQuestion?.id ? (
         // Keyed by question so each new one replays the entrance animation.
         <section className="quiz-stage" key={currentQuestion.id}>
-          <h2 className="quiz-question">{currentQuestion.content}</h2>
+          <h2 className="quiz-question">{questionText(currentQuestion, i18n.language)}</h2>
           {handleQuizType()}
         </section>
       ) : (

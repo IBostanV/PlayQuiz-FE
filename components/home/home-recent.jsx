@@ -34,7 +34,7 @@ export const HomeRecent = () => {
     if (!runs.length) return null;
 
     return (
-        <section className='home-card' aria-labelledby='home-recent-title'>
+        <section className='home-card' data-wide='true' aria-labelledby='home-recent-title'>
             <header className='home-card-header'>
                 <span className='home-card-icon' aria-hidden><FontAwesomeIcon icon={faClockRotateLeft}/></span>
                 <div>

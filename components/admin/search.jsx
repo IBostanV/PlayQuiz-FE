@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
+import { useTranslation } from 'react-i18next';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass, faXmark } from '@fortawesome/free-solid-svg-icons';
 
@@ -27,39 +28,50 @@ export const useSearch = (items, fields) => {
 
 // Search box that sits above an admin table: magnifier, clear button, and while searching,
 // how many rows matched.
-export const TableSearch = ({ value, onChange, placeholder = 'Search…', count, label = 'Search' }) => (
-  <div className="admin-search">
-    <label className="admin-search-box">
-      <FontAwesomeIcon icon={faMagnifyingGlass} className="admin-search-icon"/>
-      <input type="search"
-             value={value}
-             onChange={(event) => onChange(event.target.value)}
-             onKeyDown={(event) => event.key === 'Escape' && onChange('')}
-             placeholder={placeholder}
-             aria-label={label}/>
-      {value && (
-        <button type="button" className="admin-search-clear" onClick={() => onChange('')}
-                aria-label="Clear search" data-tooltip="Clear search">
-          <FontAwesomeIcon icon={faXmark}/>
-        </button>
+export const TableSearch = ({ value, onChange, placeholder, count, label }) => {
+  const { t } = useTranslation();
+  return (
+    <div className="admin-search">
+      <label className="admin-search-box">
+        <FontAwesomeIcon icon={faMagnifyingGlass} className="admin-search-icon"/>
+        <input type="search"
+               value={value}
+               onChange={(event) => onChange(event.target.value)}
+               onKeyDown={(event) => event.key === 'Escape' && onChange('')}
+               placeholder={placeholder ?? t('content_search_placeholder', 'Search…')}
+               aria-label={label ?? t('content_search', 'Search')}/>
+        {value && (
+          <button type="button" className="admin-search-clear" onClick={() => onChange('')}
+                  aria-label={t('clear_search', 'Clear search')}
+                  data-tooltip={t('clear_search', 'Clear search')}>
+            <FontAwesomeIcon icon={faXmark}/>
+          </button>
+        )}
+      </label>
+      {value && count != null && (
+        <span className="admin-search-count" aria-live="polite">
+          {count === 1
+            ? t('content_search_match', '{{count}} match', { count })
+            : t('content_search_matches', '{{count}} matches', { count })}
+        </span>
       )}
-    </label>
-    {value && count != null && (
-      <span className="admin-search-count" aria-live="polite">
-        {count} {count === 1 ? 'match' : 'matches'}
-      </span>
-    )}
-  </div>
-);
+    </div>
+  );
+};
 
 // Full-width row for a table with nothing to show: no match for the search, or no data yet.
-export const EmptyRow = ({ show, columns, query, what }) => show ? (
-  <tr className="admin-empty-row">
-    <td colSpan={columns}>
-      {query ? <>No {what} match “{query}”.</> : <>No {what} yet.</>}
-    </td>
-  </tr>
-) : null;
+export const EmptyRow = ({ show, columns, query, what }) => {
+  const { t } = useTranslation();
+  return show ? (
+    <tr className="admin-empty-row">
+      <td colSpan={columns}>
+        {query
+          ? t('content_empty_no_match', 'No {{what}} match “{{query}}”.', { what, query, interpolation: { escapeValue: false } })
+          : t('content_empty_none_yet', 'No {{what}} yet.', { what, interpolation: { escapeValue: false } })}
+      </td>
+    </tr>
+  ) : null;
+};
 
 EmptyRow.propTypes = {
   show: PropTypes.bool,

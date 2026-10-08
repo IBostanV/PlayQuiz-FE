@@ -15,7 +15,6 @@
   gap: 8px;
   height: 32px;
   letter-spacing: 0.12em;
-  margin-left: auto;
   padding: 0 14px;
   text-transform: uppercase;
   transition: box-shadow 180ms ease, color 180ms ease;
@@ -326,6 +325,8 @@
   font-size: 0.8rem;
   font-style: italic;
   margin-top: 6px;
+  // The options the player had, one per line.
+  white-space: pre-line;
 }
 
 // Picking a screenshot for a report, and the picture once picked.
@@ -514,6 +515,8 @@
       color: inherit;
       font-size: 0.75em;
       max-height: 300px;
+      // A long stack line would otherwise size the whole table to itself.
+      max-width: min(480px, 75vw);
       overflow: auto;
       white-space: pre;
     }

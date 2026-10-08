@@ -15,7 +15,8 @@ const MORE = 5;
 
 // One block's lines, the newest few first and more on request. The server sends the whole feed
 // newest first (a month at most), so "more" is only showing more of what is already here.
-const Lines = ({items, empty}) => {
+// `cards`: each item a small block of its own, in a grid, instead of a line in a list.
+const Lines = ({items, empty, cards = false}) => {
     const {t} = useTranslation();
     const [shown, setShown] = useState(FIRST);
 
@@ -27,9 +28,9 @@ const Lines = ({items, empty}) => {
 
     return (
         <>
-            <ul className='feed-list'>
+            <ul className={cards ? 'home-news-cards' : 'feed-list'}>
                 {items.slice(0, shown).map(item => (
-                    <li key={item.key}>
+                    <li key={item.key} className={cards ? 'home-news-card' : undefined}>
                         <FeedLine item={item}/>
                         <Reactions tallies={tallies[item.key]} onReact={kind => react(item.key, kind)}/>
                     </li>
@@ -47,6 +48,7 @@ const Lines = ({items, empty}) => {
 Lines.propTypes = {
     items: PropTypes.arrayOf(PropTypes.object).isRequired,
     empty: PropTypes.string,
+    cards: PropTypes.bool,
 };
 
 // The home page's news, with friends' conquests and level-ups in a block of their own. The kinds
@@ -74,7 +76,7 @@ export const HomeNews = ({isLoggedIn}) => {
             {/* Nothing to show and nothing switched off: no block. With kinds switched off it
                 stays, or there would be no way to switch them back on. */}
             {(news.length > 0 || filter.hidden.length > 0) && (
-                <section className='home-news' aria-labelledby='home-news-title'
+                <section className='home-news home-news-board' aria-labelledby='home-news-title'
                          data-beside-friends={friends.length > 0 || undefined}>
                     <header className='home-news-header'>
                         <span className='home-news-icon' aria-hidden><FontAwesomeIcon icon={faNewspaper}/></span>
@@ -86,18 +88,18 @@ export const HomeNews = ({isLoggedIn}) => {
                         </Link>
                     </header>
                     <NewsKinds filter={filter}/>
-                    <Lines items={news} empty={t('news_filtered_out', 'Nothing to show with these filters.')}/>
+                    <Lines items={news} cards empty={t('news_filtered_out', 'Nothing to show with these filters.')}/>
                 </section>
             )}
 
             {/* Only signed in, and only with something in it: a guest has no friends to follow. */}
             {friends.length > 0 && (
-                <section className='home-news home-friends' aria-labelledby='home-friends-title'>
+                <section className='home-news home-news-board home-friends' aria-labelledby='home-friends-title'>
                     <header className='home-news-header'>
                         <span className='home-news-icon' aria-hidden><FontAwesomeIcon icon={faUserGroup}/></span>
                         <h2 id='home-friends-title' className='did-you-know-title'>{t('friends_news', 'Friends')}</h2>
                     </header>
-                    <Lines items={friends}/>
+                    <Lines items={friends} cards/>
                 </section>
             )}
         </>

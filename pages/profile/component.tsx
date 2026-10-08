@@ -16,6 +16,8 @@ import {QuizHistory} from "../../components/profile/quiz-history";
 import {IqScore} from "../../components/profile/iq-score";
 import {PreferredTrophy} from "../../components/profile/preferred-trophy";
 import {Statistics} from "../../components/profile/statistics";
+import {setProfileVisibility} from "../../api/user";
+import {LanguageSelect} from "../../components/common/language-select";
 
 // Label over control; `wide` spans both grid columns.
 const Field = ({id, label, wide = false, children}) => (
@@ -47,6 +49,16 @@ function Profile() {
         setOccupationQuizzes(enabled).catch(() => setOccupationQuizzesState(!enabled));
     };
     const [saving, setSaving] = useState(false);
+
+    // Who sees the activity on this player's profile; saved as soon as it is picked, like the switch above.
+    const changeVisibility = (visibility: string) => {
+        const before = user.profileVisibility;
+        setUser(values => ({...values, profileVisibility: visibility}));
+        setProfileVisibility(visibility).then(done => {
+            if (done) toast.success(t('saved'));
+            else setUser(values => ({...values, profileVisibility: before}));
+        });
+    };
 
     const handleChange = (event, field: string) =>
         setUser(values => ({
@@ -93,7 +105,7 @@ function Profile() {
                 {/* The whole avatar is the file picker; the input itself is visually hidden. The
                     chosen trophy sits on its corner, and is the way to change it. */}
                 <div className='profile-avatar-slot'>
-                    <label className='profile-avatar' data-tooltip={t('change_photo', 'Change photo')}>
+                    <label className='profile-avatar' data-tooltip={t('change_photo', 'Change photo')} data-frame={user.equippedFrame || undefined}>
                     {previewAvatar
                         ? <img src={previewAvatar} alt=''/>
                         : <span className='profile-avatar-initial' aria-hidden>{displayName?.charAt(0) || (loaded ? '?' : '')}</span>}
@@ -111,7 +123,7 @@ function Profile() {
                 {avatar && <span className='profile-avatar-pending'>{t('photo_unsaved', 'New photo — save to keep it')}</span>}
 
                 {/* The email is shown on its own line below, never as the name. */}
-                <h1 className='profile-name' data-placeholder={!displayName && loaded}>
+                <h1 className='profile-name' data-placeholder={!displayName && loaded} style={{color: user.nameColor ?? undefined}}>
                     {displayName || (loaded ? t('no_username', 'No username') : '')}
                 </h1>
                 {fullName && user.username && <p className='profile-username'>@{user.username}</p>}
@@ -137,6 +149,18 @@ function Profile() {
                         <FontAwesomeIcon icon={faKey}/>
                         {t('change_password')}
                     </button>
+
+                    <label htmlFor='profile-visibility' className='profile-hint profile-visibility-label'>
+                        {t('profile_visibility', 'Who sees your activity (quizzes, likes, posts, friends, groups)')}
+                    </label>
+                    <select id='profile-visibility' className='profile-visibility'
+                            value={user.profileVisibility ?? 'FRIENDS'}
+                            disabled={!loaded}
+                            onChange={(event) => changeVisibility(event.target.value)}>
+                        <option value='PUBLIC'>{t('visibility_public', 'Everyone')}</option>
+                        <option value='FRIENDS'>{t('visibility_friends', 'Friends only')}</option>
+                        <option value='PRIVATE'>{t('visibility_private', 'Only me')}</option>
+                    </select>
                 </div>
 
                 <Popup open={changingPassword}
@@ -192,6 +216,11 @@ function Profile() {
                                 {t('occupation_quizzes', 'Lean express quizzes to my occupation')}
                             </label>
                         </span>
+                    </Field>
+                    {/* Saved as soon as it is picked; kept in the form too, so Save does not put the old one back. */}
+                    <Field id='profile-language' label={t('language', 'Language')}>
+                        <LanguageSelect isLoggedIn field id='profile-language'
+                                        onChange={(language) => setUser(values => ({...values, language}))}/>
                     </Field>
                     <Field id='profile-categories' label={t('favorite_categories')} wide>
                         <MultiSelect inputId='profile-categories'

@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
 import {useTranslation} from 'react-i18next';
+import {questionText} from '../../utils/translated';
 import {toast} from 'react-toastify';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import {
@@ -11,6 +12,7 @@ import {
 import {answerRoom, getRoom, joinRoom, leaveRoom, LIVE_TOPIC, startRoom} from '../../api/live';
 import {useChatNotifications} from '../../context/chat-notifications';
 import {Avatar} from '../../components/common/avatar';
+import {useQuizInProgress} from '../../utils/quiz-in-progress';
 
 const LETTERS = 'ABCDEFGH';
 
@@ -26,7 +28,7 @@ const samePick = (option, pick) => Boolean(pick)
 // what the player does. Its clock is corrected by the server's, so everyone's countdown ends
 // together whatever the local clock says.
 function LiveMatch({isLoggedIn}) {
-    const {t} = useTranslation();
+    const {t, i18n} = useTranslation();
     const router = useRouter();
     const {subscribe} = useChatNotifications();
     const code = String(router.query.code ?? '').toUpperCase();
@@ -37,6 +39,8 @@ function LiveMatch({isLoggedIn}) {
     const [now, setNow] = useState(Date.now());
     const offset = useRef(0);
     const [picking, setPicking] = useState(false);
+    // The lobby too: the host can start the match at any moment.
+    useQuizInProgress(!closed && !missing && !['FINISHED', 'CLOSED'].includes(room?.phase));
 
     const show = (next) => {
         if (!next) return;
@@ -220,7 +224,7 @@ function LiveMatch({isLoggedIn}) {
                         <span className='live-timer-fill' data-low={room.phase === 'QUESTION' && left <= 5 || undefined}
                               style={{width: `${(room.phase === 'QUESTION' ? share : 0) * 100}%`}}/>
                     </div>
-                    <h2 className='live-question'>{room.question.content}</h2>
+                    <h2 className='live-question'>{questionText(room.question, i18n.language)}</h2>
                     <div className='live-options'>
                         {room.question.answers.map((option, index) => {
                             const picked = samePick(option, room.yourAnswer);

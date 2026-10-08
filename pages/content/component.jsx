@@ -4,6 +4,7 @@ import Category from './category/component';
 import Question from './question/component';
 import GlossaryType from './glossary-type/component';
 import { Tab } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import { getManagedCategories } from '../../api/category';
 import getByCategoryGlossaries from '../../api/glossary/get-all';
 import getGlossaryTypes from '../../api/glossary/get-types';
@@ -18,6 +19,7 @@ import {
 // admins. The admin dashboard at /admin — what players send in, and the accounts
 // themselves — stays admin-only.
 const ContentDashboardPage = () => {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState([]);
   const [glossaries, setGlossaries] = useState([]);
   const [glossaryTypes, setGlossaryTypes] = useState([]);
@@ -35,17 +37,17 @@ const ContentDashboardPage = () => {
   }, []);
 
   const sections = [
-    { key: 'category', label: 'Categories', icon: faLayerGroup },
+    { key: 'category', label: t('content_categories', 'Categories'), icon: faLayerGroup },
     {
       key: 'glosary',
-      label: 'Glossaries',
+      label: t('content_glossaries', 'Glossaries'),
       icon: faBookBookmark,
       badge: missingType,
-      badgeTitle: `${missingType} without a glossary type`,
+      badgeTitle: t('content_without_glossary_type', '{{count}} without a glossary type', { count: missingType }),
     },
-    { key: 'glossaryType', label: 'Glossary type', icon: faTags },
-    { key: 'question', label: 'Questions', icon: faListCheck },
-    { key: 'knowledge-base', label: 'Wiki', icon: faGraduationCap },
+    { key: 'glossaryType', label: t('content_glossary_type', 'Glossary type'), icon: faTags },
+    { key: 'question', label: t('content_questions', 'Questions'), icon: faListCheck },
+    { key: 'knowledge-base', label: t('content_wiki', 'Wiki'), icon: faGraduationCap },
   ];
 
   useEffect(() => {
@@ -64,7 +66,7 @@ const ContentDashboardPage = () => {
   }, []);
 
   return (
-    <AdminDashboard title="Content dashboard" sections={sections}>
+    <AdminDashboard title={t('content_dashboard', 'Content dashboard')} sections={sections}>
       <Tab.Pane eventKey="category">
         {(<Category categories={categories}
                     setCategories={setCategories}

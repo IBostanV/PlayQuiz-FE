@@ -35,8 +35,8 @@ export const DailyChallenge = ({compact}) => {
     const row = (entry, you) => (
         <li key={entry.rank} className='daily-row' data-you={you || undefined} data-podium={entry.rank <= 3 ? entry.rank : undefined}>
             <span className='daily-rank'>{entry.rank === 1 ? <FontAwesomeIcon icon={faCrown}/> : entry.rank}</span>
-            <Avatar name={entry.user?.displayName ?? '?'} photo={entry.user?.photo} className='daily-avatar'/>
-            <span className='daily-name'>{entry.user?.displayName}</span>
+            <Avatar name={entry.user?.displayName ?? '?'} photo={entry.user?.photo} frame={entry.user?.frame} className='daily-avatar'/>
+            <span className='daily-name' style={{color: entry.user?.nameColor ?? undefined}}>{entry.user?.displayName}</span>
             <span className='daily-score'>{entry.rightAnswers}<small>/{entry.totalAnswers}</small></span>
             <span className='daily-time'>{seconds(entry.spentTime)}</span>
         </li>
@@ -47,7 +47,15 @@ export const DailyChallenge = ({compact}) => {
             <header className='home-card-header'>
                 <span className='home-card-icon' data-tone='gold' aria-hidden><FontAwesomeIcon icon={faCalendarDay}/></span>
                 <div>
-                    <h2 id='daily-challenge-title' className='home-card-title'>{t('daily_challenge', 'Daily challenge')}</h2>
+                    <h2 id='daily-challenge-title' className='home-card-title'>
+                        {t('daily_challenge', 'Daily challenge')}
+                        {status.number && <span className='daily-number'> #{status.number}</span>}
+                        {status.streak > 0 && (
+                            <span className='daily-streak' data-tooltip={t('daily_streak', '{{days}} days in a row', {days: status.streak})}>
+                                🔥 {status.streak}
+                            </span>
+                        )}
+                    </h2>
                     <span className='home-card-sub'>
                         {t('daily_challenge_sub', '{{questions}} questions, the same for everyone · {{players}} played · new in {{left}}',
                             {questions: status.questions, players: status.players, left: closes ? timeLeft(closes) : '—'})}

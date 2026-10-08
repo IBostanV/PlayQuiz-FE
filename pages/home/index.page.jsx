@@ -21,7 +21,9 @@ import {HomeInvitations} from "../../components/home/home-invitations";
 import {HomeRecent} from "../../components/home/home-recent";
 import {HomeWeakSpot} from "../../components/home/home-weak-spot";
 import {DailyChallenge} from "../../components/social/daily-challenge";
+import {HomeFavorites} from '../../components/home/home-favorites';
 import {HomeLeaderboard} from "../../components/home/home-leaderboard";
+import {ReviewCard} from "../../components/review/review-card";
 import {getCurrentUser} from "../../api/user";
 import {EXPERIENCE_CHANGED} from "../../api/quiz/save";
 
@@ -63,24 +65,31 @@ const toLoopSlides = (categories) => {
 // Quote of the day from zenquotes.io: the same one for everyone, a new one each day. Fetched
 // server side (the API sends no CORS headers) and kept until the date rolls over, so the site
 // makes one call a day. Only a successful fetch is cached, a failure falls back to our own quote.
-// The page waits on this, so a slow or hung API is cut off rather than holding up /home, and after
-// a failure it is left alone for a few minutes instead of making every visit wait on it again.
+// The quote is shown as it comes, in English, whatever the site's language.
+// The page waits on this only so long: the API often takes a second or two, so a slow answer is
+// not thrown away but left to land in the cache for the visits after. A failure (or a hung API)
+// is left alone for a few minutes instead of making every visit wait on it again.
 let quoteOfTheDay = {date: '', quote: null};
 let retryQuoteAt = 0;
+let quoteRequest = null;
 
 const getDailyQuote = async () => {
     const date = new Date().toISOString().slice(0, 10);
     if (quoteOfTheDay.date === date) return quoteOfTheDay.quote;
     if (Date.now() < retryQuoteAt) return null;
-    try {
-        const [{q, a}] = await fetch('https://zenquotes.io/api/today', {signal: AbortSignal.timeout(1500)})
-            .then(response => response.json());
-        quoteOfTheDay = {date, quote: {text: q, author: a}};
-    } catch {
-        retryQuoteAt = Date.now() + 5 * 60 * 1000;
-        return null;
-    }
-    return quoteOfTheDay.quote;
+    quoteRequest ??= fetch('https://zenquotes.io/api/today', {signal: AbortSignal.timeout(15000)})
+        .then(response => response.json())
+        .then(([{q, a}]) => {
+            quoteOfTheDay = {date, quote: {text: q, author: a}};
+        })
+        .catch(() => {
+            retryQuoteAt = Date.now() + 5 * 60 * 1000;
+        })
+        .finally(() => {
+            quoteRequest = null;
+        });
+    await Promise.race([quoteRequest, new Promise(resolve => setTimeout(resolve, 3000))]);
+    return quoteOfTheDay.date === date ? quoteOfTheDay.quote : null;
 };
 
 function Home({isLoggedIn, quote}) {
@@ -88,6 +97,8 @@ function Home({isLoggedIn, quote}) {
     // null until the categories are in and their pictures decoded: the carousel's space is kept
     // empty till then, and it fades in whole instead of landing half-drawn and pushing the page down.
     const [categories, setCategories] = useState(null);
+    // Every category, pictures or not, for the player's own grid.
+    const [allCategories, setAllCategories] = useState([]);
     // The player, for the welcome panel. Re-read when experience changes (today's tasks pay on
     // this page), so its level bar keeps up with the navbar's.
     const [user, setUser] = useState(null);
@@ -105,6 +116,7 @@ function Home({isLoggedIn, quote}) {
         // The short list has no pictures in it, only whether there is one: the pictures come
         // separately, all at once, and from the browser's cache on the next visit.
         getAllCategoriesShort().then(async all => {
+            if (current && Array.isArray(all)) setAllCategories(all);
             const shown = (Array.isArray(all) ? all : []).filter(category => category.hasImage).slice(0, MAX_CATEGORIES);
             // A picture that will not load is shown broken rather than holding the rest back.
             await Promise.all(shown.map(category => {
@@ -147,7 +159,7 @@ function Home({isLoggedIn, quote}) {
 
                 <figure className='home-quote'>
                     <FontAwesomeIcon className='home-quote-mark' icon={faQuoteLeft} aria-hidden/>
-                    <blockquote className='home-quote-text'>
+                    <blockquote className='home-quote-text' lang={quote?.text ? 'en' : undefined}>
                         {quote?.text || t('home_quote', 'A smarter you starts with a single question')}
                     </blockquote>
                     {quote?.author && <figcaption className='home-quote-author'>&mdash; {quote.author}</figcaption>}
@@ -233,6 +245,11 @@ function Home({isLoggedIn, quote}) {
                 {isLoggedIn ? <DailyTasks/> : <DidYouKnow compact/>}
             </div>
 
+            {/* The player's own categories, before the table of everyone. */}
+            {isLoggedIn && <div className='home-row'>
+                <HomeFavorites user={user} categories={allCategories}/>
+            </div>}
+
             {/* The site's best, for everyone: a guest sees what there is to beat. */}
             <div className='home-row'>
                 <HomeLeaderboard/>
@@ -244,9 +261,14 @@ function Home({isLoggedIn, quote}) {
                 <HomeWeakSpot/>
             </div>}
 
-            {/* What to play next, from what this player has already played. */}
+            {/* What to play next, from what this player has already played: a row to itself. */}
             {isLoggedIn && <div className='home-row'>
                 <HomeRecent/>
+            </div>}
+
+            {/* What to work on: the mistakes due back, and the trophy nearest to being won. */}
+            {isLoggedIn && <div className='home-row'>
+                <ReviewCard compact/>
                 <HomeNextTrophy/>
             </div>}
 

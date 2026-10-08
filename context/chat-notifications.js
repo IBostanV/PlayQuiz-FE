@@ -7,6 +7,7 @@ import {getCurrentUser} from '../api/user';
 import {getMutedGroups, setGroupMuted} from '../api/user/group-mute';
 import {readChallenge, readResult} from '../utils/quizMessage';
 import {declineRoom, LIVE_TOPIC} from '../api/live';
+import {ANNOUNCEMENT_TOPIC} from '../api/announcement';
 
 // Defaults (outside the provider) carry the real signatures, so TS callers type-check.
 const ChatNotificationsContext = createContext({
@@ -17,6 +18,7 @@ const ChatNotificationsContext = createContext({
     connected: false,
     sendMessage: (destination, body) => {},
     subscribe: (listener) => () => {},
+    currentUser: null,
 });
 
 export const useChatNotifications = () => useContext(ChatNotificationsContext);
@@ -217,7 +219,7 @@ export const ChatNotificationsProvider = ({isLoggedIn, children}) => {
     return (
         <ChatNotificationsContext.Provider value={{
             isMuted, toggleMute, desktopPermission, enableDesktopNotifications,
-            connected, sendMessage, subscribe,
+            connected, sendMessage, subscribe, currentUser,
         }}>
             {children}
             {/* Mounted per login: logging out tears the connection down, logging in opens a
@@ -225,7 +227,7 @@ export const ChatNotificationsProvider = ({isLoggedIn, children}) => {
             {isLoggedIn && (
                 <SockJsClient ref={clientRef}
                               url={`${process.env.NEXT_PUBLIC_BE_HOST_URL}/api/pq`}
-                              topics={[PRIVATE_TOPIC, PUBLIC_TOPIC, LIVE_TOPIC]}
+                              topics={[PRIVATE_TOPIC, PUBLIC_TOPIC, LIVE_TOPIC, ANNOUNCEMENT_TOPIC]}
                               onConnect={() => setConnected(true)}
                               onDisconnect={() => setConnected(false)}
                               onMessage={onMessage}/>

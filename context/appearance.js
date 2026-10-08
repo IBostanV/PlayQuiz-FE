@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
-import {getAppearance, saveAppearance} from '../api/user/appearance';
+import {customBackgroundUrl, getAppearance, presetBackgroundUrl, saveAppearance} from '../api/user/appearance';
 import {useClientLayoutEffect} from '../hooks/client-layout-effect';
 
 // Every setting a player can change, at the site as it comes. Null is "not changed".
@@ -9,8 +9,21 @@ export const APPEARANCE_DEFAULTS = {
     textSize: null,
     motion: null,
     compactNav: null,
+    hideTourLink: null,
     friendsDock: null,
     homeFriends: null,
+    background: null,
+    // The uploaded picture's id: the server's to set, sent back untouched.
+    customBackground: null,
+};
+
+// The picture behind the site, or null for the logo. Both parts go into a style rule, so they are
+// held to their shapes (a name, an id) here as well as on the server.
+export const backgroundUrlFor = (settings) => {
+    if (settings.background === 'custom') {
+        return /^[0-9a-f-]{36}$/.test(settings.customBackground ?? '') ? customBackgroundUrl(settings.customBackground) : null;
+    }
+    return /^[a-z]+$/.test(settings.background ?? '') ? presetBackgroundUrl(settings.background) : null;
 };
 
 // The accent as it comes, for the colour picker to start from.
@@ -40,6 +53,7 @@ const AppearanceContext = createContext({
     settings: APPEARANCE_DEFAULTS,
     preview: () => undefined,
     update: () => Promise.resolve(),
+    adopt: () => undefined,
 });
 
 export const useAppearance = () => useContext(AppearanceContext);
@@ -74,6 +88,11 @@ const apply = (settings) => {
 
     if (settings.friendsDock === 'RIGHT') root.setAttribute('data-friends-dock', 'right');
     else root.removeAttribute('data-friends-dock');
+
+    const background = backgroundUrlFor(settings);
+    toggle(root, 'data-background', Boolean(background));
+    if (background) root.style.setProperty('--ui-background', `url("${background}")`);
+    else root.style.removeProperty('--ui-background');
 
     if (settings.homeFriends && settings.homeFriends !== 'RIGHT') {
         root.setAttribute('data-home-friends', settings.homeFriends.toLowerCase());
@@ -137,8 +156,11 @@ export const AppearanceProvider = ({isLoggedIn, children}) => {
         return saveAppearance(next).then(stored => setSettings(stored ? {...APPEARANCE_DEFAULTS, ...stored} : before));
     };
 
+    // What the server answered with after a change made elsewhere (the background upload).
+    const adopt = (stored) => stored && setSettings({...APPEARANCE_DEFAULTS, ...stored});
+
     return (
-        <AppearanceContext.Provider value={{settings, preview, update}}>
+        <AppearanceContext.Provider value={{settings, preview, update, adopt}}>
             {children}
         </AppearanceContext.Provider>
     );

@@ -116,6 +116,15 @@
     padding: 14px 12px;
   }
 
+  .quiz-filters-title {
+    border-bottom: 1px solid rgba(var(--ui-accent-rgb), 0.25);
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0;
+    padding-bottom: 10px;
+  }
+
   .quiz-filter {
     border: 0;
     margin: 0;
@@ -608,6 +617,26 @@
     }
   }
 
+  .answer-pair {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    max-width: 560px;
+    width: 100%;
+
+    .answer-drop {
+      cursor: pointer;
+      flex: 1;
+      min-height: 48px;
+    }
+  }
+
+  .answer-pair-key {
+    flex: 0 0 40%;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
   .quiz-unavailable {
     color: #9fb6c4;
     margin: 60px auto 0;
@@ -872,6 +901,40 @@
     height: 48px;
     margin: auto;
     width: 48px;
+  }
+
+  // Phones: tighter spacing so the question and its answers fit one screen without scrolling.
+  @media (max-width: 575.98px) {
+    gap: 12px;
+
+    .quiz-stage {
+      gap: 16px;
+      padding: 6px 0 16px;
+    }
+
+    .quiz-question {
+      min-height: calc(2.8em + 36px);
+      padding: 18px 16px;
+    }
+
+    .answer-grid {
+      gap: 10px;
+    }
+
+    // Picture answers two to a row: one per row at 4:3 pushes the last ones off the screen.
+    .answer-grid:has(.answer-card-image) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .answer-card-label {
+      font-size: 1rem;
+      gap: 10px;
+      padding: 12px 14px;
+    }
+
+    .quiz-confirm {
+      padding: 12px 32px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

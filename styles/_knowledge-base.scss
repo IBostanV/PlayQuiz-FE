@@ -186,7 +186,8 @@
 .kb-grid {
   display: grid;
   gap: 22px;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  // min(): a phone narrower than one card still gets a single full-width column.
+  grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
 }
 
 .kb-card {
@@ -483,6 +484,8 @@ a.kb-tag {
   color: #d6e8f2;
   font-size: 1.02rem;
   line-height: 1.75;
+  // A pasted URL or long word wraps instead of widening the page on a phone.
+  overflow-wrap: anywhere;
   padding: 30px 40px;
 
   p,
@@ -545,6 +548,18 @@ a.kb-tag {
   img {
     border-radius: 12px;
     max-width: 100%;
+  }
+
+  // Embeds and tables from the editor keep to the column; a wide table scrolls in place.
+  iframe,
+  video {
+    max-width: 100%;
+  }
+
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
   }
 }
 
